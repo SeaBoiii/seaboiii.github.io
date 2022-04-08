@@ -13,7 +13,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/SeaBoiii/seaboiii.github.io">
-    <img src="img/A1E3M-logos.jpeg" alt="Logo" width="500" height="500">
+    <img src="img/A1E3M-logos_black.png" alt="Logo" width="500" height="500">
   </a>
 
 <h3 align="center">My Portfolio Website</h3>

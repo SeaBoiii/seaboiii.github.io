@@ -332,7 +332,7 @@ hr {
 .an-img {
 	width: 100%;
 	background: linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.35)),
-	url("../img/skyblock-pvp.png") no-repeat center center;
+	url("../img/background_1.jpg") no-repeat center center;
 	background-size: cover;
 	background-attachment: fixed;
 	padding: 100px 50px;
