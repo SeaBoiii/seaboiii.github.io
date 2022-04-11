@@ -290,11 +290,14 @@ hr {
 
 /* Staff */
 .staff-team {
-	display: flex;
+	display: table;
 	justify-content: space-around;
 	flex-wrap: wrap;
 	margin: 20px auto 10px auto;
 	width: 95%;
+	table-layout: fixed;
+	box-sizing: border-box;
+	border-spacing: 20px;
 }
 
 .staff {
@@ -499,9 +502,14 @@ footer a {
 	.staff-team img {
 		width: 170px;
 	}
+	.staff-team p {
+		text-align: justify;
+		text-justify: inter-word;
+	}
 	.staff-team > div {
+		display: table-cell;
+		vertical-alight: middle;
 		padding: 13px;
-		width: 220px;
 		font-size: 18px;
 	}
 
