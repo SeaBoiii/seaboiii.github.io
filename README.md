@@ -12,7 +12,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/SeaBoiii/seaboiii.github.io">
+  <a href="seaboiii.github.io">
     <img src="img/A1E3M-logos_black.png" alt="Logo" width="500" height="500">
   </a>
 
