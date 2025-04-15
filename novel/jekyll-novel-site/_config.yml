@@ -1,7 +1,7 @@
 title: My Novel
 description: A collection of chapters for my novel.
-baseurl: ""
-url: "https://yourusername.github.io/jekyll-novel-site"
+baseurl: "/novel/jekyll-novel-site" # Update this if your site is in a subdirectory
+url: "https://seaboiii.github.io"
 theme: minima
 markdown: kramdown
 permalink: pretty

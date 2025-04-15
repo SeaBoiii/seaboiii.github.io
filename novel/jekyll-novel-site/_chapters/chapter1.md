@@ -1,3 +1,8 @@
+---
+layout: chapter
+title: Chapter 1 - The Beginning
+---
+
 # Chapter 1: The Beginning
 
 Once upon a time, in a land far away, there lived a young hero destined for greatness. This is the story of their journey, filled with challenges, friendships, and discoveries.
