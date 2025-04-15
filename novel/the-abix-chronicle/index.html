@@ -9,122 +9,160 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.ico">
+  <style>
+    /* Inline styles for demonstration purposes */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    .nav {
+      background: #333;
+      color: #fff;
+      padding: 1rem 0;
+    }
+
+    .nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 1rem;
+    }
+
+    .hero {
+      background: url('/images/hero-bg.jpg') no-repeat center center/cover;
+      color: #fff;
+      text-align: center;
+      padding: 4rem 1rem;
+    }
+
+    .hero h2 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+    }
+
+    .chapter-list {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .chapter-list li {
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .chapter-list img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .chapter-list a {
+      display: block;
+      padding: 1rem;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .chapter-list a:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    .footer {
+      background: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1rem 0;
+      margin-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <div class="nav">
-      <ul class="nav-items" id="nav-items">
-        <a><li onclick="mobile()" class="icon fa fa-bars fa-2x"></li></a>
-        <a href="/"><li class="h">
-          <div class="overlay"></div>
-          Home
-        </li></a>
-        <a href="/novel/crossroads-of-the-heart/"><li class="h">
-          <div class="overlay"></div>
-          Crossroads of the Heart
-        </li></a>
-        <a href="/novel/the-abix-chronicle/"><li class="h">
-          <div class="overlay"></div>
-          The Abix Chronicle
-        </li></a>
-      </ul>
-      <div class="mnav" id="mnav">
-        <a href="/"><li class="i">Home</li></a>
-        <a href="/novel/crossroads-of-the-heart/"><li class="i">Crossroads of the Heart</li></a>
-        <a href="/novel/the-abix-chronicle/"><li class="i">The Abix Chronicle</li></a>
-      </div>
-    </div>
-
-    <div class="hero" id="main">
-      <h1>
-        The Abix Chronicle
-        <span class="hero--highlight">Novel Series</span>
-      </h1>
-      <h3>Embark on an unforgettable journey through the twists and turns of The Abix Chronicle.</h3>
+  <header class="nav">
+    <div class="container">
+      <h1><a href="/">SeaBoiii</a></h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/novel/crossroads-of-the-heart/">Crossroads of the Heart</a></li>
+          <li><a href="/novel/the-abix-chronicle/">The ABIX Chronicle</a></li>
+        </ul>
+      </nav>
     </div>
   </header>
 
-  <main class="main">
-    <div id="description">
-      <h2>About the Series</h2>
-      <p>The Abix Chronicle is a captivating novel series that takes readers on a journey filled with adventure, drama, and unexpected twists. Explore the chapters below to dive into the story.</p>
+  <section class="hero">
+    <div class="container">
+      <h2>The Abix Chronicle</h2>
+      <p>Embark on an unforgettable journey through the twists and turns of The Abix Chronicle.</p>
     </div>
+  </section>
 
-    <div id="chapters">
-      <h2>Chapters</h2>
-      <ul class="chapter-list">
-        <li>
-          <a href="Chapter1.html">
-            <div class="overlay"></div>
-            Chapter 1: The Smash That Started It All
-          </a>
-        </li>
-        <li>
-          <a href="Chapter2.html">
-            <div class="overlay"></div>
-            Chapter 2: Of CCAs and Coincidences
-          </a>
-        </li>
-        <li>
-          <a href="Chapter3.html">
-            <div class="overlay"></div>
-            Chapter 3: Backhand Beginnings
-          </a>
-        </li>
-        <li>
-          <a href="Chapter4.html">
-            <div class="overlay"></div>
-            Chapter 4: The First ABIX Outing
-          </a>
-        </li>
-        <li>
-          <a href="Chapter5.html">
-            <div class="overlay"></div>
-            Chapter 5: When Crystal Fell
-          </a>
-        </li>
-        <li>
-          <a href="Chapter6.html">
-            <div class="overlay"></div>
-            Chapter 6: Exam Season Chaos
-          </a>
-        </li>
-        <li>
-          <a href="Chapter7.html">
-            <div class="overlay"></div>
-            Chapter 7: JB or Jail Break?
-          </a>
-        </li>
-        <li>
-          <a href="Chapter8.html">
-            <div class="overlay"></div>
-            Chapter 8: ABIX & The CCA Showdown?
-          </a>
-        </li>
-        <li>
-          <a href="Chapter9.html">
-            <div class="overlay"></div>
-            Chapter 9: TBD
-          </a>
-        </li>
-      </ul>
-    </div>
+  <main class="container">
+    <h3>Chapters</h3>
+    <ul class="chapter-list">
+      <li>
+        <img src="/images/chapter1.jpg" alt="Chapter 1">
+        <a href="Chapter1.html">Chapter 1: The Smash That Started It All</a>
+      </li>
+      <li>
+        <img src="/images/chapter2.jpg" alt="Chapter 2">
+        <a href="Chapter2.html">Chapter 2: Of CCAs and Coincidences</a>
+      </li>
+      <li>
+        <img src="/images/chapter3.jpg" alt="Chapter 3">
+        <a href="Chapter3.html">Chapter 3: Backhand Beginnings</a>
+      </li>
+      <li>
+        <img src="/images/chapter4.jpg" alt="Chapter 4">
+        <a href="Chapter4.html">Chapter 4: The First ABIX Outing</a>
+      </li>
+      <li>
+        <img src="/images/chapter5.jpg" alt="Chapter 5">
+        <a href="Chapter5.html">Chapter 5: When Crystal Fell</a>
+      </li>
+      <li>
+        <img src="/images/chapter6.jpg" alt="Chapter 6">
+        <a href="Chapter6.html">Chapter 6: Exam Season Chaos</a>
+      </li>
+      <li>
+        <img src="/images/chapter7.jpg" alt="Chapter 7">
+        <a href="Chapter7.html">Chapter 7: JB or Jail Break?</a>
+      </li>
+      <li>
+        <img src="/images/chapter8.jpg" alt="Chapter 8">
+        <a href="Chapter8.html">Chapter 8: ABIX & The CCA Showdown?</a>
+      </li>
+      <li>
+        <img src="/images/chapter9.jpg" alt="Chapter 9">
+        <a href="Chapter9.html">Chapter 9: TBD</a>
+      </li>
+    </ul>
   </main>
 
-  <footer>
-    <img alt="SeaBoiii logo" src="/img/logo.png">
-    <p>&copy; 2025 SeaBoiii</p>
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 SeaBoiii</p>
+    </div>
   </footer>
-
-  <script>
-    function mobile() {
-      var bars = document.getElementById("mnav");
-      if (bars.className === "mnav") {
-        bars.className += " responsive";
-      } else {
-        bars.className = "mnav";
-      }
-    }
-  </script>
 </body>
 </html>
