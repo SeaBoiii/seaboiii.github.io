@@ -3,7 +3,7 @@ title: Chapter 8 - ABIX & The CCA Showdown?
 layout: default
 ---
 
-### **Chapter 8: ABIX & The CCA Showdown**
+## **Chapter 8: ABIX & The CCA Showdown**
 
 It all started, as many bad decisions do, with Crystal enthusiastically clicking **“Yes”** on a volunteer form without reading the full details.
 
