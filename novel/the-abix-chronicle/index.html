@@ -2,51 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Crossroads of the Heart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Abix Chronicle</title>
+  <meta name="description" content="Explore the chapters of The Abix Chronicle, a novel series filled with twists and turns.">
+  <meta name="keywords" content="The Abix Chronicle, novel, chapters, SeaBoiii">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.ico">
 </head>
 <body>
-  <header class="nav">
-    <div class="container">
-      <h1><a href="/">SeaBoiii</a></h1>
-      <nav>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="/novel/crossroads-of-the-heart/">Crossroads of the Heart</a></li>
-          <li><a href="/novel/the-abix-chronicle/">The ABIX Chronicle</a></li>
-        </ul>
-      </nav>
+  <header>
+    <div class="nav">
+      <ul class="nav-items" id="nav-items">
+        <a><li onclick="mobile()" class="icon fa fa-bars fa-2x"></li></a>
+        <a href="/"><li class="h">
+          <div class="overlay"></div>
+          Home
+        </li></a>
+        <a href="/novel/crossroads-of-the-heart/"><li class="h">
+          <div class="overlay"></div>
+          Crossroads of the Heart
+        </li></a>
+        <a href="/novel/the-abix-chronicle/"><li class="h">
+          <div class="overlay"></div>
+          The Abix Chronicle
+        </li></a>
+      </ul>
+      <div class="mnav" id="mnav">
+        <a href="/"><li class="i">Home</li></a>
+        <a href="/novel/crossroads-of-the-heart/"><li class="i">Crossroads of the Heart</li></a>
+        <a href="/novel/the-abix-chronicle/"><li class="i">The Abix Chronicle</li></a>
+      </div>
+    </div>
+
+    <div class="hero" id="main">
+      <h1>
+        The Abix Chronicle
+        <span class="hero--highlight">Novel Series</span>
+      </h1>
+      <h3>Embark on an unforgettable journey through the twists and turns of The Abix Chronicle.</h3>
     </div>
   </header>
 
-  <section class="hero">
-    <div class="container">
-      <h2>The Abix Chronicle</h2>
-      <p>Hehehehehe</p>
+  <main class="main">
+    <div id="description">
+      <h2>About the Series</h2>
+      <p>The Abix Chronicle is a captivating novel series that takes readers on a journey filled with adventure, drama, and unexpected twists. Explore the chapters below to dive into the story.</p>
     </div>
-  </section>
 
-  <main class="container">
-    <h3>Chapters</h3>
-    <ul class="chapter-list">
-      <li><a href="Chapter1.html">Chapter 1: The Smash That Started It All</a></li>
-      <li><a href="Chapter2.html">Chapter 2: Of CCAs and Coincidences</a></li>
-      <li><a href="Chapter3.html">Chapter 3: Backhand Beginnings</a></li>
-      <li><a href="Chapter4.html">Chapter 4: The First ABIX Outing</a></li>
-      <li><a href="Chapter5.html">Chapter 5: When Crystal Fell</a></li>
-      <li><a href="Chapter6.html">Chapter 6: Exam Season Chaos</a></li>
-      <li><a href="Chapter7.html">Chapter 7: JB or Jail Break?</a></li>
-      <li><a href="Chapter8.html">Chapter 8: ABIX & The CCA Showdown?</a></li>
-      <li><a href="Chapter9.html">Chapter 9: </a></li>
-      <!-- Add more chapters here -->
-    </ul>
+    <div id="chapters">
+      <h2>Chapters</h2>
+      <ul class="chapter-list">
+        <li>
+          <a href="Chapter1.html">
+            <div class="overlay"></div>
+            Chapter 1: The Smash That Started It All
+          </a>
+        </li>
+        <li>
+          <a href="Chapter2.html">
+            <div class="overlay"></div>
+            Chapter 2: Of CCAs and Coincidences
+          </a>
+        </li>
+        <li>
+          <a href="Chapter3.html">
+            <div class="overlay"></div>
+            Chapter 3: Backhand Beginnings
+          </a>
+        </li>
+        <li>
+          <a href="Chapter4.html">
+            <div class="overlay"></div>
+            Chapter 4: The First ABIX Outing
+          </a>
+        </li>
+        <li>
+          <a href="Chapter5.html">
+            <div class="overlay"></div>
+            Chapter 5: When Crystal Fell
+          </a>
+        </li>
+        <li>
+          <a href="Chapter6.html">
+            <div class="overlay"></div>
+            Chapter 6: Exam Season Chaos
+          </a>
+        </li>
+        <li>
+          <a href="Chapter7.html">
+            <div class="overlay"></div>
+            Chapter 7: JB or Jail Break?
+          </a>
+        </li>
+        <li>
+          <a href="Chapter8.html">
+            <div class="overlay"></div>
+            Chapter 8: ABIX & The CCA Showdown?
+          </a>
+        </li>
+        <li>
+          <a href="Chapter9.html">
+            <div class="overlay"></div>
+            Chapter 9: TBD
+          </a>
+        </li>
+      </ul>
+    </div>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <p>&copy; 2025 SeaBoiii</p>
-    </div>
+  <footer>
+    <img alt="SeaBoiii logo" src="/img/logo.png">
+    <p>&copy; 2025 SeaBoiii</p>
   </footer>
+
+  <script>
+    function mobile() {
+      var bars = document.getElementById("mnav");
+      if (bars.className === "mnav") {
+        bars.className += " responsive";
+      } else {
+        bars.className = "mnav";
+      }
+    }
+  </script>
 </body>
 </html>
