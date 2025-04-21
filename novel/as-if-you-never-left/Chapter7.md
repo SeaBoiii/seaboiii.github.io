@@ -167,3 +167,5 @@ He wiped his face with shaking hands. Rose slowly. His limbs felt heavy, as thou
 Then he saw it.
 
 The journal. Still resting on the counter...
+
+![Chapter 7](img/chapter_7.png)

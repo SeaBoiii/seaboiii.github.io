@@ -154,8 +154,6 @@ Not a return.
 
 Just two lives converging again.
 
-As if she had never left.
-
 ---
 
 A few weeks later, Elara sat on the balcony of the apartment, sharing tea with Grandmother Suraya. The older woman’s eyes never left her as Elara recounted her story in pieces—hesitantly at first, then with more certainty, like petals unfurling in the light.

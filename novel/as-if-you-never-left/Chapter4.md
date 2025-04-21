@@ -181,3 +181,5 @@ She cried for herself.
 For the love she had begun to feel.
 
 And for the goodbye she already knew was coming.
+
+![Chapter 4](img/chapter_4.png)

@@ -335,3 +335,5 @@ And inside, Elara remained still, held by the quiet knowledge that she had not t
 She had only walked with her, for a little while.
 
 And perhaps, that was enough.
+
+![Chapter 5](img/chapter_5.png)

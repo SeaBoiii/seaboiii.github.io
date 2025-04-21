@@ -305,3 +305,5 @@ And in that silence, Day 99 passed—not as a warning, but as a blessing.
 A love, finally spoken.
 
 On the edge of goodbye.
+
+![Chapter 6](img/chapter_6.png)

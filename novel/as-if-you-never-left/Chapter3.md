@@ -267,3 +267,5 @@ Elara pressed her palm lightly to the glass. She wasn’t sure who she was anymo
 Tomorrow would come. Another morning. Another layer of this strange life.
 
 And maybe—just maybe—it would bring a moment not meant for healing or remembering, but simply for living.
+
+![Chapter 3](img/chapter_3.png)
