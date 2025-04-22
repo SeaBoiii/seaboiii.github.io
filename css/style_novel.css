@@ -11,7 +11,11 @@ h1, h2, h3 {
   font-family: 'Merriweather', serif;
 }
 
+/* Default styles for the navigation */
 .nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: #333;
   color: #fff;
   padding: 1rem 0;
@@ -21,6 +25,21 @@ h1, h2, h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.nav-links {
+  display: flex;
+}
+
+.nav-links ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  margin: 0 10px;
 }
 
 .nav a {
@@ -49,6 +68,36 @@ h1, h2, h3 {
 
 .nav ul li a:hover {
   color: #f0a500; /* Add a hover effect for better interactivity */
+}
+
+.menu-toggle {
+  display: none;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    width: 200px;
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
 }
 
 .hero {
