@@ -221,6 +221,31 @@ h1, h2, h3 {
   color: #fff;
 }
 
+/* Section headings */
+.complete-novels h4,
+.incomplete-novels h4 {
+  margin-top: 20px;
+  color: #333;
+}
+
+/* Status badges */
+.status {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  color: white;
+}
+
+.status.complete {
+  background-color: green;
+}
+
+.status.incomplete {
+  background-color: red;
+}
+
 .footer {
   background: #333;
   color: #fff;
