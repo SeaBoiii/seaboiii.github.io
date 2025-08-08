@@ -25,11 +25,12 @@
         {{ content }}
       </article>
 
-      {% comment %}Find all chapter pages in the same folder and sort by 'order'{% endcomment %}
+      {% comment %}Find all chapter pages in this novel by URL prefix{% endcomment %}
+{% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
 {% assign siblings = site.pages
-  | where: "dir", page.dir
-  | where_exp: "p", "p.name != 'index.md'"
-  | sort: "order" %}
+  | where_exp: 'p', 'p.url contains pathprefix'
+  | where_exp: 'p', 'p.name != "index.md"'
+  | sort: 'order' %}
 
 {% assign idx = 0 %}
 {% for c in siblings %}
@@ -37,6 +38,7 @@
 {% endfor %}
 {% assign prev = siblings[idx | minus: 1] %}
 {% assign next = siblings[idx | plus: 1] %}
+
 
 
       <nav class="pager">
