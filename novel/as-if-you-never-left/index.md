@@ -17,9 +17,11 @@ order: 0
 </ul>
 
 <hr>
-<p><strong>Debug</strong>: listing pages in this folder</p>
-{% assign items = site.pages | where: "dir", page.dir | sort: "name" %}
-{% for p in items %}
-<pre>{{ p.path }} | dir={{ p.dir }} | name={{ p.name }} | order={{ p.order }}</pre>
+<p><strong>Debug — pages under this novel</strong></p>
+{% assign prefix = '/novel/as-if-you-never-left/' %}
+{% for p in site.pages %}
+  {% if p.url contains prefix %}
+    <pre>{{ p.path }} | url={{ p.url }} | dir={{ p.dir }} | name={{ p.name }} | layout={{ p.layout }} | order={{ p.order }} | Title={{ p.Title }}</pre>
+  {% endif %}
 {% endfor %}
 
