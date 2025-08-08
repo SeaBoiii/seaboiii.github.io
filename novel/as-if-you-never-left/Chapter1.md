@@ -1,9 +1,9 @@
 ---
-title: Chapter 1 - The Empty Room 
 layout: chapter
 collection: chapters
 novel: as-if-you-never-left
 order: 1
+Title: Chapter 1 - The Empty Room
 ---
 
 ## Chapter 1: The Empty Room  

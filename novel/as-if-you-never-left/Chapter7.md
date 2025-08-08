@@ -1,9 +1,9 @@
 ---
-title: Chapter 7 - Day 100 – The Final Morning
 layout: chapter
 collection: chapters
 novel: as-if-you-never-left
 order: 7
+Title: Chapter 7 - Day 100 – The Final Morning
 ---
 
 ## Chapter 7: Day 100 – The Final Morning

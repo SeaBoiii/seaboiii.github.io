@@ -1,9 +1,9 @@
 ---
-title: Chapter 3 - Who is Elara
 layout: chapter
 collection: chapters
 novel: as-if-you-never-left
 order: 3
+Title: Chapter 3 - Who is Elara
 ---
 
 ## Chapter 3: Who is Elara

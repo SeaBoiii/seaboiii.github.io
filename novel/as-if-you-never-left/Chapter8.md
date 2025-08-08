@@ -1,9 +1,9 @@
 ---
-title: Chapter 8 - As If You Never Left
 layout: chapter
 collection: chapters
 novel: as-if-you-never-left
 order: 8
+Title: Chapter 8 - As If You Never Left
 ---
 
 ## Chapter 8: As If You Never Left

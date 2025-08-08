@@ -1,9 +1,9 @@
 ---
-title: Epilogue B - The Last Echoes
 layout: chapter
 collection: chapters
 novel: as-if-you-never-left
 order: 10
+Title: Epilogue B - The Last Echoes
 ---
 ## Epilogue B: The Last Echoes
 

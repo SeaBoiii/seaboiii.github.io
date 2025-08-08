@@ -13,7 +13,6 @@ defaults:
       type: "pages"
     values:
       layout: chapter
-      collection: chapters
 
 title: "Aleem's Novels"
 description: "Stories by Aleem Siddique"
