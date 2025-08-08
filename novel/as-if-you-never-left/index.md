@@ -16,4 +16,10 @@ order: 0
 {% endfor %}
 </ul>
 
+<hr>
+<p><strong>Debug</strong>: listing pages in this folder</p>
+{% assign items = site.pages | where: "dir", page.dir | sort: "name" %}
+{% for p in items %}
+<pre>{{ p.path }} | dir={{ p.dir }} | name={{ p.name }} | order={{ p.order }}</pre>
+{% endfor %}
 

@@ -9,7 +9,8 @@ collections:
 
 defaults:
   - scope:
-      path: "novel"
+      path: "novel/"
+      type: "pages"
     values:
       layout: chapter
       collection: chapters
