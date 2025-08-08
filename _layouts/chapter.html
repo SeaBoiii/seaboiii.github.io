@@ -25,35 +25,48 @@
         {{ content }}
       </article>
 
-      {% comment %}Find all chapter pages in this novel by URL prefix{% endcomment %}
+{% comment %}Build list of chapters for this novel{% endcomment %}
 {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
 {% assign siblings = site.pages
   | where_exp: 'p', 'p.url contains pathprefix'
   | where_exp: 'p', 'p.name != "index.md"'
   | sort: 'order' %}
 
-{% assign idx = 0 %}
+{% comment %}Find index of current page within siblings{% endcomment %}
+{% assign idx = -1 %}
 {% for c in siblings %}
-  {% if c.url == page.url %}{% assign idx = forloop.index0 %}{% endif %}
+  {% if c.url == page.url %}
+    {% assign idx = forloop.index0 %}
+  {% endif %}
 {% endfor %}
-{% assign prev = siblings[idx | minus: 1] %}
-{% assign next = siblings[idx | plus: 1] %}
+{% assign count = siblings | size %}
 
 
 
-      <nav class="pager">
-        {% if prev %}
-          <a class="btn prev" rel="prev" href="{{ prev.url | relative_url }}">← Prev</a>
-        {% else %}
-          <span></span>
-        {% endif %}
-        <a class="btn toc" href="{{ "/novel/" | append: page.novel | append: "/" | relative_url }}">Chapters</a>
-        {% if next %}
-          <a class="btn next" rel="next" href="{{ next.url | relative_url }}">Next →</a>
-        {% else %}
-          <span></span>
-        {% endif %}
-      </nav>
+        <nav class="pager">
+            {% comment %}Prev (only if current is found and not first){% endcomment %}
+            {% if idx > 0 %}
+                <a class="btn prev" rel="prev" href="{{ siblings[idx | minus: 1].url | relative_url }}">← Prev</a>
+            {% else %}
+                <span></span>
+            {% endif %}
+
+            {% comment %}Chapters (TOC){% endcomment %}
+            {% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
+            {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
+            {% if page.url == toc_url %}
+                <span class="btn toc" aria-current="page">Chapters</span>
+            {% else %}
+                <a class="btn toc" href="{{ toc_url | relative_url }}">Chapters</a>
+            {% endif %}
+
+            {% comment %}Next (only if current is found and not last){% endcomment %}
+            {% if idx != -1 and idx < count | minus: 1 %}
+                <a class="btn next" rel="next" href="{{ siblings[idx | plus: 1].url | relative_url }}">Next →</a>
+            {% else %}
+                <span></span>
+            {% endif %}
+        </nav>
     </main>
 
     <script src="{{ "/assets/js/chapter.js" | relative_url }}" defer></script>
