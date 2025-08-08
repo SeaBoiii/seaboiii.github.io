@@ -25,19 +25,19 @@
         {{ content }}
       </article>
 
-      {% comment %}Find all chapter pages in the same novel folder and sort by 'order'{% endcomment %}
-        {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
-        {% assign siblings = site.pages
-        | where_exp: 'p', 'p.path contains pathprefix'
-        | where_exp: 'p', 'p.name != "index.md"'
-        | sort: 'order' %}
+      {% comment %}Find all chapter pages in the same folder and sort by 'order'{% endcomment %}
+{% assign siblings = site.pages
+  | where: "dir", page.dir
+  | where_exp: "p", "p.name != 'index.md'"
+  | sort: "order" %}
 
-        {% assign idx = 0 %}
-        {% for c in siblings %}
-        {% if c.url == page.url %}{% assign idx = forloop.index0 %}{% endif %}
-        {% endfor %}
-        {% assign prev = siblings[idx | minus: 1] %}
-        {% assign next = siblings[idx | plus: 1] %}
+{% assign idx = 0 %}
+{% for c in siblings %}
+  {% if c.url == page.url %}{% assign idx = forloop.index0 %}{% endif %}
+{% endfor %}
+{% assign prev = siblings[idx | minus: 1] %}
+{% assign next = siblings[idx | plus: 1] %}
+
 
       <nav class="pager">
         {% if prev %}
