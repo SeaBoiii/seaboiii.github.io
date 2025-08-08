@@ -16,3 +16,12 @@ order: 0
 {% endfor %}
 </ul>
 
+<hr>
+<p><strong>Debug — pages under this novel</strong></p>
+{% assign prefix = '/novel/as-if-you-never-left/' %}
+{% for p in site.pages %}
+  {% if p.url contains prefix %}
+    <pre>{{ p.path }} | url={{ p.url }} | dir={{ p.dir }} | name={{ p.name }} | layout={{ p.layout }} | order={{ p.order }} | Title={{ p.Title }}</pre>
+  {% endif %}
+{% endfor %}
+
