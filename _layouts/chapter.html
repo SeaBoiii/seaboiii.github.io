@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page.Title | default: page.title }} · {{ site.title }}</title>
+    <link rel="stylesheet" href="{{ "/assets/css/reader.css" | relative_url }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="{{ "/" | relative_url }}">{{ site.title }}</a>
+      <nav class="crumbs">
+        <a href="{{ "/novel/" | relative_url }}">All Novels</a>
+        <span>/</span>
+        <a href="{{ "/novel/" | append: page.novel | append: "/" | relative_url }}">
+          {{ page.novel | replace: '-', ' ' | capitalize }}
+        </a>
+      </nav>
+    </header>
+
+    <main class="reader">
+      <article>
+        <h1>{{ page.Title | default: page.title }}</h1>
+        {% if page.order %}<div class="chapter-meta">Chapter {{ page.order }}</div>{% endif %}
+        {{ content }}
+      </article>
+
+      {% assign siblings = site.chapters | where: "novel", page.novel | sort: "order" %}
+      {% assign idx = 0 %}
+      {% for c in siblings %}
+        {% if c.url == page.url %}{% assign idx = forloop.index0 %}{% endif %}
+      {% endfor %}
+      {% assign prev = siblings[idx | minus: 1] %}
+      {% assign next = siblings[idx | plus: 1] %}
+
+      <nav class="pager">
+        {% if prev %}
+          <a class="btn prev" rel="prev" href="{{ prev.url | relative_url }}">← Prev</a>
+        {% else %}
+          <span></span>
+        {% endif %}
+        <a class="btn toc" href="{{ "/novel/" | append: page.novel | append: "/" | relative_url }}">Chapters</a>
+        {% if next %}
+          <a class="btn next" rel="next" href="{{ next.url | relative_url }}">Next →</a>
+        {% else %}
+          <span></span>
+        {% endif %}
+      </nav>
+    </main>
+
+    <script src="{{ "/assets/js/chapter.js" | relative_url }}" defer></script>
+  </body>
+</html>

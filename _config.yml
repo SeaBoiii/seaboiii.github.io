@@ -1,0 +1,18 @@
+url: https://seaboiii.github.io
+baseurl: ""
+markdown: kramdown
+permalink: pretty
+
+collections:
+  chapters:
+    output: true
+
+defaults:
+  - scope:
+      path: "novel"
+    values:
+      layout: chapter
+      collection: chapters
+
+title: "Aleem's Novels"
+description: "Stories by Aleem Siddique"

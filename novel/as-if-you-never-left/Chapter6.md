@@ -1,6 +1,9 @@
 ---
 title: Chapter 6 - The Days That Feel Like Ours
-layout: default
+layout: chapter
+collection: chapters
+novel: as-if-you-never-left
+order: 6
 ---
 
 ## Chapter 6: The Days That Feel Like Ours

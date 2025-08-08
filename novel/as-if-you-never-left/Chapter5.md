@@ -1,6 +1,9 @@
 ---
 title: Chapter 5 - Borrowed Flowers  
-layout: default
+layout: chapter
+collection: chapters
+novel: as-if-you-never-left
+order: 5
 ---
 
 ## Chapter 5: Borrowed Flowers  

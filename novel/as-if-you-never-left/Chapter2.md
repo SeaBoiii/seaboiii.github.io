@@ -1,6 +1,9 @@
 ---
 title: Chapter 2 - The Woman in the Rain
-layout: default
+layout: chapter
+collection: chapters
+novel: as-if-you-never-left
+order: 2
 ---
 
 ## Chapter 2: The Woman in the Rain  

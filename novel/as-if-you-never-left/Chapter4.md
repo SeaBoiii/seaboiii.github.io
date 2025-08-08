@@ -1,6 +1,9 @@
 ---
 title: Chapter 4 - A Wedding Never Meant
-layout: default
+layout: chapter
+collection: chapters
+novel: as-if-you-never-left
+order: 4
 ---
 
 ## Chapter 4: A Wedding Never Meant

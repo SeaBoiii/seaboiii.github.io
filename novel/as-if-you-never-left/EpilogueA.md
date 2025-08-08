@@ -1,6 +1,9 @@
 ---
 title: Epilogue A - A Door Reopened
-layout: default
+layout: chapter
+collection: chapters
+novel: as-if-you-never-left
+order: 9
 ---
 ## Epilogue A: A Door Reopened
 
