@@ -1,6 +1,8 @@
 ---
-title: Chapter 38 - The Vote That Should Not Exist
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 38
+Title: Chapter 38 - The Vote That Should Not Exist
 ---
 
 ## *The Silk of Fate*  

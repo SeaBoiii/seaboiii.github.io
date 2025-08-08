@@ -1,6 +1,8 @@
 ---
-title: "Chapter 29 - Epilogue: The Bench"
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 29
+Title: "Chapter 29 - Epilogue: The Bench"
 ---
 
 ### **Epilogue: The Bench**

@@ -1,6 +1,8 @@
 ---
-title: Chapter 32 - The Letter That Never Reached Her*
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 32
+Title: Chapter 32 - The Letter That Never Reached Her*
 ---
 
 ## *The Silk of Fate*  

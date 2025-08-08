@@ -1,6 +1,8 @@
 ---
-title: Chapter 40 - The Shape of Us Now
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 40
+Title: Chapter 40 - The Shape of Us Now
 ---
 
 ## Chapter 40: The Shape of Us Now

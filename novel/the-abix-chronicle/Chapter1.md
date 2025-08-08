@@ -1,6 +1,8 @@
 ---
-title: Chapter 1 - The Smash That Started It All
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 1
+Title: Chapter 1 - The Smash That Started It All
 ---
 
 ## **Chapter 1: The Smash That Started It All**

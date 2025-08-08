@@ -1,6 +1,8 @@
 ---
-title: Chapter 2 - 24 Hours Earlier
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 2
+Title: Chapter 2 - 24 Hours Earlier
 ---
 **Chapter 2: 24 Hours Earlier**
 

@@ -1,6 +1,8 @@
 ---
-title: Chapter 22 - New Routines, Old Rhythms
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 22
+Title: Chapter 22 - New Routines, Old Rhythms
 ---
 
 ### **Chapter 22: New Routines, Old Rhythms**

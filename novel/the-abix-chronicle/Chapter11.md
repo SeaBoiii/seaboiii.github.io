@@ -1,6 +1,8 @@
 ---
-title: Chapter 11 - Graduation & Other Goodbyes
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 11
+Title: Chapter 11 - Graduation & Other Goodbyes
 ---
 
 ## **Chapter 11: Graduation & Other Goodbyes**

@@ -1,6 +1,8 @@
 ---
-title: Chapter 12 - Beneath the Fan of Obedience
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 12
+Title: Chapter 12 - Beneath the Fan of Obedience
 ---
 
 ## *The Silk of Fate*  

@@ -1,6 +1,8 @@
 ---
-title: Chapter 13 - Familiar, Yet New
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 13
+Title: Chapter 13 - Familiar, Yet New
 ---
 **Chapter 13: Familiar, Yet New**
 

@@ -1,6 +1,8 @@
 ---
-title: Chapter 27 - The Lantern Room
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 27
+Title: Chapter 27 - The Lantern Room
 ---
 
 ## *The Silk of Fate*  

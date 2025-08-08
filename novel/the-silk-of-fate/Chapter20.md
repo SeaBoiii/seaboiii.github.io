@@ -1,6 +1,8 @@
 ---
-title: Chapter 20 - The Silence After Her
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 20
+Title: Chapter 20 - The Silence After Her
 ---
 
 ## *The Silk of Fate*  

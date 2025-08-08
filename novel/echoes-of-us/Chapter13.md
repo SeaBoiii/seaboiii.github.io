@@ -1,6 +1,8 @@
 ---
-title: Chapter 13 - The Way Forward
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 13
+Title: Chapter 13 - The Way Forward
 ---
 
 ## Chapter 13: The Way Forward

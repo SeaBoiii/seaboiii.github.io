@@ -1,6 +1,8 @@
 ---
-title: Chapter 36 - Stones in the Current
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 36
+Title: Chapter 36 - Stones in the Current
 ---
 
 ## *The Silk of Fate*  

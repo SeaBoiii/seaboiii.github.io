@@ -1,6 +1,8 @@
 ---
-title: Chapter 2 - The Almost
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 2
+Title: Chapter 2 - The Almost
 ---
 
 ## Chapter 2: The Almost

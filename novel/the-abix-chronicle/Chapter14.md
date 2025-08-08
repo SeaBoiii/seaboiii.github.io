@@ -1,6 +1,8 @@
 ---
-title: Chapter 14 - The Road Trip Nobody Asked For
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 14
+Title: Chapter 14 - The Road Trip Nobody Asked For
 ---
 
 ## **Chapter 14: The Road Trip Nobody Asked For**

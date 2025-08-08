@@ -1,6 +1,8 @@
 ---
-title: Chapter 8 - A Brave Mistake
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 8
+Title: Chapter 8 - A Brave Mistake
 ---
 
 # **Chapter 8: A Brave Mistake**

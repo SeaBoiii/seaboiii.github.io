@@ -1,6 +1,8 @@
 ---
-title: Chapter 15 - A Home Between Us
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 15
+Title: Chapter 15 - A Home Between Us
 ---
 **Chapter 15: A Home Between Us**
 

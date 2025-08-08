@@ -1,6 +1,8 @@
 ---
-title: Chapter 10 - Officially Yours
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 10
+Title: Chapter 10 - Officially Yours
 ---
 
 # **Chapter 10: Officially Yours**

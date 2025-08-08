@@ -1,6 +1,8 @@
 ---
-title: Chapter 37 - The Date Etched in Ink
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 37
+Title: Chapter 37 - The Date Etched in Ink
 ---
 
 ## *The Silk of Fate*  

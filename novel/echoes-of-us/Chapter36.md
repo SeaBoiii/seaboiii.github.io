@@ -1,6 +1,8 @@
 ---
-title: Chapter 36 - When He Let Me In
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 36
+Title: Chapter 36 - When He Let Me In
 ---
 
 ## Chapter 36: When He Let Me In

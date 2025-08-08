@@ -1,6 +1,8 @@
 ---
-title: Chapter 38 - When Stillness Meets Stillness
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 38
+Title: Chapter 38 - When Stillness Meets Stillness
 ---
 
 ## Chapter 38: When Stillness Meets Stillness

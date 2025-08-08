@@ -1,6 +1,8 @@
 ---
-title: Chapter 3 - Backhand Beginnings
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 3
+Title: Chapter 3 - Backhand Beginnings
 ---
 
 ## **Chapter 3: Backhand Beginnings**

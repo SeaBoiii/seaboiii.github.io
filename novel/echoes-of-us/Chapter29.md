@@ -1,6 +1,8 @@
 ---
-title: Chapter 29 - The Quiet That Stayed Too Long
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 29
+Title: Chapter 29 - The Quiet That Stayed Too Long
 ---
 
 ## Chapter 29: The Quiet That Stayed Too Long

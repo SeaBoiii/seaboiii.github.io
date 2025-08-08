@@ -1,6 +1,8 @@
 ---
-title: Chapter 6 - Aidilfitri Blessings
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 6
+Title: Chapter 6 - Aidilfitri Blessings
 ---
 
 # **Chapter 6: Aidilfitri Blessings**

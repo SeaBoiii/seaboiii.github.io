@@ -1,6 +1,8 @@
 ---
-title: Chapter 28 -  Where We Meet Without Touching
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 28
+Title: Chapter 28 -  Where We Meet Without Touching
 ---
 
 ## *The Silk of Fate*  

@@ -1,6 +1,8 @@
 ---
-title: Chapter 16 - The Eyes That Waited
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 16
+Title: Chapter 16 - The Eyes That Waited
 ---
 
 ## *The Silk of Fate*  

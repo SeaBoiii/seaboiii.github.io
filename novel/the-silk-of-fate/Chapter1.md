@@ -1,6 +1,8 @@
 ---
-title: Chapter 1 - The Prince Who Loved the Rain
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 1
+Title: Chapter 1 - The Prince Who Loved the Rain
 ---
 
 ## *The Silk of Fate*  

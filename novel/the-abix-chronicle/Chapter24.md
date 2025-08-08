@@ -1,6 +1,8 @@
 ---
-title: Chapter 24 - Quiet Milestones
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 24
+Title: Chapter 24 - Quiet Milestones
 ---
 
 ### **Chapter 24: Quiet Milestones**

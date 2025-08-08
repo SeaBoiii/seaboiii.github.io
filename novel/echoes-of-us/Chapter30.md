@@ -1,6 +1,8 @@
 ---
-title: Chapter 30 - The First Yes
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 30
+Title: Chapter 30 - The First Yes
 ---
 
 ## Chapter 30: The First Yes

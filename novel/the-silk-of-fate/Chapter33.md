@@ -1,6 +1,8 @@
 ---
-title: Chapter 33 - What Remains After Silence
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 33
+Title: Chapter 33 - What Remains After Silence
 ---
 
 ## *The Silk of Fate*  

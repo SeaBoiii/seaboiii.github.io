@@ -1,6 +1,8 @@
 ---
-title: Chapter 40 - The Fifth Voice
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 40
+Title: Chapter 40 - The Fifth Voice
 ---
 
 ## *The Silk of Fate*  

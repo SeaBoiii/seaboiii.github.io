@@ -1,6 +1,8 @@
 ---
-title: Chapter 7 - The Real Goodbye
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 7
+Title: Chapter 7 - The Real Goodbye
 ---
 **Chapter 7: The Real Goodbye**
 

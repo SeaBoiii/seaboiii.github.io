@@ -1,6 +1,8 @@
 ---
-title: Chapter 9 - Unlikely Impressions
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 9
+Title: Chapter 9 - Unlikely Impressions
 ---
 
 # **Chapter 9: Unlikely Impressions**

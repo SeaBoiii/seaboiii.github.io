@@ -1,6 +1,8 @@
 ---
-title: Chapter 19 - Last Game at the Hive
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 19
+Title: Chapter 19 - Last Game at the Hive
 ---
 
 ## **Chapter 19: Last Game at the Hive**

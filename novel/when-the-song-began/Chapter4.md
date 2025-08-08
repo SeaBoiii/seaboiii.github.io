@@ -1,6 +1,8 @@
 ---
-title: Chapter 4 - The Line We Don’t Cross
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 4
+Title: Chapter 4 - The Line We Don’t Cross
 ---
 **Chapter 4: The Line We Don’t Cross**
 

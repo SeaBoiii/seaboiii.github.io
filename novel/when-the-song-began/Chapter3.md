@@ -1,6 +1,8 @@
 ---
-title: Chapter 3 - Boundaries and Quiet Shifts
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 3
+Title: Chapter 3 - Boundaries and Quiet Shifts
 ---
 **Chapter 3: Boundaries and Quiet Shifts**
 

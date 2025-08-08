@@ -1,6 +1,8 @@
 ---
-title: Chapter 6 - The Measure of Things
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 6
+Title: Chapter 6 - The Measure of Things
 ---
 
 ## *The Silk of Fate*  

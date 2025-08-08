@@ -1,6 +1,8 @@
 ---
-title: Chapter 4 - Fractured Self
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 4
+Title: Chapter 4 - Fractured Self
 ---
 **Chapter 4: Fractured Self**
 

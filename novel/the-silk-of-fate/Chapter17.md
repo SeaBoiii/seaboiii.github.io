@@ -1,6 +1,8 @@
 ---
-title: Chapter 17 - A Name to the Gaze
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 17
+Title: Chapter 17 - A Name to the Gaze
 ---
 
 ## *The Silk of Fate*  

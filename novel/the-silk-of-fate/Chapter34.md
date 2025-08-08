@@ -1,6 +1,8 @@
 ---
-title: Chapter 34 - The Ink That Does Not Fade
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 34
+Title: Chapter 34 - The Ink That Does Not Fade
 ---
 
 ## *The Silk of Fate*  

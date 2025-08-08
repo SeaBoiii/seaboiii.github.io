@@ -1,6 +1,8 @@
 ---
-title: Chapter 31 - Relearning the Rhythm
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 31
+Title: Chapter 31 - Relearning the Rhythm
 ---
 
 ## Chapter 31: Relearning the Rhythm

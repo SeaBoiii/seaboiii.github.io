@@ -1,6 +1,8 @@
 ---
-title: Chapter 7 - Eyes in the Hall
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 7
+Title: Chapter 7 - Eyes in the Hall
 ---
 
 ## *The Silk of Fate*  

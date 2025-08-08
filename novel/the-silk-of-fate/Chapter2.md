@@ -1,6 +1,8 @@
 ---
-title: Chapter 2 - The Shadow and the Flame
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 2
+Title: Chapter 2 - The Shadow and the Flame
 ---
 
 ## *The Silk of Fate*  

@@ -1,6 +1,8 @@
 ---
-title: Chapter 25 - The Shape of Whispers
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 25
+Title: Chapter 25 - The Shape of Whispers
 ---
 
 ## *The Silk of Fate*  

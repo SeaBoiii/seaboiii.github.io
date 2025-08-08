@@ -1,6 +1,8 @@
 ---
-title: Chapter 3 - Crash
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 3
+Title: Chapter 3 - Crash
 ---
 
 ## Chapter 3: Crash

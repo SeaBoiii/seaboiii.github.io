@@ -1,6 +1,8 @@
 ---
-title: Chapter 9 - The Guard at the Outer Gate
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 9
+Title: Chapter 9 - The Guard at the Outer Gate
 ---
 
 ## *The Silk of Fate*  

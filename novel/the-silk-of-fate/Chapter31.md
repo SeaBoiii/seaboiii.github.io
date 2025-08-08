@@ -1,6 +1,8 @@
 ---
-title: Chapter 31 - The Road That Does Not Yet Exist
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 31
+Title: Chapter 31 - The Road That Does Not Yet Exist
 ---
 
 ## *The Silk of Fate*  

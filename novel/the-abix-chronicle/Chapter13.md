@@ -1,6 +1,8 @@
 ---
-title: Chapter 13 - Of Milestones and Missed Calls
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 13
+Title: Chapter 13 - Of Milestones and Missed Calls
 ---
 
 ## **Chapter 13: Of Milestones and Missed Calls**

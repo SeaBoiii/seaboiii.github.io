@@ -1,6 +1,8 @@
 ---
-title: Chapter 28 - The Weight of Different Paces
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 28
+Title: Chapter 28 - The Weight of Different Paces
 ---
 
 ## Chapter 28: The Weight of Different Paces

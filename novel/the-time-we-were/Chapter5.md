@@ -1,6 +1,8 @@
 ---
-title: Chapter 5 - Love on Autopilot
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 5
+Title: Chapter 5 - Love on Autopilot
 ---
 **Chapter 5: Love on Autopilot**
 

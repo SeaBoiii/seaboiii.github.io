@@ -1,6 +1,8 @@
 ---
-title: Chapter 28 - Our Version of Forever
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 28
+Title: Chapter 28 - Our Version of Forever
 ---
 
 ### **Chapter 28: Our Version of Forever**

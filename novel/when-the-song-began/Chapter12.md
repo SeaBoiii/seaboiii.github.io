@@ -1,6 +1,8 @@
 ---
-title: Chapter 12 - Quiet Certainties
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 12
+Title: Chapter 12 - Quiet Certainties
 ---
 **Chapter 12: Quiet Certainties**
 

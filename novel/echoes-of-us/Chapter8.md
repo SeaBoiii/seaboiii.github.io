@@ -1,6 +1,8 @@
 ---
-title: Chapter 8 - Somewhere Soft Again
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 8
+Title: Chapter 8 - Somewhere Soft Again
 ---
 
 ## Chapter 8: Somewhere Soft Again

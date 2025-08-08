@@ -1,6 +1,8 @@
 ---
-title: Chapter 9 - The Secrets We Carry
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 9
+Title: Chapter 9 - The Secrets We Carry
 ---
 
 ## **Chapter 9: The Secrets We Carry**

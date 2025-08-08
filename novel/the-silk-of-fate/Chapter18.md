@@ -1,6 +1,8 @@
 ---
-title: Chapter 18 - The Space Between Words
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 18
+Title: Chapter 18 - The Space Between Words
 ---
 
 ## *The Silk of Fate*  

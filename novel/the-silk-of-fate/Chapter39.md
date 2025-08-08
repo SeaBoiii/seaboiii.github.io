@@ -1,6 +1,8 @@
 ---
-title: Chapter 39 - Foundations Beneath the Crown
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 39
+Title: Chapter 39 - Foundations Beneath the Crown
 ---
 
 ## *The Silk of Fate*  

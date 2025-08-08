@@ -1,6 +1,8 @@
 ---
-title: Chapter 27 - The Quiet Between Our Hours
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 27
+Title: Chapter 27 - The Quiet Between Our Hours
 ---
 
 ## Chapter 27: The Quiet Between Our Hours

@@ -1,6 +1,8 @@
 ---
-title: Chapter 8 - A Day Unrewound
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 8
+Title: Chapter 8 - A Day Unrewound
 ---
 **Chapter 8: A Day Unrewound**
 

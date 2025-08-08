@@ -1,6 +1,8 @@
 ---
-title: Chapter 26 - A Seat Made for One More
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 26
+Title: Chapter 26 - A Seat Made for One More
 ---
 
 ## Chapter 26: A Seat Made for One More

@@ -1,6 +1,8 @@
 ---
-title: Chapter 5 - The Quiet That Remains
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 5
+Title: Chapter 5 - The Quiet That Remains
 ---
 
 ## *The Silk of Fate*  

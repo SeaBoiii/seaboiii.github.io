@@ -1,6 +1,8 @@
 ---
-title: Chapter 23 - Where No One Speaks in Titles
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 23
+Title: Chapter 23 - Where No One Speaks in Titles
 ---
 
 ## *The Silk of Fate*  

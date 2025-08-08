@@ -1,6 +1,8 @@
 ---
-title: Chapter 23 - Homecoming
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 23
+Title: Chapter 23 - Homecoming
 ---
 
 ### **Chapter 23: Homecoming**

@@ -1,6 +1,8 @@
 ---
-title: Chapter 25 - The Table Between Us
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 25
+Title: Chapter 25 - The Table Between Us
 ---
 
 ## Chapter 25: The Table Between Us

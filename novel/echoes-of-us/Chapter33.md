@@ -1,6 +1,8 @@
 ---
-title: Chapter 33 - The Check-In
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 33
+Title: Chapter 33 - The Check-In
 ---
 
 ## Chapter 33: The Check-In

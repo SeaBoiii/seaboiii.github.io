@@ -1,6 +1,8 @@
 ---
-title: Chapter 14 - The Man Who Didn't Bow
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 14
+Title: Chapter 14 - The Man Who Didn't Bow
 ---
 
 ## *The Silk of Fate*  

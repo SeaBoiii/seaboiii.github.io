@@ -1,6 +1,8 @@
 ---
-title: Chapter 7 - c
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 7
+Title: Chapter 7 - c
 ---
 
 ## Chapter 7: The Constant

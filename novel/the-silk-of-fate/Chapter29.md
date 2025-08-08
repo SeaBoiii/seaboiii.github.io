@@ -1,6 +1,8 @@
 ---
-title: Chapter 29 - A Gentle Cage
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 29
+Title: Chapter 29 - A Gentle Cage
 ---
 
 ## *The Silk of Fate*  

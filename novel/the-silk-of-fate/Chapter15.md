@@ -1,6 +1,8 @@
 ---
-title: Chapter 15 - The Prince Without Noise
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 15
+Title: Chapter 15 - The Prince Without Noise
 ---
 
 ## *The Silk of Fate*  

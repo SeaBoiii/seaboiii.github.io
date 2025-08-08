@@ -1,6 +1,8 @@
 ---
-title: Chapter 4 - The Quiet Shift
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 4
+Title: Chapter 4 - The Quiet Shift
 ---
 
 ## Chapter 4: The Quiet Shift

@@ -1,6 +1,8 @@
 ---
-title: Chapter 3 - The Butterfly Edits
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 3
+Title: Chapter 3 - The Butterfly Edits
 ---
 **Chapter 3: The Butterfly Edits**
 

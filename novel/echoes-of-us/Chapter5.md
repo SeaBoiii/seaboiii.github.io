@@ -1,6 +1,8 @@
 ---
-title: Chapter 5 - Like Clockwork
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 5
+Title: Chapter 5 - Like Clockwork
 ---
 
 ## Chapter 5: Like Clockwork

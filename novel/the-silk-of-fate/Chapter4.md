@@ -1,6 +1,8 @@
 ---
-title: Chapter 4 - The Sound of One God
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 4
+Title: Chapter 4 - The Sound of One God
 ---
 
 ## *The Silk of Fate*  

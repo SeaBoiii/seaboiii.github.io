@@ -1,6 +1,8 @@
 ---
-title: Chapter 1 - A Voice in the Quiet
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 1
+Title: Chapter 1 - A Voice in the Quiet
 ---
 **Chapter 1: A Voice in the Quiet**
 

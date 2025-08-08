@@ -1,6 +1,8 @@
 ---
-title: Chapter 21 - What Strength Looks Like
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 21
+Title: Chapter 21 - What Strength Looks Like
 ---
 
 ## Chapter 21: What Strength Looks Like

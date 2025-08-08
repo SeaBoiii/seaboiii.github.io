@@ -1,6 +1,8 @@
 ---
-title: Chapter 1 - The Campfire That Never Burned
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 1
+Title: Chapter 1 - The Campfire That Never Burned
 ---
 
 ## Chapter 1: The Campfire That Never Burned

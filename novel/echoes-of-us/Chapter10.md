@@ -1,6 +1,8 @@
 ---
-title: Chapter 10 - Her Name Was Hana
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 10
+Title: Chapter 10 - Her Name Was Hana
 ---
 
 ## Chapter 10: Her Name Was Hana

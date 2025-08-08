@@ -1,6 +1,8 @@
 ---
-title: Chapter 37 - The Space Between Words
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 37
+Title: Chapter 37 - The Space Between Words
 ---
 
 ## Chapter 37: The Space Between Words

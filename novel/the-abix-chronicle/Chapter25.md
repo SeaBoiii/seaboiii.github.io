@@ -1,6 +1,8 @@
 ---
-title: Chapter 25 - Of Weddings
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 25
+Title: Chapter 25 - Of Weddings
 ---
 
 ### **Chapter 25: Of Weddings and What-Ifs**

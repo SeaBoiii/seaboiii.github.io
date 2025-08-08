@@ -1,6 +1,8 @@
 ---
-title: Chapter 32 - Where She Stood
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 32
+Title: Chapter 32 - Where She Stood
 ---
 
 ## Chapter 32: Where She Stood

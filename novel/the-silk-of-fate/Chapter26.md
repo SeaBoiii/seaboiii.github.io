@@ -1,6 +1,8 @@
 ---
-title: Chapter 26 - Behind Closed Silk
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 26
+Title: Chapter 26 - Behind Closed Silk
 ---
 
 ## *The Silk of Fate*  

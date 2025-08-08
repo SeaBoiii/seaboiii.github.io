@@ -1,6 +1,8 @@
 ---
-title: Chapter 20 - Halfway Isn’t Halfhearted
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 20
+Title: Chapter 20 - Halfway Isn’t Halfhearted
 ---
 
 ## Chapter 20: Halfway Isn’t Halfhearted

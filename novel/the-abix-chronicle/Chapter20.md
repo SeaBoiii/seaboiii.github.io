@@ -1,6 +1,8 @@
 ---
-title: Chapter 20 - The Fork in the Road
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 20
+Title: Chapter 20 - The Fork in the Road
 ---
 
 ## **Chapter 20: The Fork in the Road**

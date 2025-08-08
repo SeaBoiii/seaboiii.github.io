@@ -1,6 +1,8 @@
 ---
-title: Chapter 27 - The Things We Don’t Say
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 27
+Title: Chapter 27 - The Things We Don’t Say
 ---
 
 ### **Chapter 27: The Things We Don’t Say**

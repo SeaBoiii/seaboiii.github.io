@@ -1,6 +1,8 @@
 ---
-title: Chapter 4 - The First ABIX Outing
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 4
+Title: Chapter 4 - The First ABIX Outing
 ---
 
 ## **Chapter 4: The First ABIX Outing**

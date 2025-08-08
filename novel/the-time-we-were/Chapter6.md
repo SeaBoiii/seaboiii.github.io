@@ -1,6 +1,8 @@
 ---
-title: Chapter 6 - The Unraveling
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 6
+Title: Chapter 6 - The Unraveling
 ---
 **Chapter 6: The Unraveling**
 

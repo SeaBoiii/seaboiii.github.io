@@ -1,6 +1,8 @@
 ---
-title: Chapter 7 - The Beginning
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 7
+Title: Chapter 7 - The Beginning
 ---
 
 # **Chapter 7: The Beginning**

@@ -1,6 +1,8 @@
 ---
-title: Chapter 14 - The Circle Knows
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 14
+Title: Chapter 14 - The Circle Knows
 ---
 
 ## Chapter 14: The Circle Knows

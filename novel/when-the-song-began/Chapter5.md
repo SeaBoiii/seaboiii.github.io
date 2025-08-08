@@ -1,6 +1,8 @@
 ---
-title: Chapter 5 - A Kind of Closeness
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 5
+Title: Chapter 5 - A Kind of Closeness
 ---
 **Chapter 5: A Kind of Closeness**
 

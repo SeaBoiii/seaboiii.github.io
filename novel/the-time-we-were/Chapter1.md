@@ -1,6 +1,8 @@
 ---
-title: Chapter 1 - The Gig That Broke Us
-layout: default
+layout: chapter
+novel: the-time-we-were
+order: 1
+Title: Chapter 1 - The Gig That Broke Us
 ---
 **Chapter 1: The Gig That Broke Us**
 

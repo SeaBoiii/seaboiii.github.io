@@ -1,6 +1,8 @@
 ---
-title: Chapter 21 - The Music Beneath the Moon
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 21
+Title: Chapter 21 - The Music Beneath the Moon
 ---
 
 ## *The Silk of Fate*  

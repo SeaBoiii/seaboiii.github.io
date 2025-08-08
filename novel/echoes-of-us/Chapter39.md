@@ -1,6 +1,8 @@
 ---
-title: Chapter 39 - The Third Cup
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 39
+Title: Chapter 39 - The Third Cup
 ---
 
 ## Chapter 39: The Third Cup

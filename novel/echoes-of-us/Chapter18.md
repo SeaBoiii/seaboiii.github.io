@@ -1,6 +1,8 @@
 ---
-title: Chapter 18 - The Life Between Lines
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 18
+Title: Chapter 18 - The Life Between Lines
 ---
 
 ## Chapter 18: The Life Between Lines

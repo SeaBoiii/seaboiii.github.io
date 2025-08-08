@@ -1,6 +1,8 @@
 ---
-title: Chapter 15 - The Way She Knew
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 15
+Title: Chapter 15 - The Way She Knew
 ---
 
 ## Chapter 15: The Way She Knew

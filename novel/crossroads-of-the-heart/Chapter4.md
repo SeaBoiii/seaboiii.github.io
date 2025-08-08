@@ -1,6 +1,8 @@
 ---
-title: Chapter 4 - Light Beyond Shadows
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 4
+Title: Chapter 4 - Light Beyond Shadows
 ---
 
 # **Chapter 4: Light Beyond Shadows**

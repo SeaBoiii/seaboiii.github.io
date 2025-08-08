@@ -1,6 +1,8 @@
 ---
-title: Chapter 11 - Forever Begins Tonight
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 11
+Title: Chapter 11 - Forever Begins Tonight
 ---
 
 # **Chapter 11: Forever Begins Tonight**

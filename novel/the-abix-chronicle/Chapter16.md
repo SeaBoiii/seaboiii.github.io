@@ -1,6 +1,8 @@
 ---
-title: Chapter 16 - The Letters We Never Sent
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 16
+Title: Chapter 16 - The Letters We Never Sent
 ---
 
 ## **Chapter 16: The Letters We Never Sent**

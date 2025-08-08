@@ -1,6 +1,8 @@
 ---
-title: Chapter 34 - The Life After the Finish Line
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 34
+Title: Chapter 34 - The Life After the Finish Line
 ---
 
 ## Chapter 34: The Life After the Finish Line

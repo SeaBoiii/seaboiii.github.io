@@ -1,6 +1,8 @@
 ---
-title: Chapter 19 - Love in Transit
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 19
+Title: Chapter 19 - Love in Transit
 ---
 
 ## Chapter 19: Love in Transit

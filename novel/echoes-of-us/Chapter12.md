@@ -1,6 +1,8 @@
 ---
-title: Chapter 12 - The Final Chance That Never Was
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 12
+Title: Chapter 12 - The Final Chance That Never Was
 ---
 
 ## Chapter 12: The Final Chance That Never Was

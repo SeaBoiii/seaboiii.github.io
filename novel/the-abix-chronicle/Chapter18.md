@@ -1,6 +1,8 @@
 ---
-title: Chapter 18 - Hana, Again
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 18
+Title: Chapter 18 - Hana, Again
 ---
 
 ## **Chapter 18: Hana, Again**

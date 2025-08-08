@@ -1,6 +1,8 @@
 ---
-title: Chapter 12 - Fear Factor – JB Edition
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 12
+Title: Chapter 12 - Fear Factor – JB Edition
 ---
 
 ## **Chapter 12: Fear Factor – JB Edition**

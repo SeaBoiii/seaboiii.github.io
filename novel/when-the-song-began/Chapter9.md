@@ -1,6 +1,8 @@
 ---
-title: Chapter 9 - Things We Carry Home
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 9
+Title: Chapter 9 - Things We Carry Home
 ---
 **Chapter 9: Things We Carry Home**
 

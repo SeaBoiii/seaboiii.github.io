@@ -1,6 +1,8 @@
 ---
-title: Chapter 6 - Something to Hold
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 6
+Title: Chapter 6 - Something to Hold
 ---
 **Chapter 6: Something to Hold**
 

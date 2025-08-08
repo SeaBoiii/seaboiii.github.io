@@ -1,6 +1,8 @@
 ---
-title: Chapter 22 - The Things We Never Say
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 22
+Title: Chapter 22 - The Things We Never Say
 ---
 
 ## *The Silk of Fate*  

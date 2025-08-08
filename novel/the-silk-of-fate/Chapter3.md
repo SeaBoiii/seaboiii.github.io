@@ -1,6 +1,8 @@
 ---
-title: Chapter 3 - The Distance Between Two Thrones
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 3
+Title: Chapter 3 - The Distance Between Two Thrones
 ---
 
 ## *The Silk of Fate*  

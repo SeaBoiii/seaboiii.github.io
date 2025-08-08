@@ -1,6 +1,8 @@
 ---
-title: Chapter 10 - The Year We Almost Drifted
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 10
+Title: Chapter 10 - The Year We Almost Drifted
 ---
 
 ## **Chapter 10: The Year We Almost Drifted**

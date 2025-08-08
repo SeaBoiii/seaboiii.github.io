@@ -1,6 +1,8 @@
 ---
-title: Chapter 10 - What Wasn't Planned
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 10
+Title: Chapter 10 - What Wasn't Planned
 ---
 **Chapter 10: What Wasn't Planned**
 

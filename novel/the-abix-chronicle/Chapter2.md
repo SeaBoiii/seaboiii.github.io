@@ -1,6 +1,8 @@
 ---
-title: Chapter 2 - Of CCAs and Coincidences
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 2
+Title: Chapter 2 - Of CCAs and Coincidences
 ---
 
 ## **Chapter 2: Of CCAs and Coincidences**

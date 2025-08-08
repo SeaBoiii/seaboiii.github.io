@@ -1,6 +1,8 @@
 ---
-title: Chapter 2 - Hearts and Barriers
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 2
+Title: Chapter 2 - Hearts and Barriers
 ---
 
 ## **Chapter 2: Hearts and Barriers**

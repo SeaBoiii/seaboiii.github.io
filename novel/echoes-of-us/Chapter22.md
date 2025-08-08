@@ -1,6 +1,8 @@
 ---
-title: Chapter 22 - The Quiet Between the Lines
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 22
+Title: Chapter 22 - The Quiet Between the Lines
 ---
 
 ## Chapter 22: The Quiet Between the Lines

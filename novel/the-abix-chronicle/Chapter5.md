@@ -1,6 +1,8 @@
 ---
-title: Chapter 5 - When Crystal Fell
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 5
+Title: Chapter 5 - When Crystal Fell
 ---
 
 ## **Chapter 5: When Crystal Fell (on the Court)**

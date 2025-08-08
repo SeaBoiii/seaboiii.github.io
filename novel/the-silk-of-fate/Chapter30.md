@@ -1,6 +1,8 @@
 ---
-title: Chapter 30 - The Dance of Silk and Iron
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 30
+Title: Chapter 30 - The Dance of Silk and Iron
 ---
 
 ## *The Silk of Fate*  

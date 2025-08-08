@@ -1,6 +1,8 @@
 ---
-title: Chapter 13 - Paper Daughters and Steel Sons
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 13
+Title: Chapter 13 - Paper Daughters and Steel Sons
 ---
 
 ## *The Silk of Fate*  

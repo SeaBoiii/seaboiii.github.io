@@ -1,6 +1,8 @@
 ---
-title: Chapter 26 - One by One
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 26
+Title: Chapter 26 - One by One
 ---
 
 ### **Chapter 26: One by One**

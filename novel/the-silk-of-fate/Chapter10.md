@@ -1,6 +1,8 @@
 ---
-title: Chapter 10 - The Letter from the North
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 10
+Title: Chapter 10 - The Letter from the North
 ---
 
 ## *The Silk of Fate*  

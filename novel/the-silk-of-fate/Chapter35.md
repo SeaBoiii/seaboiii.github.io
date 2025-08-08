@@ -1,6 +1,8 @@
 ---
-title: Chapter 35 - Beneath the Fan, a Flame
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 35
+Title: Chapter 35 - Beneath the Fan, a Flame
 ---
 
 ## *The Silk of Fate*  

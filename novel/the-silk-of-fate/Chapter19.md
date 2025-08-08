@@ -1,6 +1,8 @@
 ---
-title: Chapter 19 - The Mirror Within
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 19
+Title: Chapter 19 - The Mirror Within
 ---
 
 ## *The Silk of Fate*  

@@ -1,6 +1,8 @@
 ---
-title: Chapter 17 - The One Who Stayed
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 17
+Title: Chapter 17 - The One Who Stayed
 ---
 
 ## Chapter 17: The One Who Stayed

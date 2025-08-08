@@ -1,6 +1,8 @@
 ---
-title: Chapter 17 - Reunion – One Table, Four Seats
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 17
+Title: Chapter 17 - Reunion – One Table, Four Seats
 ---
 
 ## **Chapter 17: Reunion – One Table, Four Seats**

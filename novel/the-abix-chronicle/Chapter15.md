@@ -1,6 +1,8 @@
 ---
-title: Chapter 15 - Of First Dates and Final Semesters
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 15
+Title: Chapter 15 - Of First Dates and Final Semesters
 ---
 
 ## **Chapter 15: Of First Dates and Final Semesters**

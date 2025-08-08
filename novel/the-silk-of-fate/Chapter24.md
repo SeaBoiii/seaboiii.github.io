@@ -1,6 +1,8 @@
 ---
-title: Chapter 24 - Between the Lines
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 24
+Title: Chapter 24 - Between the Lines
 ---
 
 ## *The Silk of Fate*  

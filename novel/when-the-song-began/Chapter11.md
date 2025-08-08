@@ -1,6 +1,8 @@
 ---
-title: Chapter 11 - Where We Begin Again
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 11
+Title: Chapter 11 - Where We Begin Again
 ---
 **Chapter 11: Where We Begin Again**
 

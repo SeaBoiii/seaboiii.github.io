@@ -1,6 +1,8 @@
 ---
-title: Chapter 3 - Reflections in Silence
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 3
+Title: Chapter 3 - Reflections in Silence
 ---
 
 # **Chapter 3: Reflections in Silence**

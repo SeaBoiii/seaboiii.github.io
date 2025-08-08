@@ -1,6 +1,8 @@
 ---
-title: Chapter 11 - The Uninvited Echo
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 11
+Title: Chapter 11 - The Uninvited Echo
 ---
 
 ## Chapter 11: The Uninvited Echo

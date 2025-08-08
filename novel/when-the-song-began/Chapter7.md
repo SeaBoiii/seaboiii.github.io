@@ -1,6 +1,8 @@
 ---
-title: Chapter 7 - Between the Lines
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 7
+Title: Chapter 7 - Between the Lines
 ---
 **Chapter 7: Between the Lines**
 

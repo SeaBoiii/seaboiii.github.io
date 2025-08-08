@@ -1,6 +1,8 @@
 ---
-title: Chapter 6 - Exam Season Chaos
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 6
+Title: Chapter 6 - Exam Season Chaos
 ---
 
 ## **Chapter 6: Exam Season Chaos**

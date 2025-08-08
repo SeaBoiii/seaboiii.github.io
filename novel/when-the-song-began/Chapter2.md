@@ -1,6 +1,8 @@
 ---
-title: Chapter 2 - Lunchboxes and Interludes
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 2
+Title: Chapter 2 - Lunchboxes and Interludes
 ---
 **Chapter 2: Lunchboxes and Interludes**
 

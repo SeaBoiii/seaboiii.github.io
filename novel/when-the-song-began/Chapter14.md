@@ -1,6 +1,8 @@
 ---
-title: Chapter 14 - The Question Beneath Everything
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 14
+Title: Chapter 14 - The Question Beneath Everything
 ---
 **Chapter 14: The Question Beneath Everything**
 

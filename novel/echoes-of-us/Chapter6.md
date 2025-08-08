@@ -1,6 +1,8 @@
 ---
-title: Chapter 6 - Yours to Begin With
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 6
+Title: Chapter 6 - Yours to Begin With
 ---
 
 ## Chapter 6: Yours to Begin With

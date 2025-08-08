@@ -1,6 +1,8 @@
 ---
-title: Chapter 1 - Just Friends
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 1
+Title: Chapter 1 - Just Friends
 ---
 
 ## **Chapter 1: Just Friends**

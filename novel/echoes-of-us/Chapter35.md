@@ -1,6 +1,8 @@
 ---
-title: Chapter 35 - In the Quiet, He Asked
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 35
+Title: Chapter 35 - In the Quiet, He Asked
 ---
 
 ## Chapter 35: In the Quiet, He Asked

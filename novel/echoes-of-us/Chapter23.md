@@ -1,6 +1,8 @@
 ---
-title: Chapter 23 - The Edge of Certainty
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 23
+Title: Chapter 23 - The Edge of Certainty
 ---
 
 ## Chapter 23: The Edge of Certainty

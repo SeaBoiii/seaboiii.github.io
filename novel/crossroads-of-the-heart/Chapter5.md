@@ -1,6 +1,8 @@
 ---
-title: Chapter 5 - Facing the Truth
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 5
+Title: Chapter 5 - Facing the Truth
 ---
 
 # **Chapter 5: Facing the Truth**

@@ -1,6 +1,8 @@
 ---
-title: Chapter 21 - Crossing Roads
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 21
+Title: Chapter 21 - Crossing Roads
 ---
 
 ### **Chapter 21: Crossing Roads**

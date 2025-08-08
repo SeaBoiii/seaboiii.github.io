@@ -1,6 +1,8 @@
 ---
-title: Chapter 8 - The Shape of Us
-layout: default
+layout: chapter
+novel: when-the-song-began
+order: 8
+Title: Chapter 8 - The Shape of Us
 ---
 **Chapter 8: The Shape of Us**
 

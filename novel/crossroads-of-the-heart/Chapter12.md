@@ -1,6 +1,8 @@
 ---
-title: Chapter 12 - Hearts Unshaken
-layout: default
+layout: chapter
+novel: crossroads-of-the-heart
+order: 12
+Title: Chapter 12 - Hearts Unshaken
 ---
 
 # **Chapter 12: Hearts Unshaken**

@@ -1,6 +1,8 @@
 ---
-title: Chapter 8 - ABIX & The CCA Showdown?
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 8
+Title: Chapter 8 - ABIX & The CCA Showdown?
 ---
 
 ## **Chapter 8: ABIX & The CCA Showdown**

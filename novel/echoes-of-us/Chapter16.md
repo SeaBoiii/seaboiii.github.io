@@ -1,6 +1,8 @@
 ---
-title: Chapter 16 - A Little Ahead
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 16
+Title: Chapter 16 - A Little Ahead
 ---
 
 ## Chapter 16: A Little Ahead

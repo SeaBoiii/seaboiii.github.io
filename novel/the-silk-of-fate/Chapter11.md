@@ -1,6 +1,8 @@
 ---
-title: Chapter 11 - The Princess in the Shadow of Towers
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 11
+Title: Chapter 11 - The Princess in the Shadow of Towers
 ---
 
 ## *The Silk of Fate*  

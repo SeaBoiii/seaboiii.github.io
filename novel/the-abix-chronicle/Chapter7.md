@@ -1,6 +1,8 @@
 ---
-title: Chapter 7 - JB or Jail Break?
-layout: default
+layout: chapter
+novel: the-abix-chronicle
+order: 7
+Title: Chapter 7 - JB or Jail Break?
 ---
 
 ## **Chapter 7: JB or Jail Break?**

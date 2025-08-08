@@ -1,6 +1,8 @@
 ---
-title: Chapter 24 - Learning the Unwritten
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 24
+Title: Chapter 24 - Learning the Unwritten
 ---
 
 ## Chapter 24: Learning the Unwritten

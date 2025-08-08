@@ -1,6 +1,8 @@
 ---
-title: Chapter 9 - The Mirror Talks Back
-layout: default
+layout: chapter
+novel: echoes-of-us
+order: 9
+Title: Chapter 9 - The Mirror Talks Back
 ---
 
 ## Chapter 9: The Mirror Talks Back

@@ -1,6 +1,8 @@
 ---
-title: Chapter 8 - The Scribe Who Never Asked
-layout: default
+layout: chapter
+novel: the-silk-of-fate
+order: 8
+Title: Chapter 8 - The Scribe Who Never Asked
 ---
 
 ## *The Silk of Fate*  
