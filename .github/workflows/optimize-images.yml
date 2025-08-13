@@ -1,0 +1,33 @@
+name: Optimize images
+
+on:
+  push:
+    paths:
+      - "images_src/**"
+      - "tools/optimize_images.py"
+  workflow_dispatch:
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # allow committing optimized images
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: pip install pillow
+
+      - name: Run optimizer
+        run: python3 tools/optimize_images.py
+
+      - name: Commit optimized images
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(images): optimize variants from images_src"
+          file_pattern: images/**
