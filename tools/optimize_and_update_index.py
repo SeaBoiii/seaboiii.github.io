@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Optimize cover images and upgrade <img> to <picture> in /novel/index.html.
+Optimize cover images and upgrade <img> to <picture> in /novel/index.html (idempotent: skips novels already converted).
 
 - For each <li><a><img ...> in /novel/index.html:
   * Locate the source image (prefer /images/<file>, fallback to /images_src/<file base>.*)
@@ -13,25 +13,31 @@ Optimize cover images and upgrade <img> to <picture> in /novel/index.html.
 Run from repo root:
   pip install pillow beautifulsoup4
   python3 tools/optimize_and_update_index.py
+
+Idempotency rules:
+- If a card already uses <picture> **and** all 320/640/960 WebP+JPG variants exist → **skip** that novel.
+- Otherwise, it will generate any missing variants and upgrade the markup.
 """
 
 from pathlib import Path
 import re
 from PIL import Image
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    import subprocess
-    import sys
-    print("BeautifulSoup4 not found, installing via pip...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "beautifulsoup4"])
-    from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 
 REPO = Path.cwd()
 NOVEL_INDEX = REPO / "novel" / "index.html"
 IMAGES_DIR = REPO / "images"
 IMAGES_SRC = REPO / "images_src"   # optional fallback for originals
 SIZES = [320, 640, 960]
+
+def variants_exist(base_out: str) -> bool:
+    """Return True if all webp/jpg variants for base_out exist in /images."""
+    for w in SIZES:
+        if not (IMAGES_DIR / f"{base_out}-{w}.webp").exists():
+            return False
+        if not (IMAGES_DIR / f"{base_out}-{w}.jpg").exists():
+            return False
+    return True
 
 def find_original_image(src_url: str) -> Path | None:
     """
@@ -116,6 +122,10 @@ def normalize_base_from_src(src_url: str) -> str:
     name = name.replace(" ", "-").lower()
     return name
 
+def card_is_converted(anchor_tag) -> bool:
+    """True if this card already uses <picture> markup."""
+    return anchor_tag.find("picture") is not None
+
 def main():
     if not NOVEL_INDEX.exists():
         raise SystemExit(f"Cannot find {NOVEL_INDEX}. Run from repo root.")
@@ -123,41 +133,61 @@ def main():
     html = NOVEL_INDEX.read_text(encoding="utf-8")
     soup = BeautifulSoup(html, "html.parser")
 
-    imgs = soup.select("li a img")
-    if not imgs:
-        print("No <img> tags found under novel cards.")
+    anchors = soup.select("li a")
+    if not anchors:
+        print("No novel cards found (li > a).")
         return
-
+    
     updated = 0
-    for i, img in enumerate(imgs):
+    eager_given = False
+    
+    for a in anchors:
+        # Strict skip: if already converted to <picture>, do NOTHING for this card
+        if card_is_converted(a):
+            continue
+    
+        img = a.find("img")
+        if not img or not img.has_attr("src"):
+            continue
+    
         src = img.get("src", "").strip()
         alt = img.get("alt", "").strip()
-        if not src:
-            print("⚠️  Skipping an <img> with no src.")
-            continue
-
-        # find original
-        orig = find_original_image(src)
-        if not orig:
-            print(f"⚠️  Could not locate original for {src}. Skipping optimization; replacing markup anyway.")
-            # still replace with a picture using existing base
         base_out = normalize_base_from_src(src)
-
-        # make variants if we found the file
-        if orig and orig.exists():
-            print(f"Optimizing {orig} → /images/{base_out}-{{320,640,960}}.webp/.jpg")
-            w, h = make_variants(orig, base_out)
+    
+        # Ensure variants for not-yet-converted cards only
+        if not variants_exist(base_out):
+            orig = find_original_image(src)
+            if not orig:
+                # Try to locate something by base in /images or /images_src
+                for ext in (".png", ".jpg", ".jpeg", ".webp"):
+                    probe = IMAGES_DIR / f"{base_out}{ext}"
+                    if probe.exists():
+                        orig = probe; break
+                    probe = IMAGES_SRC / f"{base_out}{ext}"
+                    if probe.exists():
+                        orig = probe; break
+            if orig and orig.exists():
+                print(f"Optimizing {orig} → /images/{base_out}-{{320,640,960}}.webp/.jpg")
+                w, h = make_variants(orig, base_out)
+            else:
+                print(f"⚠️  No source found for {src}. Skipping this card.")
+                continue  # don't convert markup if we can't back it with variants
         else:
-            # fallback dimensions if we can't read the image
             w, h = 640, 960
-
-        eager = (i == 0)  # first card eager, others lazy
+    
+        # Replace <img> with <picture>
+        eager = False if eager_given else True
+        eager_given = True
         picture = picture_markup(soup, base_out, alt, eager, w, h)
         img.replace_with(picture)
         updated += 1
-
-    NOVEL_INDEX.write_text(soup.prettify(), encoding="utf-8")
-    print(f"✅ Updated {NOVEL_INDEX} — converted {updated} card(s) to <picture> and wrote image variants.")
+    
+    new_html = soup.prettify()
+    if new_html != html:
+        NOVEL_INDEX.write_text(new_html, encoding="utf-8")
+        print(f"✅ Updated {NOVEL_INDEX} — converted {updated} card(s) to <picture> and wrote image variants.")
+    else:
+        print("No HTML changes needed.")
     print("Next:")
     print("  git add -A && git commit -m 'perf(images): responsive covers + lazy loading' && git push")
 
