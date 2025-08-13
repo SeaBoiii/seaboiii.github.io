@@ -1,6 +1,6 @@
 ---
 layout: chapter
-Title: Epilogue: A Name of My Own
+Title: Epilogue - A Name of My Own
 novel: a-name-of-my-own
 order: 12
 ---
