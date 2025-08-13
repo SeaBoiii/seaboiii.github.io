@@ -10,6 +10,23 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
+from tkinter import ttk, filedialog, messagebox
+
+# Optional converters for formatted paste (install with pip to enable)
+try:
+    import markdownify as _markdownify  # pip install markdownify
+except Exception:
+    _markdownify = None
+try:
+    import mammoth as _mammoth  # pip install mammoth
+except Exception:
+    _mammoth = None
+try:
+    from striprtf.striprtf import rtf_to_text as _rtf_to_text  # pip install striprtf
+except Exception:
+    _rtf_to_text = None
+
+
 REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
@@ -30,6 +47,56 @@ def pretty(slug: str) -> str:
 def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(text, encoding="utf-8", newline="\n")
+
+# ---- Formatting helpers ----
+SMART_QUOTES = {
+    "\u2018": "'", "\u2019": "'", "\u201C": '"', "\u201D": '"',
+    "\u2013": "-", "\u2014": "--",
+}
+
+def normalize_smart_punctuation(s: str) -> str:
+    for k, v in SMART_QUOTES.items():
+        s = s.replace(k, v)
+    return s
+
+def html_to_markdown(html: str) -> str:
+    html = html or ""
+    if _markdownify:
+        try:
+            md = _markdownify.markdownify(html, heading_style="ATX", strip=['span'])
+            return normalize_smart_punctuation(md)
+        except Exception:
+            pass
+    # Naive fallback if markdownify isn't available
+    import re
+    md = html
+    md = re.sub(r"<\s*h1[^>]*>(.*?)<\s*/h1\s*>", r"# \1\n\n", md, flags=re.I|re.S)
+    md = re.sub(r"<\s*h2[^>]*>(.*?)<\s*/h2\s*>", r"## \1\n\n", md, flags=re.I|re.S)
+    md = re.sub(r"<\s*strong[^>]*>(.*?)<\s*/strong\s*>", r"**\1**", md, flags=re.I|re.S)
+    md = re.sub(r"<\s*em[^>]*>(.*?)<\s*/em\s*>", r"*\1*", md, flags=re.I|re.S)
+    md = re.sub(r"<\s*br\s*/?>", "\n", md, flags=re.I)
+    md = re.sub(r"<[^>]+>", "", md)  # strip remaining tags
+    return normalize_smart_punctuation(md)
+
+def rtf_to_markdown(rtf: str) -> str:
+    if _rtf_to_text:
+        try:
+            txt = _rtf_to_text(rtf)
+            return normalize_smart_punctuation(txt)
+        except Exception:
+            pass
+    return normalize_smart_punctuation(rtf)
+
+def docx_file_to_markdown(path: Path) -> str:
+    if _mammoth:
+        try:
+            with open(path, "rb") as f:
+                result = _mammoth.convert_to_html(f)
+            html = result.value
+            return html_to_markdown(html)
+        except Exception:
+            return ""
+    return ""
 
 def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
     header = (
@@ -118,6 +185,50 @@ f'''      <li>
         new_html = html[:pos] + li + html[pos:] if pos != -1 else html + "\n" + li
         write_text(NOVELS_INDEX_HTML, new_html)
 
+class PasteFormattedDialog(tk.Toplevel):
+    """Paste HTML or RTF and convert to Markdown before inserting."""
+    def __init__(self, master, on_done):
+        super().__init__(master)
+        self.title("Paste formatted text")
+        self.resizable(True, True)
+        self.on_done = on_done
+
+        self.var_mode = tk.StringVar(value="HTML")
+        frm = ttk.Frame(self, padding=10)
+        frm.pack(fill="both", expand=True)
+
+        ttk.Label(frm, text="Format").grid(row=0, column=0, sticky="w")
+        ttk.Combobox(frm, textvariable=self.var_mode, values=["HTML", "RTF"], state="readonly", width=12)\
+            .grid(row=0, column=1, sticky="w")
+
+        ttk.Label(frm, text="Paste here").grid(row=1, column=0, columnspan=2, sticky="w", pady=(6,2))
+        self.txt = tk.Text(frm, wrap="word", height=18)
+        self.txt.grid(row=2, column=0, columnspan=2, sticky="nsew")
+        frm.rowconfigure(2, weight=1)
+        frm.columnconfigure(1, weight=1)
+
+        btns = ttk.Frame(frm)
+        btns.grid(row=3, column=0, columnspan=2, sticky="e", pady=(8,0))
+        ttk.Button(btns, text="Cancel", command=self.destroy).pack(side="right")
+        ttk.Button(btns, text="Insert", command=self._insert).pack(side="right", padx=(0,8))
+
+        self.transient(master)
+        self.grab_set()
+        self.txt.focus_set()
+
+    def _insert(self):
+        data = self.txt.get("1.0", "end").strip()
+        if not data:
+            self.destroy(); return
+        if self.var_mode.get() == "HTML":
+            md = html_to_markdown(data)
+        else:
+            md = rtf_to_markdown(data)
+        if callable(self.on_done):
+            self.on_done(md)
+        self.destroy()
+
+
 # ---------- GUI ----------
 class Wizard(tk.Tk):
     def __init__(self):
@@ -183,6 +294,28 @@ class Wizard(tk.Tk):
         )
         if p: self.cover_var.set(p)
 
+    def _paste_formatted_into(self, text_widget: tk.Text=None):
+      if not text_widget:
+          return
+      def _done(md):
+          text_widget.insert("insert", md)
+      PasteFormattedDialog(self, _done)
+
+    def _import_docx_into(self, text_widget: tk.Text=None):
+        if not text_widget:
+            return
+        p = filedialog.askopenfilename(title="Select .docx file",
+                                       filetypes=[("Word document","*.docx")])
+        if not p:
+            return
+        md = docx_file_to_markdown(Path(p))
+        if not md:
+            messagebox.showerror("Import failed",
+                "Could not convert DOCX. Install 'mammoth' (pip install mammoth) for best results.")
+            return
+        text_widget.insert("insert", md)
+
+
     def _build_chapter_tabs(self):
         # clear existing
         for i in range(len(self.nb.tabs())):
@@ -199,8 +332,18 @@ class Wizard(tk.Tk):
             title_entry = ttk.Entry(frame, textvariable=title_var)
             title_entry.pack(fill="x", pady=(2,8))
 
-            text = tk.Text(frame, wrap="word", height=18)
+            # toolbar for formatted paste / import
+            tools = ttk.Frame(frame)
+            tools.pack(fill="x", pady=(0,6))
+            
+            text = tk.Text(frame, wrap="word", height=18, undo=True)
+            ttk.Button(tools, text="Paste formatted…",
+                       command=lambda t=text: self._paste_formatted_into(text_widget=t)).pack(side="left")
+            ttk.Button(tools, text="Import .docx…",
+                       command=lambda t=text: self._import_docx_into(text_widget=t)).pack(side="left", padx=(6,0))
+            
             text.pack(fill="both", expand=True)
+
 
             self.chapter_tabs.append({"order": i, "title_var": title_var, "text": text})
 
