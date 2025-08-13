@@ -1,12 +1,10 @@
 name: Optimize covers & update novel index
 
 on:
-  push:
-    paths:
-      - "images_src/**"                  # new/changed originals
-      - "novel/index.html"               # if you edit the list markup
-      - "tools/optimize_and_update_index.py"
-  workflow_dispatch: {}
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types:
+      - completed
 
 jobs:
   optimize:
