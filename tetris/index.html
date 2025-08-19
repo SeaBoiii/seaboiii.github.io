@@ -392,6 +392,11 @@
     update(time, delta) {
       if (this.paused || this.gameOver) return;
 
+      // Safety: if game is running and there's no active piece, spawn one
+      if (!this.active) {
+        this.spawnPiece();
+      }
+
       // Input throttling for left/right movement
       this.moveCooldown -= delta;
       const movePressed = this.cursors.left.isDown || this.cursors.right.isDown;
