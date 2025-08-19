@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ATS Blocks — Phaser</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #0e0f12;
+      color: #e7e9ee;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      display: grid;
+      place-items: center;
+    }
+    #game-container { box-shadow: 0 10px 30px rgba(0,0,0,.35); border-radius: 14px; overflow: hidden; }
+    .tip { position: fixed; bottom: 10px; opacity: .7; font-size: 12px; }
+    a { color: #8cc8ff; text-decoration: none; }
+  </style>
+  <!-- Phaser 3 via jsDelivr CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+</head>
+<body>
+  <div id="game-container"></div>
+  <div class="tip">Controls: 
+    <strong>← →</strong> move, 
+    <strong>↓</strong> soft drop, 
+    <strong>Space</strong> hard drop, 
+    <strong>P</strong> pause, 
+    <strong>R</strong> restart
+  </div>
+<script>
+(() => {
+  // ----- Config -----
+  const CELL = 32;                 // tile size in pixels
+  const COLS = 10;                 // grid width
+  const ROWS = 20;                 // grid height
+  const MARGIN = 20;               // canvas padding
+  const UIH = 96;                  // top UI area height
+  const GRID_W = COLS * CELL;
+  const GRID_H = ROWS * CELL;
+  const VIEW_W = GRID_W + MARGIN * 2;
+  const VIEW_H = GRID_H + UIH + MARGIN * 2;
+
+  const COLORS = {
+    bg: 0x14161b,
+    grid: 0x23272f,
+    panel: 0x0f1115,
+    text: '#e7e9ee',
+    A: 0x4ea1ff,
+    T: 0xffae4e,
+    S: 0x5bd08a,
+    ghost: 0x3a3f4a,
+    outline: 0x0b0d11
+  };
+
+  // Weighted letter distribution: tweak for difficulty
+  function randomLetter() {
+    const r = Math.random();
+    if (r < 0.33) return 'A';
+    if (r < 0.66) return 'T';
+    return 'S';
+  }
+
+  // Pixel helpers
+  const gx = (x) => MARGIN + x * CELL;                 // grid x -> px
+  const gy = (y) => MARGIN + UIH + y * CELL;           // grid y -> px
+
+  // ----- Game State -----
+  class GameScene extends Phaser.Scene {
+    constructor() {
+      super('Game');
+      // Grid holds { letter, obj } or null
+      this.grid = this.createEmptyGrid();
+      this.active = null;              // falling piece {x,y,letter, cont}
+      this.dropTimer = 0;
+      this.dropInterval = 820;         // ms
+      this.level = 1;
+      this.score = 0;
+      this.best = Number(localStorage.getItem('ats-best') || 0);
+      this.gameOver = false;
+      this.paused = false;
+      this.comboFlash = null;
+    }
+
+    createEmptyGrid() {
+      return Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => null));
+    }
+
+    preload() {}
+
+    create() {
+      // Background panels
+      this.add.rectangle(0,0,VIEW_W,VIEW_H, COLORS.panel).setOrigin(0);
+      this.add.rectangle(MARGIN-2, MARGIN-2, GRID_W+4, UIH+4, COLORS.bg, 1).setOrigin(0).setStrokeStyle(2, COLORS.outline, 0.8).setDepth(1);
+      this.add.rectangle(MARGIN-2, MARGIN+UIH-2, GRID_W+4, GRID_H+4, COLORS.bg, 1).setOrigin(0).setStrokeStyle(2, COLORS.outline, 0.8).setDepth(1);
+
+      // Gridlines
+      const g = this.add.graphics({ lineStyle: { width: 1, color: COLORS.grid, alpha: 0.7 } });
+      for (let x = 0; x <= COLS; x++) { g.lineBetween(gx(x), gy(0), gx(x), gy(ROWS)); }
+      for (let y = 0; y <= ROWS; y++) { g.lineBetween(gx(0), gy(y), gx(COLS), gy(y)); }
+
+      // UI texts
+      this.titleText = this.add.text(MARGIN+10, MARGIN+12, 'ATS Blocks', { fontSize: 24, fontStyle: '700', color: COLORS.text });
+      this.scoreText = this.add.text(MARGIN+10, MARGIN+44, 'Score: 0', { fontSize: 18, color: COLORS.text });
+      this.levelText = this.add.text(MARGIN+10, MARGIN+68, 'Level: 1', { fontSize: 16, color: COLORS.text });
+      this.bestText  = this.add.text(MARGIN+180, MARGIN+44, `Best: ${this.best}`, { fontSize: 18, color: COLORS.text });
+
+      // Controls
+      this.cursors = this.input.keyboard.createCursorKeys();
+      this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+      this.keyP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+      this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+
+      this.keyP.on('down', () => { if (!this.gameOver) { this.paused = !this.paused; this.showToast(this.paused? 'Paused' : 'Resumed'); }});
+      this.keyR.on('down', () => this.restart());
+
+      // Spawn first piece
+      this.spawnPiece();
+
+      // Input repeat throttling
+      this.moveCooldown = 0; // ms
+
+      // Ghost preview (hard drop shadow)
+      this.ghostGraphics = this.add.graphics();
+    }
+
+    spawnPiece() {
+      const letter = randomLetter();
+      const x = Math.floor(COLS/2);
+      const y = 0;
+      // Collision at spawn -> game over
+      if (this.isOccupied(x, y)) {
+        this.endGame();
+        return;
+      }
+      const cont = this.makeBlock(letter, x, y);
+      this.active = { x, y, letter, cont };
+      this.updateGhost();
+    }
+
+    makeBlock(letter, gxIdx, gyIdx) {
+      const px = gx(gxIdx) + CELL/2;
+      const py = gy(gyIdx) + CELL/2;
+
+      const color = COLORS[letter];
+      const cont = this.add.container(px, py);
+      const rect = this.add.rectangle(0, 0, CELL-4, CELL-4, color, 1)
+        .setStrokeStyle(2, 0x000000, 0.25)
+        .setOrigin(0.5)
+        .setDepth(2);
+      rect.setData('type','tile');
+      const txt = this.add.text(0, -1, letter, { fontSize: 18, fontStyle: '700', color: '#0d1016' }).setOrigin(0.5).setDepth(3);
+      cont.add([rect, txt]);
+      cont.setData({ rect, txt, letter });
+      return cont;
+    }
+
+    setActivePos(x, y) {
+      if (!this.active) return;
+      this.active.x = x; this.active.y = y;
+      this.tweens.add({ targets: this.active.cont, x: gx(x)+CELL/2, y: gy(y)+CELL/2, duration: 50, ease: 'Linear' });
+      this.updateGhost();
+    }
+
+    canMove(x, y) {
+      return x >= 0 && x < COLS && y >= 0 && y < ROWS && !this.isOccupied(x, y);
+    }
+
+    isOccupied(x, y) { return this.grid[y][x] !== null; }
+
+    lockPiece() {
+      const { x, y, letter, cont } = this.active;
+      this.grid[y][x] = { letter, obj: cont };
+      this.active = null;
+      this.resolveMatchesAndGravity(() => {
+        // After resolving, spawn next
+        if (!this.gameOver) this.spawnPiece();
+      });
+    }
+
+    // Find ATS matches: accepts horizontal (→), vertical (↓), diag (↘, ↙) only in forward order A->T->S
+    findMatches() {
+      const toClear = new Set(); // key: y*100+x
+      const triples = [];        // list of triplets [[{x,y},{x,y},{x,y}], ...]
+
+      const mark = (cells) => {
+        cells.forEach(({x,y}) => toClear.add(y*100 + x));
+        triples.push(cells);
+      };
+
+      const get = (x,y) => (x>=0 && x<COLS && y>=0 && y<ROWS) ? this.grid[y][x] : null;
+
+      for (let y=0; y<ROWS; y++) {
+        for (let x=0; x<COLS; x++) {
+          const c = get(x,y);
+          if (!c || c.letter !== 'A') continue;
+          // →
+          if (get(x+1,y)?.letter==='T' && get(x+2,y)?.letter==='S') mark([{x,y},{x:x+1,y},{x:x+2,y}]);
+          // ↓
+          if (get(x,y+1)?.letter==='T' && get(x,y+2)?.letter==='S') mark([{x,y},{x,y:y+1},{x,y:y+2}]);
+          // ↘
+          if (get(x+1,y+1)?.letter==='T' && get(x+2,y+2)?.letter==='S') mark([{x,y},{x:x+1,y:y+1},{x:x+2,y:y+2}]);
+          // ↙
+          if (get(x-1,y+1)?.letter==='T' && get(x-2,y+2)?.letter==='S') mark([{x,y},{x:x-1,y:y+1},{x:x-2,y:y+2}]);
+        }
+      }
+      return { toClear, triples };
+    }
+
+    resolveMatchesAndGravity(after = ()=>{}) {
+      // Chain reactions possible
+      let chain = 0;
+      let totalTriples = 0;
+
+      const step = () => {
+        const { toClear, triples } = this.findMatches();
+        if (toClear.size === 0) {
+          // No more matches -> finish chain
+          if (chain > 0) this.showComboFlash(chain, totalTriples);
+          after();
+          return;
+        }
+        chain += 1;
+        totalTriples += triples.length;
+
+        // Highlight then clear
+        triples.forEach(cells => {
+          cells.forEach(({x,y}) => {
+            const item = this.grid[y][x];
+            if (item && item.obj && !item.obj.getData('highlighted')) {
+              item.obj.getAt(0).setStrokeStyle(3, 0xffffff, 0.9); // glow
+              item.obj.setData('highlighted', true);
+            }
+          });
+        });
+
+        this.time.delayedCall(120, () => {
+          // Remove sprites & null grid
+          toClear.forEach(key => {
+            const x = key % 100; const y = Math.floor(key / 100);
+            const item = this.grid[y][x];
+            if (item) {
+              this.tweens.add({ targets: item.obj, alpha: 0, scale: 0.6, duration: 120, onComplete: () => item.obj.destroy() });
+            }
+            this.grid[y][x] = null;
+          });
+
+          // Score
+          const base = 100 * triples.length;
+          const bonus = (chain-1) * 100 * triples.length * 0.5; // chain bonus
+          const mega = triples.length >= 4 ? 200 : 0;           // mega tetris bonus
+          this.addScore(Math.floor(base + bonus + mega));
+
+          // Gravity collapse with tween
+          this.applyGravity(() => {
+            // Continue chain
+            step();
+          });
+        });
+      };
+      step();
+    }
+
+    addScore(v) {
+      this.score += v;
+      if (this.score > this.best) { this.best = this.score; localStorage.setItem('ats-best', String(this.best)); this.bestText.setText(`Best: ${this.best}`); }
+      this.scoreText.setText('Score: ' + this.score);
+
+      // Level up every 800 points
+      const newLevel = 1 + Math.floor(this.score / 800);
+      if (newLevel !== this.level) {
+        this.level = newLevel;
+        this.levelText.setText('Level: ' + this.level);
+        this.dropInterval = Math.max(140, 820 - (this.level-1)*80);
+        this.flashUI(`Level ${this.level}`);
+      }
+    }
+
+    flashUI(msg) {
+      const t = this.add.text(VIEW_W/2, MARGIN + UIH/2, msg, { fontSize: 28, fontStyle: '700', color: '#ffffff' }).setOrigin(0.5).setAlpha(0);
+      this.tweens.add({ targets: t, alpha: 1, y: t.y-6, duration: 220, yoyo: true, hold: 120, onComplete: () => t.destroy() });
+    }
+
+    showComboFlash(chain, triples) {
+      let msg = triples >= 4 ? 'MEGA TETRIS!' : 'TETRIS!';
+      if (chain > 1) msg += ` x${chain}`;
+      const t = this.add.text(VIEW_W/2, gy(Math.floor(ROWS/3)), msg, { fontSize: 36, fontStyle: '700', color: '#ffffff' }).setOrigin(0.5).setAlpha(0);
+      this.tweens.add({ targets: t, alpha: 1, duration: 180, yoyo: true, hold: 250, onComplete: () => t.destroy() });
+    }
+
+    showToast(msg) {
+      const t = this.add.text(VIEW_W/2, VIEW_H - 28, msg, { fontSize: 14, color: '#cbd5e1', backgroundColor: '#1f2937' }).setPadding(6,4,6,4).setOrigin(0.5).setAlpha(0.001);
+      this.tweens.add({ targets: t, alpha: 0.95, duration: 160, yoyo: true, hold: 700, onComplete: () => t.destroy() });
+    }
+
+    applyGravity(done) {
+      const moves = [];
+      for (let x=0; x<COLS; x++) {
+        let writeY = ROWS - 1;
+        for (let y=ROWS-1; y>=0; y--) {
+          if (this.grid[y][x]) {
+            if (y !== writeY) {
+              // move down
+              this.grid[writeY][x] = this.grid[y][x];
+              this.grid[y][x] = null;
+              moves.push({ obj: this.grid[writeY][x].obj, x, y: writeY });
+            }
+            writeY--;
+          }
+        }
+      }
+
+      // Animate moved tiles
+      const tweens = moves.map(m => this.tweens.add({ targets: m.obj, x: gx(m.x)+CELL/2, y: gy(m.y)+CELL/2, duration: 120, ease: 'Quad.easeIn' }));
+      this.time.delayedCall(130, done);
+    }
+
+    hardDrop() {
+      if (!this.active) return;
+      let { x, y } = this.active;
+      while (this.canMove(x, y+1)) y++;
+      this.setActivePos(x, y);
+      this.lockPiece();
+    }
+
+    updateGhost() {
+      this.ghostGraphics.clear();
+      if (!this.active) return;
+      let { x, y } = this.active;
+      while (this.canMove(x, y+1)) y++;
+      const px = gx(x) + 2, py = gy(y) + 2;
+      this.ghostGraphics.lineStyle(2, COLORS.ghost, 0.9);
+      this.ghostGraphics.strokeRoundedRect(px, py, CELL-4, CELL-4, 6);
+    }
+
+    tryMove(dx, dy) {
+      if (!this.active) return false;
+      const nx = this.active.x + dx;
+      const ny = this.active.y + dy;
+      if (this.canMove(nx, ny)) { this.setActivePos(nx, ny); return true; }
+      return false;
+    }
+
+    endGame() {
+      this.gameOver = true;
+      this.paused = true;
+      const overlay = this.add.rectangle(0,0,VIEW_W,VIEW_H, 0x000000, 0.55).setOrigin(0);
+      const t1 = this.add.text(VIEW_W/2, VIEW_H/2 - 14, 'Game Over', { fontSize: 36, fontStyle: '700', color: '#ffffff' }).setOrigin(0.5);
+      const t2 = this.add.text(VIEW_W/2, VIEW_H/2 + 22, 'Press R to Restart', { fontSize: 16, color: '#e5e7eb' }).setOrigin(0.5);
+      overlay.setDepth(10); t1.setDepth(11); t2.setDepth(11);
+    }
+
+    restart() {
+      // Clear all tiles
+      for (let y=0; y<ROWS; y++) for (let x=0; x<COLS; x++) {
+        if (this.grid[y][x]?.obj) this.grid[y][x].obj.destroy();
+        this.grid[y][x] = null;
+      }
+      if (this.active?.cont) this.active.cont.destroy();
+      this.active = null;
+      this.grid = this.createEmptyGrid();
+      this.score = 0; this.level = 1; this.dropInterval = 820; this.gameOver = false; this.paused = false;
+      this.scoreText.setText('Score: 0'); this.levelText.setText('Level: 1');
+      this.spawnPiece();
+    }
+
+    update(time, delta) {
+      if (this.paused || this.gameOver) return;
+
+      // Input throttling for left/right movement
+      this.moveCooldown -= delta;
+      const movePressed = this.cursors.left.isDown || this.cursors.right.isDown;
+      if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) { this.tryMove(-1, 0); this.moveCooldown = 110; }
+      else if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) { this.tryMove(1, 0); this.moveCooldown = 110; }
+      else if (movePressed && this.moveCooldown <= 0) { // held key repeat
+        if (this.cursors.left.isDown) this.tryMove(-1, 0);
+        if (this.cursors.right.isDown) this.tryMove(1, 0);
+        this.moveCooldown = 80;
+      }
+
+      // Soft drop
+      if (this.cursors.down.isDown) {
+        this.dropTimer += delta * 2.2; // accelerate
+      } else {
+        this.dropTimer += delta;
+      }
+
+      // Hard drop
+      if (Phaser.Input.Keyboard.JustDown(this.keySpace)) {
+        this.hardDrop();
+        return;
+      }
+
+      // Apply gravity when timer exceeds interval
+      if (this.dropTimer >= this.dropInterval) {
+        this.dropTimer = 0;
+        if (!this.tryMove(0, 1)) {
+          // lock
+          this.lockPiece();
+        }
+      }
+    }
+  }
+
+  // Boot config
+  const config = {
+    type: Phaser.AUTO,
+    parent: 'game-container',
+    width: VIEW_W,
+    height: VIEW_H,
+    backgroundColor: '#0e0f12',
+    physics: { default: 'arcade' },
+    scene: [GameScene],
+    pixelArt: true,
+    antialias: true,
+  };
+
+  new Phaser.Game(config);
+})();
+</script>
+</body>
+</html>
