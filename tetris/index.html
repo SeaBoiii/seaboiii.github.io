@@ -19,7 +19,9 @@
     a { color: #8cc8ff; text-decoration: none; }
   </style>
   <!-- Phaser 3 via jsDelivr CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"
+        onerror="var s=document.createElement('script');s.src='https://unpkg.com/phaser@3/dist/phaser.min.js';document.head.appendChild(s);">
+  </script>
 </head>
 <body>
   <div id="game-container"></div>
@@ -116,14 +118,35 @@
       this.keyP.on('down', () => { if (!this.gameOver) { this.paused = !this.paused; this.showToast(this.paused? 'Paused' : 'Resumed'); }});
       this.keyR.on('down', () => this.restart());
 
-      // Spawn first piece
-      this.spawnPiece();
-
       // Input repeat throttling
       this.moveCooldown = 0; // ms
 
       // Ghost preview (hard drop shadow)
       this.ghostGraphics = this.add.graphics();
+
+      // Start overlay and handlers
+        this.paused = true;           // ensure paused until start
+        this.started = false;
+
+        this.startOverlay = this.add.rectangle(0,0,VIEW_W,VIEW_H, 0x000000, 0.45).setOrigin(0).setDepth(20);
+        this.startText1 = this.add.text(VIEW_W/2, VIEW_H/2 - 10, 'Click / Tap or Press SPACE', 
+        { fontSize: 24, fontStyle: '700', color: '#ffffff' }).setOrigin(0.5).setDepth(21);
+        this.startText2 = this.add.text(VIEW_W/2, VIEW_H/2 + 20, 'to Start', 
+        { fontSize: 16, color: '#e5e7eb' }).setOrigin(0.5).setDepth(21);
+
+        const startGame = () => {
+        if (this.started) return;
+        this.started = true;
+        this.paused = false;
+        this.startOverlay.destroy();
+        this.startText1.destroy();
+        this.startText2.destroy();
+        if (!this.active) this.spawnPiece();
+        };
+        this.input.once('pointerdown', startGame);
+        this.input.keyboard.once('keydown-SPACE', startGame);
+        this.input.keyboard.once('keydown', startGame); // any key fallback
+
     }
 
     spawnPiece() {
