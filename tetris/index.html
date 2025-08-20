@@ -7,7 +7,18 @@
   <style>
     html, body { height: 100%; margin: 0; background: #0e0f12; display: grid; place-items: center; }
     #game-container { box-shadow: 0 10px 30px rgba(0,0,0,.35); border-radius: 12px; overflow: hidden; }
-    .instructions { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); color: #ccc; font-size: 13px; font-family: sans-serif; opacity: 0.8; }
+    .instructions {
+      position: static;
+      margin-top: 18px;
+      width: 100%;
+      max-width: 480px;
+      color: #ccc;
+      font-size: 13px;
+      font-family: sans-serif;
+      opacity: 0.8;
+      text-align: left;
+      z-index: 1;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,13 +31,13 @@
       <span style="display:inline-block;width:15px;height:15px;background:#4ea1ff;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 1px 0 2px;">A</span>
       <span style="display:inline-block;width:15px;height:15px;background:#ffae4e;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 1px;">T</span>
       <span style="display:inline-block;width:15px;height:15px;background:#5bd08a;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 1px;">S</span>
-         in a straight line (→, ↓, ↘, ↙) to clear.
+         in a straight line (→, ↓, ↘, ↙, ↗, ↖) to clear.
     </div>
     <div>
       Specials:
       <span style="display:inline-block;width:15px;height:15px;background:#9b8cff;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 2px;">✱</span> wildcard = any letter
       • <span style="display:inline-block;width:15px;height:15px;background:#ff5d5d;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 2px;">B</span> bomb clears 3×3
-      • <span style="display:inline-block;width:15px;height:15px;background:#ffe36e;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 2px;">✦</span> mega bomb clears a whole row or column.
+      • <span style="display:inline-block;width:15px;height:15px;background:#ffe36e;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 2px;">✦</span> mega bomb clears a whole row and column.
     </div>
     <div>Hazards: Junk/poison letters block your setups. Garbage rows rise every few locks.</div>
     <div>Controls: Click to start • ←/→ move • ↓ soft drop • R restart</div>
@@ -339,12 +350,12 @@
       this.lockCount++;
       // Use a dynamic interval for garbage row
       if (!this.nextGarbageInterval) {
-        this.nextGarbageInterval = 10 + Math.floor(Math.random() * 5); // 10-14
+        this.nextGarbageInterval = 16 + Math.floor(Math.random() * 5); // 16-20
       }
       if(this.lockCount % this.nextGarbageInterval === 0){
         // After adding garbage, randomize the next interval
         this.addGarbageRow(()=> {
-          this.nextGarbageInterval = 10 + Math.floor(Math.random() * 5);
+          this.nextGarbageInterval = 16 + Math.floor(Math.random() * 5);
           this.spawn();
         });
       } else {
@@ -412,23 +423,23 @@
         if (cleared>0) this.addScore(cleared*20);
         return this.time.delayedCall(130, ()=> this.applyGravity(()=> this.resolveMatchesAndGravity(()=> this.postLockContinue())));
       }
-      if(letter==='M'){
-        const clearRow = Math.random()<0.5;
-        if(clearRow){
-          for(let cx=0; cx<COLS; cx++){
-            const cell=this.grid[y][cx]; if(cell?.obj){ this.tweens.add({targets:cell.obj, alpha:0, duration:100, onComplete:()=>cell.obj.destroy()}); }
-            this.grid[y][cx]=null;
-          }
-        } else {
-          for(let cy=0; cy<ROWS; cy++){
-            const cell=this.grid[cy][x]; if(cell?.obj){ this.tweens.add({targets:cell.obj, alpha:0, duration:100, onComplete:()=>cell.obj.destroy()}); }
-            this.grid[cy][x]=null;
-          }
+      if(letter ==='M'){
+        // Clear both the row and the column
+        for(let cx=0; cx<COLS; cx++){
+          const cell=this.grid[y][cx];
+          if(cell?.obj){ this.tweens.add({targets:cell.obj, alpha:0, duration:100, onComplete:()=>cell.obj.destroy()}); }
+          this.grid[y][cx]=null;
+        }
+        for(let cy=0; cy<ROWS; cy++){
+          if (cy === y) continue; // already cleared this row
+          const cell=this.grid[cy][x];
+          if(cell?.obj){ this.tweens.add({targets:cell.obj, alpha:0, duration:100, onComplete:()=>cell.obj.destroy()}); }
+          this.grid[cy][x]=null;
         }
         cont.destroy();
         this.addScore(150);
         return this.time.delayedCall(130, ()=> this.applyGravity(()=> this.resolveMatchesAndGravity(()=> this.postLockContinue())));
-  }
+      }
   this.grid[y][x] = { letter, obj: cont };
   this.resolveMatchesAndGravity(()=> this.postLockContinue());
     }
@@ -447,8 +458,10 @@
         const c=get(x,y); if(!isA(c)) continue;
         if(isT(get(x+1,y)) && isS(get(x+2,y))) mark([{x,y},{x:x+1,y},{x:x+2,y}], false);
         if(isT(get(x,y+1)) && isS(get(x,y+2))) mark([{x,y},{x,y:y+1},{x,y:y+2}], false);
-        if(isT(get(x+1,y+1)) && isS(get(x+2,y+2))) mark([{x,y},{x:x+1,y:y+1},{x:x+2,y:y+2}], true);
-        if(isT(get(x-1,y+1)) && isS(get(x-2,y+2))) mark([{x,y},{x:x-1,y:y+1},{x:x-2,y:y+2}], true);
+        if(isT(get(x+1,y+1)) && isS(get(x+2,y+2))) mark([{x,y},{x:x+1,y:y+1},{x:x+2,y:y+2}], true); // Diagonal down-right
+        if(isT(get(x-1,y+1)) && isS(get(x-2,y+2))) mark([{x,y},{x:x-1,y:y+1},{x:x-2,y:y+2}], true); // Diagonal down-left
+        if(isT(get(x-1,y-1)) && isS(get(x-2,y-2))) mark([{x,y},{x:x-1,y:y-1},{x:x-2,y:y-2}], true); // Diagonal up-left
+        if(isT(get(x+1,y-1)) && isS(get(x+2,y-2))) mark([{x,y},{x:x+1,y:y-1},{x:x+2,y:y-2}], true); // Diagonal up-right
       }
       return {toClear, tripleCount, diagCount};
     }
@@ -667,7 +680,7 @@
       if(this.paused || this.gameOver || !this.started) return;
       // Ramp dropInterval down as score or lockCount rises (faster drop)
       // You can tune the formula as needed for difficulty
-      const minInterval = 120;
+      const minInterval = 300;
       // Example: base 700ms, minus 10ms per lock, minus 1ms per 10 score, never below minInterval
       this.dropInterval = Math.max(minInterval, 700 - this.lockCount * 10 - Math.floor(this.score / 10));
       this.dropTimer += dt;
