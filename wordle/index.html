@@ -76,6 +76,9 @@
     window.SUPABASE_URL = window.SUPABASE_URL || "https://hmbppbnopvjuqqvrgkwl.supabase.co";
     window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtYnBwYm5vcHZqdXFxdnJna3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDk5MjksImV4cCI6MjA3MTIyNTkyOX0.qtTNyQ_LBnIwtKFkV2RDzhseQKJjx-42jirttsnvEfM";
 
+    // Default dictionary URL (large English word list)
+    window.DICTIONARY_URL = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt";
+
     // ==============
     //  UTILITIES
     // ==============
@@ -110,6 +113,21 @@
     playerNameInput.addEventListener('change', () => {
       setPlayerName(playerNameInput.value.trim());
     });
+
+    // Dictionary loader
+    let DICT = null;
+    async function loadDictionary() {
+      try {
+        const resp = await fetch(window.DICTIONARY_URL, { cache: "force-cache" });
+        const text = await resp.text();
+        DICT = new Set(text.split(/\r?\n/).map((w) => toUpper(w)).filter((w) => w.length >= 2));
+        console.log(`Loaded dictionary with ${DICT.size} words.`);
+      } catch (e) {
+        console.error("Failed to load dictionary", e);
+        DICT = new Set();
+      }
+    }
+    function isWordValid(word) { return DICT && DICT.has(toUpper(word)); }    
 
     // ==============
     //  SUPABASE
@@ -273,7 +291,7 @@
     function showToast(msg) {
       toast.textContent = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 1500);
+      setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
     function buildGrid() {
@@ -337,6 +355,7 @@
       if (status !== 'playing') return;
       const g = toUpper(cur);
       if (g.length !== wordLen) return showToast('Not enough letters');
+      if(!isWordValid(g)) return showToast('Not in dictionary');
       const next = [...guesses, g];
       guesses = next; cur = '';
       buildGrid();
@@ -543,6 +562,7 @@
     // ==============
     async function bootstrap() {
       const clientId = getClientId();
+      await loadDictionary();
       today = todayISO();
       document.getElementById('todayLabel').textContent = today;
 
