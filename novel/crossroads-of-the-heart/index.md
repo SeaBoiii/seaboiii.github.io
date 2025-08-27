@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: Crossroads of the heart — Chapters
 novel: crossroads-of-the-heart
+status: Incomplete
+blurb: >-
+  A romantic tale of 2 colleagues — exploring faith, heartbreak, and love.
 order: 0
 ---
 

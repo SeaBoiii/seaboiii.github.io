@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: When the song began — Chapters
 novel: when-the-song-began
+status: Complete
+blurb: >-
+  A gentle, cross-cultural story of two colleagues who discover something unexpected in a shared song—and slowly, in each other
 order: 0
 ---
 

@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: The time we were — Chapters
 novel: the-time-we-were
+status: Complete
+blurb: >-
+  A failed musician discovers a way to relive yesterday, hoping to win back the love he lost—only to confront the quiet cost of rewriting what was once real
 order: 0
 ---
 

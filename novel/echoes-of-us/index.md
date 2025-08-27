@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: Echoes of us — Chapters
 novel: echoes-of-us
+status: Complete
+blurb: >-
+  ABIX journey as they have gone through echoes in each others current struggles and stories.
 order: 0
 ---
 

@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: Unspoken roommate — Chapters
 novel: unspoken-roommate
+status: Complete
+blurb: >-
+  A roommate, a friend's sister... What if these boundaries were crossed?
 order: 0
 ---
 

@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: The abix chronicle — Chapters
 novel: the-abix-chronicle
+status: Complete
+blurb: >-
+  Embark on an unforgettable journey through the twists and turns of The Abix Chronicle.
 order: 0
 ---
 

@@ -1,7 +1,10 @@
 ---
-layout: chapter
+layout: novel
 Title: Only a fan dream — Chapters
 novel: only-a-fan-dream
+status: Incomplete
+blurb: >-
+  A fan met an idol, and it turns into a relationship?
 order: 0
 ---
 
