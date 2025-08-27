@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ page.Title | default: page.title }} · {{ site.title }}</title>
     <link rel="stylesheet" href="{{ "/assets/css/reader.css" | relative_url }}">
+    <style>
+    article, .markdown-body { 
+      font-size: clamp(1rem, 2.8vw, 1.125rem);
+      line-height: 1.7;
+    }
+    .markdown-body p { margin: 0 0 1rem; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { line-height: 1.25; margin-top: 1.4em; }
+    </style>
   </head>
   <body>
     <header class="site-header">
@@ -69,7 +77,15 @@
   {% endif %}
 </nav>
     </main>
-
+    <script>
+    (function() {
+      try {
+        var novel = '{{ page.novel | escape }}';
+        var key = 'novel:'+novel+':lastUrl';
+        localStorage.setItem(key, location.pathname);
+      } catch(e) {}
+    })();
+    </script>
     <script src="{{ "/assets/js/chapter.js" | relative_url }}" defer></script>
   </body>
 </html>

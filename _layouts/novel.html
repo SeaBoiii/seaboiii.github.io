@@ -1,0 +1,109 @@
+---
+layout: default
+---
+
+<!-- Minimal, theme-agnostic styles -->
+<style>
+.novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0}
+.novel-hero img{width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12)}
+@media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero img{width:180px;height:270px}}
+.novel-title{margin:0;font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.15}
+.novel-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin:.25rem 0 .5rem}
+.badge{font-size:.8rem;padding:.2rem .5rem;border-radius:999px;background:#eef;border:1px solid #dbe;white-space:nowrap}
+.badge.complete{background:#e8f7ec;border-color:#c9ebd5}
+.badge.incomplete{background:#fff5e6;border-color:#ffe0b3}
+.novel-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0 0}
+.novel-actions a{display:inline-block;padding:.6rem .9rem;border-radius:8px;text-decoration:none;border:1px solid #e0e0e0}
+.novel-actions a.primary{background:#111;color:#fff;border-color:#111}
+.novel-actions a:hover{filter:brightness(1.05)}
+.novel-blurb{margin:.5rem 0 0;color:#444;max-width:65ch}
+.chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
+.chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid #ddd;border-radius:8px}
+.chapter-list{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
+.chapter-list li a{display:flex;gap:.6rem;align-items:baseline;padding:.6rem .7rem;border:1px solid #e8e8e8;border-radius:10px;text-decoration:none;color:inherit}
+.chapter-list li a:hover{background:#fafafa}
+.chapter-no{font-variant-numeric:tabular-nums;color:#666;min-width:4.5rem}
+.small-note{font-size:.85rem;color:#666}
+</style>
+
+{% assign novel_slug = page.novel %}
+{% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
+{% assign status = page.status | default: 'Incomplete' %}
+{% assign blurb = page.blurb %}
+
+<div class="novel-hero">
+  <img src="{{ cover_url | relative_url }}" alt="{{ page.Title | default: page.title }}">
+  <div>
+    <h1 class="novel-title">{{ page.Title | default: page.title }}</h1>
+    <div class="novel-meta">
+      <span class="badge {{ status | downcase }}">{{ status }}</span>
+      <span class="badge">Chapters:
+        {% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
+        {% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
+        {{ items | size }}
+      </span>
+    </div>
+    {% if blurb %}<p class="novel-blurb">{{ blurb }}</p>{% endif %}
+
+    <div class="novel-actions">
+      {% assign first = items | first %}
+      {% if first %}
+        <a class="primary" id="startReading" href="{{ first.url | relative_url }}">Start reading</a>
+      {% endif %}
+      <a id="continueReading" href="#" style="display:none">Continue</a>
+      <a href="/novel/">Back to all novels</a>
+    </div>
+  </div>
+</div>
+
+<div class="chapter-tools">
+  <input id="chapterSearch" type="search" placeholder="Search chapters… (title or number)">
+  <span class="small-note">Tip: we’ll remember your last chapter.</span>
+</div>
+
+<ul id="chapterList" class="chapter-list">
+  {% for ch in items %}
+    <li data-title="{{ ch.Title | default: ch.title | downcase }}" data-no="{{ ch.order }}">
+      <a href="{{ ch.url | relative_url }}">
+        <span class="chapter-no">Chapter {{ ch.order }}</span>
+        <span>{{ ch.Title | default: ch.title }}</span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
+<script>
+// Continue Reading (localStorage key uses novel slug)
+(function() {
+  var slug = "{{ novel_slug | jsonify }}";
+  var key = 'novel:'+slug+':lastUrl';
+  var continueBtn = document.getElementById('continueReading');
+  var saved = localStorage.getItem(key);
+  if (saved) {
+    continueBtn.href = saved;
+    continueBtn.style.display = 'inline-block';
+  }
+  // If no saved, default continue = first chapter (so button still useful)
+  if (!saved) {
+    var start = document.getElementById('startReading');
+    if (start) {
+      continueBtn.href = start.getAttribute('href');
+      continueBtn.style.display = 'inline-block';
+    }
+  }
+})();
+
+// Client-side filter
+(function() {
+  var q = document.getElementById('chapterSearch');
+  var list = document.getElementById('chapterList');
+  if (!q || !list) return;
+  q.addEventListener('input', function() {
+    var v = q.value.trim().toLowerCase();
+    list.querySelectorAll('li').forEach(function(li) {
+      var hit = !v || li.dataset.title.includes(v) || ('chapter '+li.dataset.no).includes(v);
+      li.style.display = hit ? '' : 'none';
+    });
+  });
+})();
+</script>
