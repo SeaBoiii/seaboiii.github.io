@@ -75,7 +75,7 @@ layout: default
 <script>
 // Continue Reading (localStorage key uses novel slug)
 (function() {
-  var slug = "{{ novel_slug | jsonify }}";
+  var slug = '{{ novel_slug | jsonify }}';
   var key = 'novel:'+slug+':lastUrl';
   var continueBtn = document.getElementById('continueReading');
   var saved = localStorage.getItem(key);
