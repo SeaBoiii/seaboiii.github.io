@@ -31,7 +31,8 @@
       <span style="display:inline-block;width:15px;height:15px;background:#4ea1ff;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 1px 0 2px;">A</span>
       <span style="display:inline-block;width:15px;height:15px;background:#ffae4e;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 1px;">T</span>
       <span style="display:inline-block;width:15px;height:15px;background:#5bd08a;color:#0b0f16;font-weight:bold;border-radius:4px;text-align:center;line-height:15px;margin:0 1px;">S</span>
-         in a straight line (→, ↓, ↘, ↙, ↗, ↖) to clear.
+         <!-- in a straight line (→, ↓, ↘, ↙, ↗, ↖) to clear. -->
+         in a straight line (→, ↓, ↘, ↗) to clear. 
     </div>
     <div>
       Specials:
@@ -227,12 +228,12 @@
 
   // Weighted random for letters (sum = 100)
   const BAG = [
-    ['A',18], ['T',18], ['S',18],
-    ['*',2],  // rarer wildcard
-    ['B',3],  // bomb 3x3
-    ['M',2],  // mega bomb (row/col)
+    ['A',21], ['T',21], ['S',21],
+    ['*',4],  // rarer wildcard
+    ['B',7],  // bomb 3x3
+    ['M',4],  // mega bomb (row/col)
     // junk / blockers (including some "poison" letters)
-    ['D',6], ['E',6], ['I',6], ['O',6], ['N',6], ['R',3], ['X',4], ['Z',4], ['Q',4]
+    ['D',4], ['E',3], ['I',3], ['O',3], ['N',3], ['R',3], ['X',3]
   ];
   function randLetter(){
     let r = Math.random()*100; for(const [ch,w] of BAG){ if((r-=w) < 0) return ch; } return 'A';
@@ -449,19 +450,59 @@
     findMatches(){
       const toClear = new Set();
       let tripleCount = 0; let diagCount = 0;
-      const get=(x,y)=> inBounds(x,y) ? this.grid[y][x] : null;
-      const isA=(c)=> !!c && (c.letter==='A' || c.letter==='*');
-      const isT=(c)=> !!c && (c.letter==='T' || c.letter==='*');
-      const isS=(c)=> !!c && (c.letter==='S' || c.letter==='*');
-      const mark=(cells, isDiag)=>{ cells.forEach(({x,y})=>toClear.add(y*100+x)); tripleCount++; if(isDiag) diagCount++; };
-      for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){
-        const c=get(x,y); if(!isA(c)) continue;
-        if(isT(get(x+1,y)) && isS(get(x+2,y))) mark([{x,y},{x:x+1,y},{x:x+2,y}], false);
-        if(isT(get(x,y+1)) && isS(get(x,y+2))) mark([{x,y},{x,y:y+1},{x,y:y+2}], false);
-        if(isT(get(x+1,y+1)) && isS(get(x+2,y+2))) mark([{x,y},{x:x+1,y:y+1},{x:x+2,y:y+2}], true); // Diagonal down-right
-        if(isT(get(x-1,y+1)) && isS(get(x-2,y+2))) mark([{x,y},{x:x-1,y:y+1},{x:x-2,y:y+2}], true); // Diagonal down-left
-        if(isT(get(x-1,y-1)) && isS(get(x-2,y-2))) mark([{x,y},{x:x-1,y:y-1},{x:x-2,y:y-2}], true); // Diagonal up-left
-        if(isT(get(x+1,y-1)) && isS(get(x+2,y-2))) mark([{x,y},{x:x+1,y:y-1},{x:x+2,y:y-2}], true); // Diagonal up-right
+      const get = (x, y) => inBounds(x, y) ? this.grid[y][x] : null;
+      const isA = (c) => !!c && (c.letter === 'A' || c.letter === '*');
+      const isT = (c) => !!c && (c.letter === 'T' || c.letter === '*');
+      const isS = (c) => !!c && (c.letter === 'S' || c.letter === '*');
+      // Helper to add cell to set
+      function addCell(x, y) {
+        if (x >= 0 && x < COLS && y >= 0 && y < ROWS) toClear.add(y * 100 + x);
+      }
+      for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+        const c = get(x, y); if (!isA(c)) continue;
+        // Horizontal
+        if (isT(get(x + 1, y)) && isS(get(x + 2, y))) {
+          for (let cx = 0; cx < COLS; cx++) addCell(cx, y);
+          tripleCount++;
+        }
+        // Vertical
+        if (isT(get(x, y + 1)) && isS(get(x, y + 2))) {
+          for (let cy = 0; cy < ROWS; cy++) addCell(x, cy);
+          tripleCount++;
+        }
+        // Diagonal down-right
+        if (isT(get(x + 1, y + 1)) && isS(get(x + 2, y + 2))) {
+          let dx = x, dy = y;
+          while (dx >= 0 && dy >= 0) { dx--; dy--; }
+          dx++; dy++;
+          while (dx < COLS && dy < ROWS) { addCell(dx, dy); dx++; dy++; }
+          tripleCount++; diagCount++;
+        }
+        /*
+        // Diagonal down-left
+        if (isT(get(x - 1, y + 1)) && isS(get(x - 2, y + 2))) {
+          let dx = x, dy = y;
+          while (dx < COLS && dy >= 0) { dx++; dy--; }
+          dx--; dy++;
+          while (dx >= 0 && dy < ROWS) { addCell(dx, dy); dx--; dy++; }
+          tripleCount++; diagCount++;
+        } 
+        // Diagonal up-left
+        if (isT(get(x - 1, y - 1)) && isS(get(x - 2, y - 2))) {
+          let dx = x, dy = y;
+          while (dx < COLS && dy < ROWS) { dx++; dy++; }
+          dx--; dy--;
+          while (dx >= 0 && dy >= 0) { addCell(dx, dy); dx--; dy--; }
+          tripleCount++; diagCount++;
+        } */
+        // Diagonal up-right
+        if (isT(get(x + 1, y - 1)) && isS(get(x + 2, y - 2))) {
+          let dx = x, dy = y;
+          while (dx >= 0 && dy < ROWS) { dx--; dy++; }
+          dx++; dy--;
+          while (dx < COLS && dy >= 0) { addCell(dx, dy); dx++; dy--; }
+          tripleCount++; diagCount++;
+        }
       }
       return {toClear, tripleCount, diagCount};
     }
@@ -680,7 +721,7 @@
       if(this.paused || this.gameOver || !this.started) return;
       // Ramp dropInterval down as score or lockCount rises (faster drop)
       // You can tune the formula as needed for difficulty
-      const minInterval = 300;
+      const minInterval = 270;
       // Example: base 700ms, minus 10ms per lock, minus 1ms per 10 score, never below minInterval
       this.dropInterval = Math.max(minInterval, 700 - this.lockCount * 10 - Math.floor(this.score / 10));
       this.dropTimer += dt;
