@@ -2,34 +2,89 @@
 layout: default
 ---
 
-<!-- Minimal, theme-agnostic styles -->
+<!-- Theme + layout styles (self-contained) -->
 <style>
-.novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0}
+:root{
+  /* light default */
+  --bg:#ffffff;
+  --text:#111111;
+  --muted:#444444;
+  --card:#ffffff;
+  --border:#e6e6e6;
+  --link:#111111;
+  --btn-bg:#111111; --btn-text:#ffffff; --btn-brd:#111111;
+
+  --pill:#eef; --pill-brd:#dbe;
+  --pill-ok:#e8f7ec; --pill-ok-brd:#c9ebd5;
+  --pill-wip:#fff5e6; --pill-wip-brd:#ffe0b3;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0e13;
+    --text:#e7eaf0;
+    --muted:#a8b2c1;
+    --card:#11151d;
+    --border:#253043;
+    --link:#e7eaf0;
+    --btn-bg:#e7eaf0; --btn-text:#0b0e13; --btn-brd:#e7eaf0;
+
+    --pill:#253043; --pill-brd:#32405a;
+    --pill-ok:#15351f; --pill-ok-brd:#275d3b;
+    --pill-wip:#3b2d17; --pill-wip-brd:#5c4321;
+  }
+}
+
+/* Manual override has priority over system */
+:root[data-theme="light"]{
+  --bg:#ffffff; --text:#111111; --muted:#444444; --card:#ffffff; --border:#e6e6e6; --link:#111111;
+  --btn-bg:#111111; --btn-text:#ffffff; --btn-brd:#111111;
+  --pill:#eef; --pill-brd:#dbe; --pill-ok:#e8f7ec; --pill-ok-brd:#c9ebd5; --pill-wip:#fff5e6; --pill-wip-brd:#ffe0b3;
+}
+:root[data-theme="dark"]{
+  --bg:#0b0e13; --text:#e7eaf0; --muted:#a8b2c1; --card:#11151d; --border:#253043; --link:#e7eaf0;
+  --btn-bg:#e7eaf0; --btn-text:#0b0e13; --btn-brd:#e7eaf0;
+  --pill:#253043; --pill-brd:#32405a; --pill-ok:#15351f; --pill-ok-brd:#275d3b; --pill-wip:#3b2d17; --pill-wip-brd:#5c4321;
+}
+
+body{background:var(--bg); color:var(--text)}
+a{color:var(--link)}
+.novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
 .novel-hero img{width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12)}
 @media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero img{width:180px;height:270px}}
 .novel-title{margin:0;font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.15}
 .novel-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin:.25rem 0 .5rem}
-.badge{font-size:.8rem;padding:.2rem .5rem;border-radius:999px;background:#eef;border:1px solid #dbe;white-space:nowrap}
-.badge.complete{background:#e8f7ec;border-color:#c9ebd5}
-.badge.incomplete{background:#fff5e6;border-color:#ffe0b3}
+.badge{font-size:.8rem;padding:.2rem .5rem;border-radius:999px;background:var(--pill);border:1px solid var(--pill-brd);white-space:nowrap}
+.badge.complete{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
+.badge.incomplete{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
 .novel-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0 0}
-.novel-actions a{display:inline-block;padding:.6rem .9rem;border-radius:8px;text-decoration:none;border:1px solid #e0e0e0}
-.novel-actions a.primary{background:#111;color:#fff;border-color:#111}
+.novel-actions a{display:inline-block;padding:.6rem .9rem;border-radius:8px;text-decoration:none;border:1px solid var(--border);background:var(--card);color:var(--link)}
+.novel-actions a.primary{background:var(--btn-bg);color:var(--btn-text);border-color:var(--btn-brd)}
 .novel-actions a:hover{filter:brightness(1.05)}
-.novel-blurb{margin:.5rem 0 0;color:#444;max-width:65ch}
+.novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
 .chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
-.chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid #ddd;border-radius:8px}
+.chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
 .chapter-list{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
-.chapter-list li a{display:flex;gap:.6rem;align-items:baseline;padding:.6rem .7rem;border:1px solid #e8e8e8;border-radius:10px;text-decoration:none;color:inherit}
-.chapter-list li a:hover{background:#fafafa}
-.chapter-no{font-variant-numeric:tabular-nums;color:#666;min-width:4.5rem}
-.small-note{font-size:.85rem;color:#666}
+.chapter-list li a{display:flex;gap:.6rem;align-items:baseline;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
+.chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
+.chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
+.small-note{font-size:.85rem;color:var(--muted)}
+/* theme toggle */
+.theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer}
+.theme-toggle:hover{filter:brightness(1.05)}
 </style>
 
 {% assign novel_slug = page.novel %}
 {% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
 {% assign status = page.status | default: 'Incomplete' %}
 {% assign blurb = page.blurb %}
+{% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
+{% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
+
+<!-- optional theme-color for mobile -->
+<meta name="theme-color" content="#ffffff">
 
 <div class="novel-hero">
   <img src="{{ cover_url | relative_url }}" alt="{{ page.Title | default: page.title }}">
@@ -37,11 +92,8 @@ layout: default
     <h1 class="novel-title">{{ page.Title | default: page.title }}</h1>
     <div class="novel-meta">
       <span class="badge {{ status | downcase }}">{{ status }}</span>
-      <span class="badge">Chapters:
-        {% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
-        {% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
-        {{ items | size }}
-      </span>
+      <span class="badge">Chapters: {{ items | size }}</span>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
     </div>
     {% if blurb %}<p class="novel-blurb">{{ blurb }}</p>{% endif %}
 
@@ -73,7 +125,7 @@ layout: default
 </ul>
 
 <script>
-// Continue Reading (localStorage key uses novel slug)
+// Continue Reading (per novel)
 (function() {
   var slug = '{{ novel_slug | jsonify }}';
   var key = 'novel:'+slug+':lastUrl';
@@ -83,7 +135,6 @@ layout: default
     continueBtn.href = saved;
     continueBtn.style.display = 'inline-block';
   }
-  // If no saved, default continue = first chapter (so button still useful)
   if (!saved) {
     var start = document.getElementById('startReading');
     if (start) {
@@ -93,7 +144,7 @@ layout: default
   }
 })();
 
-// Client-side filter
+// Filter chapters
 (function() {
   var q = document.getElementById('chapterSearch');
   var list = document.getElementById('chapterList');
@@ -105,5 +156,48 @@ layout: default
       li.style.display = hit ? '' : 'none';
     });
   });
+})();
+
+// Theme toggle (light/dark), remembers choice and updates theme-color
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  var storageKey = 'site:theme';
+
+  function isDarkNow(){
+    var forced = root.getAttribute('data-theme');
+    if (forced) return forced === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function icon(){
+    btn.textContent = isDarkNow() ? '☀️' : '🌙';
+    btn.setAttribute('aria-label', isDarkNow() ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+  function updateThemeColor(){
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (!m){ m = document.createElement('meta'); m.name='theme-color'; document.head.appendChild(m); }
+    var bg = getComputedStyle(root).getPropertyValue('--bg').trim() || '#ffffff';
+    m.setAttribute('content', bg);
+  }
+  function apply(saved){
+    if (saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved);
+    else root.removeAttribute('data-theme'); // auto
+    icon(); updateThemeColor();
+  }
+
+  var saved = localStorage.getItem(storageKey); // 'light' | 'dark' | null (auto)
+  apply(saved);
+  btn.addEventListener('click', function(){
+    var cur = localStorage.getItem(storageKey);
+    var next = (cur === 'dark') ? 'light' : 'dark';
+    localStorage.setItem(storageKey, next);
+    apply(next);
+  });
+
+  // If system theme changes while in auto, reflect it
+  if (!saved && window.matchMedia){
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener('change', function(){ apply(null); });
+  }
 })();
 </script>
