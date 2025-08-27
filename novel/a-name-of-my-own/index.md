@@ -3,7 +3,6 @@ layout: novel
 Title: A name of my own — Chapters
 novel: a-name-of-my-own
 status: Incomplete
-cover: /images/a-name-of-my-own-cover.png
 blurb: >-
   A chance to discover oneself...
 order: 0
