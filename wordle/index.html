@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Daily Word Guess — Vanilla JS + Supabase</title>
   <!-- Tailwind (utility CSS) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="styles.css" rel="stylesheet">
   <!-- Supabase JS UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -488,6 +488,7 @@
       e.preventDefault();
       const date = document.getElementById('dateInput').value;
       const word = toUpper(document.getElementById('wordInput').value);
+      if (!isWordValid(word)) return;
       if (!date || !word || word.length < 2) return;
       const { error } = await upsertSchedule(date, word);
       const msg = document.getElementById('adminMsg');
@@ -610,8 +611,6 @@
         console.assert(toUpper('a-b!c') === 'ABC', 'toUpper should strip non-letters and uppercase');
         const exact = JSON.stringify(getStatusForGuess('ALLOT','ALLOT'));
         console.assert(exact === JSON.stringify(['correct','correct','correct','correct','correct']), 'Exact match status');
-        const some = getStatusForGuess('APPLE','ALLOT');
-        console.assert(some[0] === 'correct' && some.slice(1).every(s=>s==='absent'), 'APPLE vs ALLOT pattern');
         const len = 7; const expected = len + 1; console.assert(expected === 8, 'Attempts should be N+1');
         console.groupEnd();
       } catch(e) { console.error('Self-tests failed:', e); }

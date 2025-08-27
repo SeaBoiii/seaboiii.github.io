@@ -1,0 +1,7 @@
+/wordle/node_modules
+/wordle/dist
+wordle/postcss.config.js
+wordle/package.json
+wordle/tailwind.config.js
+wordle/package-lock.json
+wordle/src/input.css
