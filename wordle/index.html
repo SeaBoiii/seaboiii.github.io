@@ -114,6 +114,12 @@
       setPlayerName(playerNameInput.value.trim());
     });
 
+    // Disable grid input if typing in name input
+    let gridInputEnabled = true;
+    function setGridInputEnabled(val) { gridInputEnabled = val; }
+    playerNameInput.addEventListener('focus', () => setGridInputEnabled(false));
+    playerNameInput.addEventListener('blur', () => setGridInputEnabled(true));
+
     // Dictionary loader
     let DICT = null;
     async function loadDictionary() {
@@ -294,6 +300,14 @@
       setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
+    function attemptsForLengthFromDict(n) {
+      if (!DICT) return n+1;
+      let count = 0;
+      for (const w of DICT) if (w.length === n) count++;
+      const raw = Math.ceil(Math.log2(Math.max(2, count)) / 2.5);
+      return Math.max(5, Math.min(9, raw));
+    }
+
     function buildGrid() {
       grid.style.gridTemplateRows = `repeat(${attempts}, 3rem)`;
       grid.style.gridTemplateColumns = `repeat(${wordLen}, 3rem)`;
@@ -345,6 +359,7 @@
     }
 
     function onKey(key) {
+      if (!gridInputEnabled) return;
       if (status !== 'playing') return;
       if (key === 'ENTER') return handleEnter();
       if (key === '⌫') { cur = cur.slice(0, -1); buildGrid(); return; }
@@ -377,6 +392,7 @@
 
     // Global keydown typing
     window.addEventListener('keydown', (e) => {
+      if (!gridInputEnabled) return;
       if (status !== 'playing') return;
       if (e.key === 'Enter') return handleEnter();
       if (e.key === 'Backspace') { cur = cur.slice(0, -1); buildGrid(); return; }
@@ -573,12 +589,12 @@
       answer = a || null;
       if (!answer) {
         status = 'no-word';
-        wordLen = 5; attempts = wordLen + 1;
+        wordLen = 5; attempts = attemptsForLengthFromDict(wordLen);
         wordLenLabel.textContent = wordLen; attemptsLabel.textContent = attempts;
         buildGrid(); renderKeyboard();
       } else {
         status = 'playing';
-        wordLen = answer.length; attempts = wordLen + 1;
+        wordLen = answer.length; attempts = attemptsForLengthFromDict(wordLen);
         wordLenLabel.textContent = wordLen; attemptsLabel.textContent = attempts;
         const p = await loadProgress(today, clientId);
         guesses = (p && p.answer === answer && p.guesses) ? p.guesses : [];
@@ -590,7 +606,7 @@
       if (all.length === 0) {
         await upsertSchedule(today, 'SINGAPORE');
         const a2 = await getTodayAnswer(today); answer = a2 || answer;
-        wordLen = answer ? answer.length : 5; attempts = wordLen + 1;
+        wordLen = answer ? answer.length : 5; attempts = attemptsForLengthFromDict(wordLen);
         wordLenLabel.textContent = wordLen; attemptsLabel.textContent = attempts;
         buildGrid(); renderKeyboard();
       }
