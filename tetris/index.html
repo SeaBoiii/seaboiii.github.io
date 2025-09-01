@@ -228,12 +228,12 @@
 
   // Weighted random for letters (sum = 100)
   const BAG = [
-    ['A',21], ['T',21], ['S',21],
-    ['*',4],  // rarer wildcard
-    ['B',7],  // bomb 3x3
-    ['M',4],  // mega bomb (row/col)
+    ['A',20], ['T',20], ['S',20],
+    ['*',3],  // rarer wildcard
+    ['B',4],  // bomb 3x3
+    ['M',3],  // mega bomb (row/col)
     // junk / blockers (including some "poison" letters)
-    ['D',4], ['E',3], ['I',3], ['O',3], ['N',3], ['R',3], ['X',3]
+    ['D',4], ['E',4], ['I',4], ['O',3], ['N',3], ['R',3], ['X',3], ['Z',3], ['Y',3]
   ];
   function randLetter(){
     let r = Math.random()*100; for(const [ch,w] of BAG){ if((r-=w) < 0) return ch; } return 'A';
@@ -351,12 +351,12 @@
       this.lockCount++;
       // Use a dynamic interval for garbage row
       if (!this.nextGarbageInterval) {
-        this.nextGarbageInterval = 16 + Math.floor(Math.random() * 5); // 16-20
+        this.nextGarbageInterval = 12 + Math.floor(Math.random() * 5); // 12-16
       }
       if(this.lockCount % this.nextGarbageInterval === 0){
         // After adding garbage, randomize the next interval
         this.addGarbageRow(()=> {
-          this.nextGarbageInterval = 16 + Math.floor(Math.random() * 5);
+          this.nextGarbageInterval = 12 + Math.floor(Math.random() * 5);
           this.spawn();
         });
       } else {
@@ -721,7 +721,7 @@
       if(this.paused || this.gameOver || !this.started) return;
       // Ramp dropInterval down as score or lockCount rises (faster drop)
       // You can tune the formula as needed for difficulty
-      const minInterval = 270;
+      const minInterval = 220;
       // Example: base 700ms, minus 10ms per lock, minus 1ms per 10 score, never below minInterval
       this.dropInterval = Math.max(minInterval, 700 - this.lockCount * 10 - Math.floor(this.score / 10));
       this.dropTimer += dt;
