@@ -1,0 +1,91 @@
+name: Build Jekyll site + mount game
+
+on:
+  push:
+    branches: [ main ]   # change if needed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- Build your Jekyll site (official action) ---
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'    # or the version your site uses
+          bundler-cache: true
+      - name: Install Jekyll deps
+        run: |
+          if [ -f Gemfile ]; then bundle install --path vendor/bundle; fi
+      - name: Build Jekyll
+        run: bundle exec jekyll build --trace
+        env:
+          JEKYLL_ENV: production
+      # _site/ now contains your Jekyll output
+
+      - name: Generate tetris/config.js from secrets
+        working-directory: ./tetris
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DICTIONARY_URL: ${{ secrets.DICTIONARY_URL }}
+        run: |
+          : "${SUPABASE_URL:?Missing SUPABASE_URL}"
+          : "${SUPABASE_ANON_KEY:?Missing SUPABASE_ANON_KEY}"
+          cat > config.js <<EOF
+          window.SUPABASE_URL = "${SUPABASE_URL}";
+          window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
+          EOF
+
+      - name: Generate wordle/config.js from secrets
+        working-directory: ./wordle
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DICTIONARY_URL: ${{ secrets.DICTIONARY_URL }}
+        run: |
+          : "${SUPABASE_URL:?Missing SUPABASE_URL}"
+          : "${SUPABASE_ANON_KEY:?Missing SUPABASE_ANON_KEY}"
+          cat > config.js <<EOF
+          window.SUPABASE_URL = "${SUPABASE_URL}";
+          window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
+          if ("${DICTIONARY_URL}") { window.DICTIONARY_URL = "${DICTIONARY_URL}"; }
+          EOF
+
+      # --- Mount the game into your built Jekyll site at /word-game/ ---
+      - name: Copy game into _site/word-game
+        run: |
+          mkdir -p _site/tetris
+          cp -r tetris/* _site/tetris/
+          mkdir -p _site/wordle
+          cp -r wordle/* _site/wordle/
+
+      # --- Upload the combined site (Jekyll + game) ---
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
