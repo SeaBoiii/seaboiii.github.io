@@ -29,7 +29,8 @@ jobs:
         run: |
           : "${SUPABASE_URL:?Missing SUPABASE_URL secret}"
           : "${SUPABASE_ANON_KEY:?Missing SUPABASE_ANON_KEY secret}"
-          cat > config.js <<EOF
+          cat > ./tetris/config.js <<EOF
+          cat > ./wordle/config.js <<EOF
           window.SUPABASE_URL = "${SUPABASE_URL}";
           window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
           // Optional: override if you set DICTIONARY_URL as a secret
