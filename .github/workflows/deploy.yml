@@ -38,6 +38,7 @@ jobs:
           window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
           // Optional: override if you set DICTIONARY_URL as a secret
           if ("${DICTIONARY_URL}") { window.DICTIONARY_URL = "${DICTIONARY_URL}"; }
+          EOF
           echo "Generated config.js"
 
       - name: Upload artifact
