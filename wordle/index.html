@@ -8,6 +8,7 @@
   <link href="styles.css" rel="stylesheet">
   <!-- Supabase JS UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <style>
     /* Fallback tile sizing for the grid */
     .tile { width: 3rem; height: 3rem; }
@@ -63,7 +64,7 @@
     </section>
 
     <footer class="mt-10 text-center text-white/60 text-sm">
-      <p>(c) Brought to you by the ATS Engagement Team</p>
+      <p>© Brought to you by the ATS Engagement Team</p>
     </footer>
   </div>
 
@@ -73,8 +74,8 @@
     // =========================
     // For quick testing you can paste your keys here, but best practice is to set
     // these in a small inline script placed BEFORE this file loads.
-    window.SUPABASE_URL = window.SUPABASE_URL || "https://hmbppbnopvjuqqvrgkwl.supabase.co";
-    window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhtYnBwYm5vcHZqdXFxdnJna3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NDk5MjksImV4cCI6MjA3MTIyNTkyOX0.qtTNyQ_LBnIwtKFkV2RDzhseQKJjx-42jirttsnvEfM";
+    window.SUPABASE_URL = window.SUPABASE_URL || "";
+    window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
 
     // Default dictionary URL (large English word list)
     window.DICTIONARY_URL = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt";

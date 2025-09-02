@@ -5,3 +5,5 @@ wordle/package.json
 wordle/tailwind.config.js
 wordle/package-lock.json
 wordle/src/input.css
+wordle/config.js
+tetris/config.js
