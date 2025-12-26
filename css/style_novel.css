@@ -97,9 +97,21 @@ h1, h2, h3 {
     position: absolute;
     top: 60px;
     right: 0;
-    background-color: white;
-    border: 1px solid #ccc;
+    background-color: #1f1f1f;
+    border: 1px solid #111;
     width: 200px;
+  }
+
+  .nav-links a {
+    color: #f5f5f5;
+  }
+
+  .nav-links a:hover,
+  .nav-links a:focus,
+  .nav-links a:focus-visible {
+    color: #f0a500;
+    background-color: #2c2c2c;
+    outline: none;
   }
 
   .nav-links.active {
