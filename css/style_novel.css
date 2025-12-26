@@ -70,12 +70,23 @@ h1, h2, h3 {
   color: #f0a500; /* Add a hover effect for better interactivity */
 }
 
+.nav a:focus-visible {
+  outline: 2px solid #f0a500;
+  outline-offset: 3px;
+}
+
 .menu-toggle {
   display: none;
   font-size: 24px;
   background: none;
   border: none;
   cursor: pointer;
+}
+
+.menu-toggle:focus-visible {
+  outline: 2px solid #f0a500;
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 /* Responsive styles for smaller screens */
@@ -224,6 +235,12 @@ h1, h2, h3 {
   color: #fff;
 }
 
+.novel-list a:focus-visible {
+  outline: 2px solid #f0a500;
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
 /* Section headings */
 .complete-novels h4,
 .incomplete-novels h4 {
@@ -247,6 +264,13 @@ h1, h2, h3 {
 
 .status.incomplete {
   background-color: red;
+}
+
+.status:focus-visible,
+button:focus-visible {
+  outline: 2px solid #f0a500;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.35);
 }
 
 .footer {
