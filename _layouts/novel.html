@@ -49,8 +49,22 @@ layout: default
   --pill:#253043; --pill-brd:#32405a; --pill-ok:#15351f; --pill-ok-brd:#275d3b; --pill-wip:#3b2d17; --pill-wip-brd:#5c4321;
 }
 
-body{background:var(--bg); color:var(--text)}
-a{color:var(--link)}
+body{background:var(--bg); color:var(--text); margin:0; font-family:system-ui,-apple-system,sans-serif}
+a{color:var(--link); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Header styles */
+.site-header{position:sticky;top:0;z-index:10;background:color-mix(in oklab, var(--bg), var(--card) 40%);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);padding:.85rem 1.25rem}
+.header-content{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.brand{font-weight:600;font-size:1.05rem}
+.header-right{display:flex;align-items:center;gap:1rem}
+.crumbs{display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:var(--muted)}
+.crumbs a{color:var(--muted)}
+.crumbs a:hover{color:var(--text);text-decoration:none}
+
+/* Main container */
+.container{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+
 .novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
 .novel-hero img{width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12)}
 @media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero img{width:180px;height:270px}}
@@ -86,6 +100,19 @@ a{color:var(--link)}
 <!-- optional theme-color for mobile -->
 <meta name="theme-color" content="#ffffff">
 
+<header class="site-header">
+  <div class="header-content">
+    <a class="brand" href="{{ "/" | relative_url }}">{{ site.title }}</a>
+    <div class="header-right">
+      <nav class="crumbs">
+        <a href="/novel/">All Novels</a>
+      </nav>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
 <div class="novel-hero">
   <img src="{{ cover_url | relative_url }}" alt="{{ page.Title | default: page.title }}">
   <div>
@@ -93,7 +120,6 @@ a{color:var(--link)}
     <div class="novel-meta">
       <span class="badge {{ status | downcase }}">{{ status }}</span>
       <span class="badge">Chapters: {{ items | size }}</span>
-      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
     </div>
     {% if blurb %}<p class="novel-blurb">{{ blurb }}</p>{% endif %}
 
@@ -124,6 +150,7 @@ a{color:var(--link)}
   {% endfor %}
 </ul>
 
+</div>
 <script>
 // Continue Reading (per novel)
 (function() {
