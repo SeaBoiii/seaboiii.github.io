@@ -394,6 +394,11 @@ class Wizard(tk.Tk):
         # Tabs for chapters
         self.nb = ttk.Notebook(self)
         self.nb.pack(fill="both", expand=True, padx=12, pady=(12,4))
+        
+        # Bind mouse wheel events for chapter navigation
+        self.nb.bind("<MouseWheel>", self._on_mousewheel)  # Windows & macOS
+        self.nb.bind("<Button-4>", self._on_mousewheel)    # Linux scroll up
+        self.nb.bind("<Button-5>", self._on_mousewheel)    # Linux scroll down
 
         # Tab navigation to avoid squished headers
         nav = ttk.Frame(self)
@@ -536,21 +541,53 @@ class Wizard(tk.Tk):
                                             filetypes=[("Word document","*.docx")])
         if not files:
             return
-        files = sorted(files, key=lambda p: (_extract_chapter_num_from_name(p), Path(p).name.lower()))  # alphabetical sort
-        n = len(files)
-        # scale tabs to file count
+        
+        # Extract chapter numbers from files and map them
+        file_map = {}  # chapter_number -> file_path
+        for path in files:
+            ch_num = _extract_chapter_num_from_name(path)
+            if ch_num != 10**9:  # Has a valid number
+                file_map[ch_num] = path
+        
+        if not file_map:
+            messagebox.showerror("No chapters", "Could not extract chapter numbers from filenames. Use format like 'Chapter1.docx'.")
+            return
+        
+        min_ch = min(file_map.keys())
+        max_ch = max(file_map.keys())
+        
+        # Check if imported chapters conflict with existing chapters (append mode)
+        if self.mode_var.get() == "Append to existing" and min_ch < self.start_order:
+            reply = messagebox.askyesno("Chapter conflict", 
+                f"Imported chapters include {min_ch}-{max_ch}, but existing chapters go up to {self.start_order - 1}.\n"
+                f"Only import chapters >= {self.start_order}?")
+            if reply:
+                file_map = {k: v for k, v in file_map.items() if k >= self.start_order}
+                if not file_map:
+                    messagebox.showerror("Cancelled", "No valid chapters after filtering.")
+                    return
+                min_ch = min(file_map.keys())
+                max_ch = max(file_map.keys())
+            # If user clicks 'No', continue with full range (allow all numbers)
+        
+        # Create tabs for the full range from min_ch to max_ch (fills gaps automatically)
+        n = max_ch - min_ch + 1
         self.count_var.set(n)
+        self.start_order = min_ch
         self._build_chapter_tabs()
-        for i, path in enumerate(files):
-            if i >= len(self.chapter_tabs):
-                break
-            rec = self.chapter_tabs[i]
-            stem = Path(path).stem
-            title_guess = re.sub(r"[_-]+", " ", stem).strip().title()
-            md = docx_file_to_markdown(Path(path))
-            rec["title_var"].set(title_guess or f"Chapter {rec['order']}")
-            rec["text"].delete("1.0", "end")
-            rec["text"].insert("1.0", md)
+        
+        # Populate tabs with files that exist, leave gaps empty
+        for rec in self.chapter_tabs:
+            order = rec['order']
+            if order in file_map:
+                path = file_map[order]
+                stem = Path(path).stem
+                title_guess = re.sub(r"[_-]+", " ", stem).strip().title()
+                md = docx_file_to_markdown(Path(path))
+                rec["title_var"].set(title_guess or f"Chapter {order}")
+                rec["text"].delete("1.0", "end")
+                rec["text"].insert("1.0", md)
+            # else: leave empty (gap chapter)
 
     def _paste_formatted_into(self, text_widget: tk.Text=None):
         if not text_widget:
@@ -558,6 +595,15 @@ class Wizard(tk.Tk):
         def _done(md):
             text_widget.insert("insert", md)
         PasteFormattedDialog(self, _done)
+
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling for chapter navigation."""
+        # Windows/macOS: event.delta > 0 is scroll up, < 0 is scroll down
+        # Linux: event.num == 4 is scroll up, == 5 is scroll down
+        if event.num == 4 or event.delta > 0:
+            self._prev_tab()  # Scroll up = previous chapter
+        elif event.num == 5 or event.delta < 0:
+            self._next_tab()  # Scroll down = next chapter
 
     def _next_tab(self):
         tabs = self.nb.tabs()
