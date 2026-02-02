@@ -1,5 +1,5 @@
 ---
-layout: chapter
+layout: novel
 Title: Umrah of mercy — Chapters
 novel: umrah-of-mercy
 status: Complete
