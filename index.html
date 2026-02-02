@@ -153,6 +153,20 @@
 			</div>
 
 			<hr>
+
+			<div class="game f">
+				<div>
+					<h3>Novels Hub</h3>
+					<p>Explore my fiction hub at <a class="novel-link" href="/novel/">/novel/</a> — a growing collection of completed and ongoing stories with a 
+						clean reading experience, chapter tracking, and a light/dark theme. If you’re in the mood for character-driven romance, heartfelt drama, 
+						or quiet moments that linger, you’ll find something to dive into. Start a new story, continue where you left off, and come back anytime for more.</p>
+					<p>This site showcases my web and product skills—from UX-focused layouts to theme synchronization, custom tooling, and content organization. 
+						It was built entirely with the help of AI, from structure to styling, to highlight how I collaborate with modern tools to ship polished experiences quickly.</p>
+				</div>
+					<img alt="Novels Hub" class="gimg b gimg-small" src="images/wedding-dress-cover.png">
+			</div>
+
+			<hr>
 		</div>
 		<div id="proficiency">
 			<div class="staff">
@@ -180,7 +194,7 @@
 					<div>
 						<i class="fa-brands fa-java fa-3x fa-beat-fade" style="--fa-beat-fade-opacity: 0.67; --fa-beat-fade-scale: 1.075;"></i>
 						<h3>Java</h3>
-						<div class="manager"><b>Intermediate</b></div>
+						<div class="owner"><b>Intermediate</b></div>
 						<p>Learning Java was during Secondary School due to my interest in Minecraft Plugin creation. Then, I created many custom plugins to be used
 						 for my own custom Minecraft server. In University, Java was mainly used during Object-Oriented Design Principles programming which thought me
 						  better practices for my programming. In the past, the code that was designed was inefficient as comparted to using OODP programming.</p>
@@ -189,7 +203,7 @@
 					<div>
 						<i class="fa-brands fa-js fa-3x fa-beat-fade" style="--fa-beat-fade-opacity: 0.67; --fa-beat-fade-scale: 1.075;"></i>
 						<h3>JavaScript</h3>
-						<div class="admin"><b>Beginner</b></div>
+						<div class="manager"><b>Intermediate</b></div>
 						<p>Recently picked up in 2022, javascript was something I had long planned to learn but did not have the time to. The interest to 
 						 learn more about JavaScript came from CodeBullet, a programmer youtuber who codes ridiculous AI on his own recreated games using
 						  JavaScript. That caught my interest and of course, JavaScript will be useful for me when doing webpages.</p>
@@ -213,7 +227,7 @@
 				<p class="an-t">
 					<b>Hey!</b>
 					<br><br>
-					I'm Aleem. I'm currently 25 as of the year 2022 and recently graduated from University in May.
+					I'm Aleem. I'm currently <span id="age">25</span> as of the year <span id="currentYear">2022</span> and graduated from University in May 2022.
 					<br><br>
 					I have a huge passion for Computer Science/Engineering and I'd love to have a job working in the field. Technology is always ever expanding and there are many things that are yet to discover...
 					Since my secondary school years, coding has been something that I enjoy due to the sheer logic driven it is. And too many more years as my passion to learn more keeps growing each year.
@@ -232,8 +246,27 @@
 	</div>
 	<footer>
 		<img alt="a1e3m logo" src="img/logo.png">
-		<p style="font-family:courier;">Copyright &copy; a1e3m 2022</p>
+		<p style="font-family:courier;">Copyright &copy; a1e3m <span id="footerYear">2022</span></p>
 	</footer>
+
+	<script>
+		// Update age and year dynamically
+		(function() {
+			var birthDate = new Date(1997, 4, 26); // May 26, 1997 (month is 0-indexed)
+			var today = new Date();
+			var age = today.getFullYear() - birthDate.getFullYear();
+			var monthDiff = today.getMonth() - birthDate.getMonth();
+			
+			// Adjust age if birthday hasn't occurred yet this year
+			if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+				age--;
+			}
+			
+			document.getElementById('age').textContent = age;
+			document.getElementById('currentYear').textContent = today.getFullYear();
+			document.getElementById('footerYear').textContent = today.getFullYear();
+		})();
+	</script>
 
 	<script>
 	  window.chatbaseConfig = {

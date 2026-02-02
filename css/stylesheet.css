@@ -255,6 +255,21 @@ h3 {
 	box-shadow: 0 0 2px #111;
 }
 
+.gimg-small {
+	width: 55%;
+	max-width: 280px;
+}
+
+.novel-link {
+	color: var(--light-blue);
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+.novel-link:hover {
+	color: #ffffff;
+}
+
 .game {
 	display: flex;
 	justify-content: space-around;
@@ -468,7 +483,7 @@ footer a {
 	.game {
 		flex-wrap: nowrap;
 	}
-	.f, .h, .j, .l {
+	.game.f, .game.h, .game.j, .game.l {
 		flex-direction: row-reverse;
 	}
 	.game h3 {
