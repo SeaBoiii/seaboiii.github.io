@@ -1,9 +1,11 @@
----
-layout: default
----
-
-<!-- Theme + layout styles (self-contained) -->
-<style>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page.Title | default: page.title }} · {{ site.title }}</title>
+    <meta name="theme-color" content="#ffffff" />
+    <style>
 :root{
   /* light default */
   --bg:#ffffff;
@@ -89,8 +91,8 @@ a:hover{text-decoration:underline}
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer}
 .theme-toggle:hover{filter:brightness(1.05)}
 </style>
-
-{% assign novel_slug = page.novel %}
+</head>
+<body>
 {% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
 {% assign status = page.status | default: 'Incomplete' %}
 {% assign blurb = page.blurb %}
@@ -244,3 +246,5 @@ a:hover{text-decoration:underline}
   }
 })();
 </script>
+</body>
+</html>
