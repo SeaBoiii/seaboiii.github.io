@@ -93,6 +93,7 @@ a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
+{% assign novel_slug = page.novel %}
 {% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
 {% assign status = page.status | default: 'Incomplete' %}
 {% assign blurb = page.blurb %}
