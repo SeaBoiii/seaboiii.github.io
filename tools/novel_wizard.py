@@ -115,10 +115,10 @@ def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
         body += "\n"
     return header + body
 
-def build_index_md(slug: str) -> str:
+def build_index_md(slug: str, status: str = "Incomplete", blurb: str = "") -> str:
     t = f"{pretty(slug)} — Chapters"
-    body = """{% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
-<ul>
+    body = """<ul>
+{% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
 {% assign items = site.pages
   | where_exp: 'p', 'p.url contains pathprefix'
   | where_exp: 'p', 'p.name != "index.md"'
@@ -128,11 +128,15 @@ def build_index_md(slug: str) -> str:
 {% endfor %}
 </ul>
 """
+    blurb_text = blurb.strip() if blurb else "A captivating story."
     return (
         "---\n"
-        f"layout: chapter\n"
+        f"layout: novel\n"
         f"Title: {t}\n"
         f"novel: {slug}\n"
+        f"status: {status}\n"
+        f"blurb: >-\n"
+        f"  {blurb_text}\n"
         f"order: 0\n"
         "---\n\n"
         f"{body}"
@@ -201,13 +205,13 @@ def copy_cover_to_images(src_path: str, slug: str) -> str:
     shutil.copyfile(sp, dst)
     return f"/images/{dst.name}"
 
-def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, status_choice: str):
-    """Insert an <li> into /novel/index.html inside <ul class="novel-list"> if possible."""
+def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, status_choice: str, hidden: bool = False):
+    """Insert an <li> into /novel/index.html inside <ul class="novel-grid" id="novelGrid"> if possible."""
     NOVEL_DIR.mkdir(parents=True, exist_ok=True)
     if not NOVELS_INDEX_HTML.exists():
         base = """<!doctype html>
 <html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Novels</title></head>
-<body><ul class=\"novel-list\">
+<body><ul class=\"novel-grid\" id=\"novelGrid\">
 </ul></body></html>
 """
         write_text(NOVELS_INDEX_HTML, base)
@@ -216,18 +220,27 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
     # status mapping
     status_class = "complete" if status_choice == "Complete" else "incomplete"
     status_text = "Complete" if status_class == "complete" else "Incomplete"
+    hidden_attr = ' data-hidden="true"' if hidden else ''
+    hidden_badge = f'''              <span class="badge">Hidden</span>\n''' if hidden else ''
     li = (
-        f'''      <li>\n'''
-        f'''        <a href="/novel/{slug}/">\n'''
-        f'''          <img src="{cover_rel}" alt="{novel_title}">\n'''
-        f'''          <h4>{novel_title}</h4>\n'''
-        f'''          <span class="status {status_class}">{status_text}</span>\n'''
-        f'''        </a>\n'''
-        f'''      </li>\n'''
+        f'''        <li class="novel-card" data-title="{novel_title.lower()}" data-status="{status_class}"{hidden_attr}>\n'''
+        f'''          <a href="/novel/{slug}/" aria-label="{novel_title}">\n'''
+        f'''            <img src="{cover_rel}" alt="{novel_title}" loading="lazy" />\n'''
+        f'''            <h2 class="novel-title">{novel_title}</h2>\n'''
+        f'''            <div class="novel-meta">\n'''
+        f'''              <span class="badge {status_class}">{status_text}</span>\n'''
+        f'''{hidden_badge}'''
+        f'''            </div>\n'''
+        f'''          </a>\n'''
+        f'''        </li>\n'''
     )
     import re as _re
-    pat = _re.compile(r'(<ul[^>]*class=\"[^\"]*novel-list[^\"]*\"[^>]*>)(.*?)(</ul>)', _re.IGNORECASE | _re.DOTALL)
+    # Try to find novel-grid first (new format), then fall back to novel-list
+    pat = _re.compile(r'(<ul[^>]*class=\"[^\"]*novel-grid[^\"]*\"[^>]*id=\"novelGrid\"[^>]*>)(.*?)(</ul>)', _re.IGNORECASE | _re.DOTALL)
     m = pat.search(html)
+    if not m:
+        pat = _re.compile(r'(<ul[^>]*class=\"[^\"]*novel-list[^\"]*\"[^>]*>)(.*?)(</ul>)', _re.IGNORECASE | _re.DOTALL)
+        m = pat.search(html)
     if m:
         start, mid, end = m.groups()
         new_html = html[:m.start()] + start + mid + li + end + html[m.end():]
@@ -235,6 +248,7 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
     else:
         pos = html.lower().rfind("</ul>")
         new_html = html[:pos] + li + html[pos:] if pos != -1 else html + "\n" + li
+        write_text(NOVELS_INDEX_HTML, new_html)
         write_text(NOVELS_INDEX_HTML, new_html)
 
 class PasteFormattedDialog(tk.Toplevel):
@@ -299,6 +313,8 @@ class Wizard(tk.Tk):
         self.slug_var = tk.StringVar()
         self.status_var = tk.StringVar(value="Incomplete")  # default
         self.cover_var = tk.StringVar()
+        self.blurb_var = tk.StringVar()
+        self.hidden_var = tk.BooleanVar(value=False)
         self.count_var = tk.IntVar(value=3)  # number of chapters to add/create
         self.existing_slug_var = tk.StringVar()
         self.start_order = 1  # where new chapters begin (append mode)
@@ -362,11 +378,18 @@ class Wizard(tk.Tk):
         self.btn_browse = ttk.Button(top, text="Browse…", command=self._pick_cover)
         self.btn_browse.grid(row=3, column=4, sticky="e", pady=(8,0))
 
+        self.lbl_blurb = ttk.Label(top, text="Blurb (required)")
+        self.lbl_blurb.grid(row=4, column=0, sticky="w", pady=(8,0))
+        self.blurb_entry = ttk.Entry(top, textvariable=self.blurb_var, width=40)
+        self.blurb_entry.grid(row=4, column=1, sticky="we", columnspan=3, padx=(8,12), pady=(8,0))
+        self.check_hidden = ttk.Checkbutton(top, text="Hidden novel", variable=self.hidden_var)
+        self.check_hidden.grid(row=4, column=4, sticky="w", pady=(8,0))
+
         # Action buttons (Create/Append and Bulk Import)
         self.btn_commit = ttk.Button(top, text="Create / Append", command=self._commit)
-        self.btn_commit.grid(row=3, column=5, sticky="e", pady=(8,0))
+        self.btn_commit.grid(row=4, column=5, sticky="e", pady=(8,0))
         self.btn_bulk = ttk.Button(top, text="Bulk import .docx…", command=self._bulk_import_docx)
-        self.btn_bulk.grid(row=4, column=5, sticky="e", pady=(6,0))
+        self.btn_bulk.grid(row=5, column=5, sticky="e", pady=(6,0))
 
         # Tabs for chapters
         self.nb = ttk.Notebook(self)
@@ -408,6 +431,8 @@ class Wizard(tk.Tk):
             self.title_var.set("")
             self.slug_var.set("")
             self.cover_var.set("")
+            self.blurb_var.set("")
+            self.hidden_var.set(False)
             self.start_order = 1
             self._show(self.lbl_title, self.title_entry,
                        self.lbl_slug, self.slug_entry,
@@ -455,6 +480,7 @@ class Wizard(tk.Tk):
             self.nb.forget(self.nb.tabs()[0])
         self.chapter_tabs = []
 
+        MAX_TITLE_LEN = 100  # Prevent UI crashes from overly long titles
         n = max(1, int(self.count_var.get() or 1))
         start = self.start_order if self.mode_var.get() == "Append to existing" else 1
         for i in range(n):
@@ -463,6 +489,14 @@ class Wizard(tk.Tk):
             self.nb.add(frame, text=f"Chapter {order}")
 
             title_var = tk.StringVar()
+            
+            # Validate title length on change
+            def _validate_title(var=title_var):
+                val = var.get()
+                if len(val) > MAX_TITLE_LEN:
+                    var.set(val[:MAX_TITLE_LEN])
+            title_var.trace_add("write", lambda *_, v=title_var: _validate_title(v))
+            
             ttk.Label(frame, text=f"Chapter {order} Title").pack(anchor="w")
             ttk.Entry(frame, textvariable=title_var).pack(fill="x", pady=(2,8))
 
@@ -487,7 +521,7 @@ class Wizard(tk.Tk):
 
             # restore preserved content if exists
             if order in preserved:
-                title_var.set(preserved[order]['title'])
+                title_var.set(preserved[order]['title'][:MAX_TITLE_LEN])  # Truncate if too long
                 try:
                     text.delete('1.0','end')
                     text.insert('1.0', preserved[order]['body'])
@@ -611,11 +645,11 @@ class Wizard(tk.Tk):
         # index.md — create if missing (safe for append)
         idx = dest / "index.md"
         if not idx.exists():
-            write_text(idx, build_index_md(slug))
+            write_text(idx, build_index_md(slug, self.status_var.get(), self.blurb_var.get()))
 
         # Append card only for new novels
         if mode == "Create new":
-            append_card_to_novels_index(novel_title, slug, cover_rel, self.status_var.get())
+            append_card_to_novels_index(novel_title, slug, cover_rel, self.status_var.get(), self.hidden_var.get())
 
         action = "Created" if mode == "Create new" else "Appended"
         messagebox.showinfo("Done", f"{action} /novel/{slug}/ with {written} chapter(s).\nRemember to commit & push.")
