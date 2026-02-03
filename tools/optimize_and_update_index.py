@@ -20,6 +20,7 @@ Idempotency rules:
 """
 
 from pathlib import Path
+import os
 import re
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -137,12 +138,14 @@ def main():
     
     updated = 0
     eager_given = False
+    force_rewrite = os.getenv("FORCE_PICTURE_REWRITE") == "1"
     
     for a in anchors:
         # Strict skip: if already converted to <picture>, do NOTHING for this card
-        if card_is_converted(a):
+        if card_is_converted(a) and not force_rewrite:
             continue
-    
+
+        existing_picture = a.find("picture")
         img = a.find("img")
         if not img or not img.has_attr("src"):
             continue
@@ -172,11 +175,14 @@ def main():
         else:
             w, h = 640, 960
     
-        # Replace <img> with <picture>
+        # Replace <img> (or existing <picture>) with <picture>
         eager = False if eager_given else True
         eager_given = True
         picture = picture_markup(soup, base_out, alt, eager, w, h)
-        img.replace_with(picture)
+        if existing_picture and force_rewrite:
+            existing_picture.replace_with(picture)
+        else:
+            img.replace_with(picture)
         updated += 1
     
     new_html = soup.prettify()
