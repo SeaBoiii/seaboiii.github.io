@@ -104,11 +104,8 @@ def picture_markup(soup, base_out: str, alt: str, eager: bool, width: int, heigh
     )
     img["sizes"] = "(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
     img["alt"] = alt or ""
-    img["width"] = str(width)
-    img["height"] = str(height)
     img["decoding"] = "async"
     img["loading"] = "eager" if eager else "lazy"
-    img["style"] = "aspect-ratio: 2 / 3; object-fit: cover; border-radius: 8px;"
     picture.append(img)
 
     return picture
