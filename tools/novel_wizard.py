@@ -396,9 +396,10 @@ class Wizard(tk.Tk):
         self.nb.pack(fill="both", expand=True, padx=12, pady=(12,4))
         
         # Bind mouse wheel events for chapter navigation
-        self.nb.bind("<MouseWheel>", self._on_mousewheel)  # Windows & macOS
-        self.nb.bind("<Button-4>", self._on_mousewheel)    # Linux scroll up
-        self.nb.bind("<Button-5>", self._on_mousewheel)    # Linux scroll down
+        self.nb.bind("<MouseWheel>", self._on_mousewheel)        # Windows & macOS
+        self.nb.bind("<Shift-MouseWheel>", self._on_hmousewheel) # Horizontal wheel / Shift+wheel
+        self.nb.bind("<Button-4>", self._on_mousewheel)          # Linux scroll up
+        self.nb.bind("<Button-5>", self._on_mousewheel)          # Linux scroll down
 
         # Tab navigation to avoid squished headers
         nav = ttk.Frame(self)
@@ -491,7 +492,7 @@ class Wizard(tk.Tk):
         for i in range(n):
             order = start + i
             frame = ttk.Frame(self.nb, padding=10)
-            self.nb.add(frame, text=f"Chapter {order}")
+            self.nb.add(frame, text=f"{order}")
 
             title_var = tk.StringVar()
             
@@ -503,7 +504,8 @@ class Wizard(tk.Tk):
             title_var.trace_add("write", lambda *_, v=title_var: _validate_title(v))
             
             ttk.Label(frame, text=f"Chapter {order} Title").pack(anchor="w")
-            ttk.Entry(frame, textvariable=title_var).pack(fill="x", pady=(2,8))
+            title_entry = ttk.Entry(frame, textvariable=title_var)
+            title_entry.pack(fill="x", pady=(2,8))
 
             # toolbar for formatted paste / import
             tools = ttk.Frame(frame)
@@ -523,6 +525,13 @@ class Wizard(tk.Tk):
                     command=lambda t=text: self._import_docx_into(text_widget=t)).pack(side="left", padx=(6,0))
 
             text.pack(side="left", fill="both", expand=True)
+
+            # Bind mouse wheel navigation within the chapter area
+            for w in (frame, title_entry, tools, txt_frame, text):
+                w.bind("<MouseWheel>", self._on_mousewheel)
+                w.bind("<Shift-MouseWheel>", self._on_hmousewheel)
+                w.bind("<Button-4>", self._on_mousewheel)
+                w.bind("<Button-5>", self._on_mousewheel)
 
             # restore preserved content if exists
             if order in preserved:
@@ -604,6 +613,15 @@ class Wizard(tk.Tk):
             self._prev_tab()  # Scroll up = previous chapter
         elif event.num == 5 or event.delta < 0:
             self._next_tab()  # Scroll down = next chapter
+
+    def _on_hmousewheel(self, event):
+        """Handle horizontal wheel scrolling for chapter navigation."""
+        # Windows/macOS: event.delta < 0 is scroll right, > 0 is scroll left
+        # Linux: event.num == 6 is scroll left, == 7 is scroll right
+        if event.num == 6 or event.delta > 0:
+            self._prev_tab()  # Scroll left = previous chapter
+        elif event.num == 7 or event.delta < 0:
+            self._next_tab()  # Scroll right = next chapter
 
     def _next_tab(self):
         tabs = self.nb.tabs()
