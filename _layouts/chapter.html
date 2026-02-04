@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ page.Title | default: page.title }} · {{ site.title }}</title>
     <meta name="theme-color" content="#ffffff" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         --bg: #ffffff;
@@ -90,6 +94,7 @@
         border-bottom: 1px solid var(--border);
         backdrop-filter: blur(8px);
         padding: 0.85rem 1.25rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
       }
 
       .header-content {
@@ -105,6 +110,7 @@
       .brand {
         font-weight: 600;
         font-size: 1.05rem;
+        font-family: "Merriweather", serif;
       }
 
       .header-right {
@@ -137,6 +143,7 @@
         padding: 0.4rem 0.5rem;
         cursor: pointer;
         font-size: 0.9rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
       }
 
       .theme-toggle:hover {
