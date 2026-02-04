@@ -10,7 +10,7 @@ Tkinter Novel Wizard for GitHub Pages + Jekyll
 Run from your repo root: python3 tools/novel_wizard.py
 """
 
-import re, shutil, sys
+import re, shutil, sys, subprocess
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -714,6 +714,23 @@ class Wizard(tk.Tk):
         # Append card only for new novels
         if mode == "Create new":
             append_card_to_novels_index(novel_title, slug, cover_rel, self.status_var.get(), self.hidden_var.get())
+
+        # Update index.html + generate variants (best-effort)
+        try:
+            script = REPO_ROOT / "tools" / "optimize_and_update_index.py"
+            if script.exists():
+                res = subprocess.run([sys.executable, str(script)], check=False)
+                if res.returncode != 0:
+                    messagebox.showwarning(
+                        "Optimize failed",
+                        "The optimize/update script returned a non-zero exit code.\n"
+                        "Index or image variants may not be fully updated."
+                    )
+        except Exception as exc:
+            messagebox.showwarning(
+                "Optimize failed",
+                f"Could not run optimize/update script.\n{exc}"
+            )
 
         action = "Created" if mode == "Create new" else "Appended"
         messagebox.showinfo("Done", f"{action} /novel/{slug}/ with {written} chapter(s).\nRemember to commit & push.")
