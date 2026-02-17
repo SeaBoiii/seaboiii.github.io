@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">Website Hub Illustration</title>
+  <desc id="desc">A stylized dashboard showing interconnected portfolio websites.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111a25" />
+      <stop offset="45%" stop-color="#162b44" />
+      <stop offset="100%" stop-color="#0a0f17" />
+    </linearGradient>
+    <linearGradient id="panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f3657" />
+      <stop offset="100%" stop-color="#0f1724" />
+    </linearGradient>
+    <linearGradient id="screen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2f45" />
+      <stop offset="100%" stop-color="#0f1825" />
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2f4f80" />
+      <stop offset="100%" stop-color="#1a2b43" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9cc4ff" />
+      <stop offset="100%" stop-color="#5d95ff" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect width="1280" height="820" fill="url(#bg)" rx="28" ry="28" />
+
+  <g opacity="0.25" stroke="#7fb0ff" fill="none">
+    <circle cx="164" cy="120" r="120" />
+    <circle cx="1130" cy="700" r="170" />
+    <path d="M46 635 C210 520, 340 760, 538 650" stroke-width="2" />
+    <path d="M744 122 C914 35, 1032 242, 1232 174" stroke-width="2" />
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="168" y="120" width="944" height="552" rx="32" fill="url(#panel)" stroke="#81b0ff" stroke-opacity="0.25" />
+    <rect x="208" y="162" width="864" height="472" rx="24" fill="url(#screen)" />
+  </g>
+
+  <g opacity="0.9">
+    <rect x="246" y="196" width="360" height="88" rx="18" fill="#15263b" stroke="#7eacff" stroke-opacity="0.45" />
+    <rect x="266" y="216" width="180" height="12" rx="6" fill="url(#accent)" />
+    <rect x="266" y="240" width="300" height="10" rx="5" fill="#7ea9ea" fill-opacity="0.55" />
+
+    <rect x="638" y="196" width="394" height="88" rx="18" fill="#15263b" stroke="#7eacff" stroke-opacity="0.45" />
+    <rect x="658" y="216" width="210" height="12" rx="6" fill="url(#accent)" />
+    <rect x="658" y="240" width="334" height="10" rx="5" fill="#7ea9ea" fill-opacity="0.55" />
+  </g>
+
+  <g>
+    <rect x="248" y="322" width="238" height="186" rx="18" fill="url(#card)" stroke="#8eb8ff" stroke-opacity="0.38" />
+    <rect x="278" y="352" width="178" height="80" rx="12" fill="#112236" />
+    <rect x="278" y="448" width="126" height="11" rx="6" fill="#a0c6ff" fill-opacity="0.85" />
+    <rect x="278" y="466" width="156" height="10" rx="5" fill="#8cb4f0" fill-opacity="0.62" />
+
+    <rect x="520" y="322" width="238" height="186" rx="18" fill="url(#card)" stroke="#8eb8ff" stroke-opacity="0.38" />
+    <rect x="550" y="352" width="178" height="80" rx="12" fill="#112236" />
+    <rect x="550" y="448" width="140" height="11" rx="6" fill="#a0c6ff" fill-opacity="0.85" />
+    <rect x="550" y="466" width="162" height="10" rx="5" fill="#8cb4f0" fill-opacity="0.62" />
+
+    <rect x="792" y="322" width="238" height="186" rx="18" fill="url(#card)" stroke="#8eb8ff" stroke-opacity="0.38" />
+    <rect x="822" y="352" width="178" height="80" rx="12" fill="#112236" />
+    <rect x="822" y="448" width="132" height="11" rx="6" fill="#a0c6ff" fill-opacity="0.85" />
+    <rect x="822" y="466" width="164" height="10" rx="5" fill="#8cb4f0" fill-opacity="0.62" />
+  </g>
+
+  <g fill="none" stroke="#7ba8f1" stroke-opacity="0.55" stroke-width="2">
+    <path d="M366 510 C398 570, 468 590, 638 590" />
+    <path d="M640 590 C742 590, 816 568, 912 510" />
+    <path d="M366 322 C468 252, 820 252, 912 322" />
+  </g>
+
+  <g transform="translate(640 592)">
+    <circle r="58" fill="#122238" stroke="#8db7ff" stroke-opacity="0.6" />
+    <circle r="28" fill="none" stroke="#8db7ff" stroke-opacity="0.75" />
+    <path d="M-20 -2 H20 M-20 18 H20 M-20 -22 H20" stroke="#9ec5ff" stroke-width="3" stroke-linecap="round" />
+    <path d="M0 -28 V28" stroke="#9ec5ff" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <text x="256" y="732" fill="#d6e6ff" font-size="44" font-family="Arial, Helvetica, sans-serif" font-weight="700">Website Hub</text>
+  <text x="256" y="768" fill="#9ec0ef" font-size="24" font-family="Arial, Helvetica, sans-serif">Connected projects, live demos, and source code in one place</text>
+</svg>
