@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">MMORPG Logo</title>
+  <desc id="desc">Action RPG crest with MMORPG wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10141f" />
+      <stop offset="100%" stop-color="#3d2d1a" />
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f0f0f0" />
+      <stop offset="100%" stop-color="#9ea7b7" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5d491" />
+      <stop offset="100%" stop-color="#c99544" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <path d="M88 244l34-34 0-92 12-12 12 12 0 92 34 34-18 18-28-28-28 28z" fill="url(#metal)" />
+  <circle cx="134" cy="96" r="14" fill="url(#gold)" />
+  <path d="M186 248l22-22-32-32 22-22-26-26-22 22-32-32-22 22 32 32-22 22 26 26 22-22 32 32z" fill="url(#gold)" opacity="0.9" />
+  <text x="246" y="164" fill="#fff4df" font-size="56" font-weight="700" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">MMORPG</text>
+  <text x="248" y="206" fill="#e8cfa6" font-size="20" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">ACTION BUILDS, WAVES, BOSSES</text>
+</svg>

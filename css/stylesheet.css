@@ -395,8 +395,9 @@ h3 {
 	height: 162px;
 	border-radius: 5px;
 	border: 1px solid rgba(117, 170, 255, 0.35);
-	background-size: cover;
-	background-position: top center;
+	background-color: rgba(5, 9, 16, 0.96);
+	background-size: contain;
+	background-position: center center;
 	background-repeat: no-repeat;
 	display: flex;
 	align-items: center;
@@ -405,54 +406,47 @@ h3 {
 }
 
 .project-hub-thumb::before {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(180deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.72));
+	content: none;
 }
 
 .project-hub-thumb i {
-	position: relative;
-	z-index: 1;
-	color: #ffffff;
-	font-size: 21px;
-	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+	display: none;
 }
 
 .project-hub-card--potionality .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/potionality-site.png");
+	background-image: url("../images/hub/potionality-logo.svg");
 }
 
 .project-hub-card--classility .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/classility-site.png");
+	background-image: url("../images/hub/classility-logo.svg");
 }
 
 .project-hub-card--novels .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/novel-site.png");
+	background-image: url("../images/hub/novel-logo.svg");
 }
 
 .project-hub-card--age-of-war .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/age_of_war-site.png");
+	background-image: url("../images/hub/age-of-war-logo.svg");
 }
 
 .project-hub-card--nizam .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/nizam-site.png");
+	background-image: url("../images/hub/nizam-logo.svg");
 }
 
 .project-hub-card--tetris .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/tetris-site.png");
+	background-image: url("../images/hub/tetris-logo.svg");
 }
 
 .project-hub-card--wordle .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/wordle-site.png");
+	background-image: url("../images/hub/wordle-logo.svg");
 }
 
 .project-hub-card--visual-novel .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/visual_novel-site.png");
+	background-image: url("../images/hub/visual-novel-logo.svg");
 }
 
 .project-hub-card--mmorpg .project-hub-thumb {
-	background-image: linear-gradient(145deg, rgba(12, 12, 13, 0.15), rgba(12, 12, 13, 0.45)), url("../images/hub/mmorpg-site.png");
+	background-image: url("../images/hub/mmorpg-logo.svg");
 }
 
 .game.project-hub-section .project-hub-card-copy {

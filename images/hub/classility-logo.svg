@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Classility Logo</title>
+  <desc id="desc">Academic crest and Classility wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1b2f" />
+      <stop offset="100%" stop-color="#1e3f66" />
+    </linearGradient>
+    <linearGradient id="crest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9fd5ff" />
+      <stop offset="100%" stop-color="#4d8ac9" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <path d="M128 78l72 28v66c0 58-50 88-72 98-22-10-72-40-72-98v-66z" fill="url(#crest)" stroke="#dff2ff" stroke-width="6" />
+  <rect x="92" y="148" width="72" height="14" rx="4" fill="#0f2b47" />
+  <rect x="96" y="132" width="14" height="58" fill="#dff2ff" />
+  <rect x="122" y="132" width="14" height="58" fill="#dff2ff" />
+  <rect x="148" y="132" width="14" height="58" fill="#dff2ff" />
+  <path d="M93 126h70l-35-24z" fill="#dff2ff" />
+  <text x="244" y="163" fill="#ffffff" font-size="54" font-weight="700" letter-spacing="2" font-family="'Trebuchet MS','Segoe UI',sans-serif">CLASSILITY</text>
+  <text x="246" y="203" fill="#c9e3ff" font-size="20" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">FIND YOUR CLASS. FORGE YOUR DESTINY.</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Visual Novel Logo</title>
+  <desc id="desc">Dialogue and branching path icon with Visual Novel wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#181726" />
+      <stop offset="100%" stop-color="#3f2f5f" />
+    </linearGradient>
+    <linearGradient id="bubble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ece6ff" />
+      <stop offset="100%" stop-color="#c8b6f0" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <rect x="58" y="96" width="188" height="104" rx="16" fill="url(#bubble)" />
+  <path d="M130 200l-22 26 48-18z" fill="#c8b6f0" />
+  <path d="M86 132h132M86 154h108" stroke="#6e5f99" stroke-width="7" stroke-linecap="round" />
+  <circle cx="318" cy="116" r="10" fill="#d3c1ff" />
+  <circle cx="386" cy="164" r="10" fill="#d3c1ff" />
+  <circle cx="318" cy="212" r="10" fill="#d3c1ff" />
+  <path d="M328 116h48l0 48M328 212h48l0-48" stroke="#d3c1ff" stroke-width="4" fill="none" />
+  <text x="246" y="268" fill="#f8f5ff" font-size="50" font-weight="700" letter-spacing="2" font-family="'Trebuchet MS','Segoe UI',sans-serif">VISUAL NOVEL</text>
+  <text x="248" y="302" fill="#d6cbef" font-size="19" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">CHOICES SHAPE THE STORY</text>
+</svg>

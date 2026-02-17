@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Novels Hub Logo</title>
+  <desc id="desc">Open book emblem with Novels Hub wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1612" />
+      <stop offset="100%" stop-color="#58412b" />
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f5e6cb" />
+      <stop offset="100%" stop-color="#d8bd90" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <path d="M72 106h86c18 0 34 6 46 18v128c-13-9-29-14-46-14H72z" fill="url(#paper)" />
+  <path d="M204 124c12-12 28-18 46-18h86v132h-86c-17 0-33 5-46 14z" fill="url(#paper)" />
+  <path d="M204 124v128" stroke="#a9804b" stroke-width="5" />
+  <path d="M88 142h96M88 164h96M88 186h96M224 142h96M224 164h96M224 186h96" stroke="#ad8555" stroke-width="4" opacity="0.75" />
+  <text x="246" y="160" fill="#fff5df" font-size="54" font-weight="700" letter-spacing="2" font-family="'Trebuchet MS','Segoe UI',sans-serif">NOVELS HUB</text>
+  <text x="248" y="202" fill="#f0d8b2" font-size="20" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">STORIES, CHAPTERS, WORLDS</text>
+</svg>

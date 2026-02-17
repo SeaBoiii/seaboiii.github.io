@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Nizam Logo</title>
+  <desc id="desc">Crescent emblem and Nizam wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0e1a1d" />
+      <stop offset="100%" stop-color="#144a4f" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8e2a4" />
+      <stop offset="100%" stop-color="#cfb270" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <circle cx="128" cy="178" r="78" fill="url(#gold)" />
+  <circle cx="154" cy="170" r="68" fill="#134046" />
+  <path d="M89 226h78v24H89z" fill="url(#gold)" />
+  <path d="M95 226v-21l33-24 33 24v21z" fill="none" stroke="url(#gold)" stroke-width="6" />
+  <circle cx="128" cy="174" r="7" fill="url(#gold)" />
+  <text x="246" y="162" fill="#f6f1de" font-size="54" font-weight="700" letter-spacing="4" font-family="'Trebuchet MS','Segoe UI',sans-serif">NIZAM</text>
+  <text x="248" y="202" fill="#c7dfdb" font-size="20" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">EMPIRE BUILDING, VIBE CODED</text>
+</svg>

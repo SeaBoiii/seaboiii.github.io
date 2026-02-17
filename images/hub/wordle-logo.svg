@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Wordle Logo</title>
+  <desc id="desc">Word puzzle tiles and Wordle wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#161616" />
+      <stop offset="100%" stop-color="#2e2e2e" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <g font-family="'Trebuchet MS','Segoe UI',sans-serif" font-size="38" font-weight="700" text-anchor="middle">
+    <rect x="58" y="120" width="54" height="54" rx="8" fill="#6aaa64" />
+    <rect x="122" y="120" width="54" height="54" rx="8" fill="#c9b458" />
+    <rect x="186" y="120" width="54" height="54" rx="8" fill="#787c7e" />
+    <rect x="250" y="120" width="54" height="54" rx="8" fill="#6aaa64" />
+    <rect x="314" y="120" width="54" height="54" rx="8" fill="#c9b458" />
+    <text x="85" y="159" fill="#ffffff">G</text>
+    <text x="149" y="159" fill="#ffffff">U</text>
+    <text x="213" y="159" fill="#ffffff">E</text>
+    <text x="277" y="159" fill="#ffffff">S</text>
+    <text x="341" y="159" fill="#ffffff">S</text>
+  </g>
+  <text x="246" y="235" fill="#ffffff" font-size="56" font-weight="700" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">WORDLE</text>
+  <text x="248" y="274" fill="#d8d8d8" font-size="20" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">DAILY WORD CHALLENGE</text>
+</svg>

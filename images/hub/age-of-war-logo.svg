@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Age of War Logo</title>
+  <desc id="desc">Crossed blades icon with Age of War wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1111" />
+      <stop offset="100%" stop-color="#5c2323" />
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9edf2" />
+      <stop offset="100%" stop-color="#a7b5c9" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="24" fill="url(#bg)" />
+  <path d="M72 246l72-72 23 23-72 72h-23z" fill="url(#blade)" />
+  <path d="M131 163l49-49 14 14-49 49z" fill="url(#blade)" />
+  <rect x="151" y="183" width="41" height="12" rx="4" fill="#f0b25d" />
+  <path d="M72 114l23 23 72 72-23 23-72-72z" fill="url(#blade)" />
+  <path d="M131 197l49 49 14-14-49-49z" fill="url(#blade)" />
+  <rect x="151" y="165" width="41" height="12" rx="4" fill="#f0b25d" />
+  <text x="246" y="160" fill="#fff0ec" font-size="54" font-weight="700" letter-spacing="2" font-family="'Trebuchet MS','Segoe UI',sans-serif">AGE OF WAR</text>
+  <text x="248" y="202" fill="#f7c6bb" font-size="20" letter-spacing="3" font-family="'Trebuchet MS','Segoe UI',sans-serif">CLASSIC STRATEGY REFORGED</text>
+</svg>
