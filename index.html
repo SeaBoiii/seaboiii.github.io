@@ -382,7 +382,7 @@
 			document.getElementById('footerYear').textContent = today.getFullYear();
 		})();
 
-		// Project hub auto-scroll (pauses for active user input)
+		// Project hub auto-scroll (stops at each end, then reverses direction)
 		(function() {
 			var hubGrid = document.querySelector('.project-hub-grid');
 			if (!hubGrid) return;
@@ -390,26 +390,33 @@
 			var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 			if (prefersReducedMotion) return;
 
+			var speed = 42; // px per second
 			var direction = 1;
-			var speed = 58; // px per second
 			var paused = false;
 			var lastTs = null;
 			var resumeTimer = null;
+			var started = false;
+
+			function maxScrollLeft() {
+				return Math.max(0, hubGrid.scrollWidth - hubGrid.clientWidth);
+			}
 
 			function scheduleResume(delayMs) {
 				if (resumeTimer) clearTimeout(resumeTimer);
 				resumeTimer = setTimeout(function() {
 					paused = false;
+					resumeTimer = null;
 				}, delayMs);
 			}
 
 			function onFrame(ts) {
+				if (!started) return;
 				if (lastTs === null) lastTs = ts;
 				var dt = (ts - lastTs) / 1000;
 				lastTs = ts;
 
-				var maxLeft = Math.max(0, hubGrid.scrollWidth - hubGrid.clientWidth);
-				if (!paused && maxLeft > 1 && !document.hidden) {
+				var maxLeft = maxScrollLeft();
+				if (!paused && !document.hidden && maxLeft > 1) {
 					var next = hubGrid.scrollLeft + (speed * dt * direction);
 					if (next >= maxLeft) {
 						next = maxLeft;
@@ -424,22 +431,81 @@
 				requestAnimationFrame(onFrame);
 			}
 
-			hubGrid.addEventListener('focusin', function() { paused = true; });
-			hubGrid.addEventListener('focusout', function() { paused = false; });
-
-			hubGrid.addEventListener('pointerdown', function() { paused = true; });
-			hubGrid.addEventListener('pointerup', function() { scheduleResume(2200); });
-			hubGrid.addEventListener('pointercancel', function() { scheduleResume(2200); });
-
-			hubGrid.addEventListener('wheel', function() {
+			function pauseNow() {
+				if (resumeTimer) {
+					clearTimeout(resumeTimer);
+					resumeTimer = null;
+				}
 				paused = true;
-				scheduleResume(1800);
+			}
+
+			function resumeSoon(delayMs) {
+				scheduleResume(delayMs);
+			}
+
+			function syncAfterResize() {
+				var maxLeft = maxScrollLeft();
+				if (maxLeft <= 1) {
+					hubGrid.scrollLeft = 0;
+					direction = 1;
+					return;
+				}
+				if (hubGrid.scrollLeft > maxLeft) {
+					hubGrid.scrollLeft = maxLeft;
+				}
+			}
+
+			function startAnimation() {
+				if (started) return;
+				started = true;
+				requestAnimationFrame(onFrame);
+			}
+
+			hubGrid.addEventListener('pointerdown', function() {
+				pauseNow();
 			}, { passive: true });
 
-			hubGrid.addEventListener('touchstart', function() { paused = true; }, { passive: true });
-			hubGrid.addEventListener('touchend', function() { scheduleResume(2200); }, { passive: true });
+			// Resume even if the pointer is released outside the grid.
+			window.addEventListener('pointerup', function() {
+				resumeSoon(1200);
+			}, { passive: true });
+			window.addEventListener('pointercancel', function() {
+				resumeSoon(1200);
+			}, { passive: true });
 
-			requestAnimationFrame(onFrame);
+			hubGrid.addEventListener('wheel', function() {
+				pauseNow();
+				resumeSoon(1200);
+			}, { passive: true });
+
+			hubGrid.addEventListener('touchstart', function() {
+				pauseNow();
+			}, { passive: true });
+			hubGrid.addEventListener('touchend', function() {
+				resumeSoon(1200);
+			}, { passive: true });
+			hubGrid.addEventListener('touchcancel', function() {
+				resumeSoon(1200);
+			}, { passive: true });
+
+			window.addEventListener('resize', function() {
+				syncAfterResize();
+			});
+
+			if (document.readyState === 'complete') {
+				syncAfterResize();
+				startAnimation();
+			} else {
+				window.addEventListener('load', function() {
+					syncAfterResize();
+					startAnimation();
+				}, { once: true });
+			}
+
+			requestAnimationFrame(function() {
+				syncAfterResize();
+				startAnimation();
+			});
 		})();
 	</script>
 
