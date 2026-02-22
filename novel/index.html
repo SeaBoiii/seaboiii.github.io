@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Available Novels</title>
-    <link rel="icon" href="/favicon.ico" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&family=Roboto:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Available Novels
+  </title>
+  <link href="/favicon.ico" rel="icon"/>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&amp;family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   :root {
         --bg: #ffffff;
         --text: #111111;
         --muted: #444444;
@@ -303,490 +302,401 @@
         color: var(--muted);
         text-align: center;
       }
-    </style>
-  </head>
-  <body>
-    <header>
-      <div class="container nav">
-        <h1 class="nav-title">
-          <a href="/novel">Aleem's Novels</a>
-        </h1>
-        <div class="nav-actions">
-          <a href="/" class="pill-button">Profile</a>
-          <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
-        </div>
+  </style>
+ </head>
+ <body>
+  <header>
+   <div class="container nav">
+    <h1 class="nav-title">
+     <a href="/novel">
+      Aleem's Novels
+     </a>
+    </h1>
+    <div class="nav-actions">
+     <a class="pill-button" href="/">
+      Profile
+     </a>
+     <button aria-label="Toggle theme" class="theme-toggle" id="themeToggle" type="button">
+      🌙
+     </button>
+    </div>
+   </div>
+  </header>
+  <section class="hero">
+   <div class="container hero-card">
+    <div>
+     <h1>
+      Available Novels
+     </h1>
+     <p>
+      Browse completed and ongoing stories. Use search or filters to find your next read.
+     </p>
+    </div>
+    <div class="controls">
+     <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
+     <div aria-label="Filter novels" class="filter-group" role="group">
+      <button class="pill-button active" data-filter="all" type="button">
+       All
+      </button>
+      <button class="pill-button" data-filter="complete" type="button">
+       Complete
+      </button>
+      <button class="pill-button" data-filter="incomplete" type="button">
+       Incomplete
+      </button>
+     </div>
+     <div aria-live="polite" class="muted" id="resultsCount">
+     </div>
+    </div>
+   </div>
+  </section>
+  <main class="container">
+   <ul class="novel-grid" id="novelGrid">
+    <li class="novel-card" data-status="incomplete" data-title="crossroads of the heart">
+     <a aria-label="Crossroads of the Heart" href="/novel/crossroads-of-the-heart/">
+      <picture>
+       <source srcset="/images/crossroads-cover-320.webp 320w, /images/crossroads-cover-640.webp 640w, /images/crossroads-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Crossroads of the Heart" decoding="async" loading="eager" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/crossroads-cover-640.jpg" srcset="/images/crossroads-cover-320.jpg 320w, /images/crossroads-cover-640.jpg 640w, /images/crossroads-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Crossroads of the Heart
+      </h2>
+      <div class="novel-meta">
+       <span class="badge incomplete">
+        Incomplete
+       </span>
       </div>
-    </header>
-
-    <section class="hero">
-      <div class="container hero-card">
-        <div>
-          <h1>Available Novels</h1>
-          <p>Browse completed and ongoing stories. Use search or filters to find your next read.</p>
-        </div>
-        <div class="controls">
-          <input id="novelSearch" class="search" type="search" placeholder="Search by title…" />
-          <div class="filter-group" role="group" aria-label="Filter novels">
-            <button class="pill-button active" data-filter="all" type="button">All</button>
-            <button class="pill-button" data-filter="complete" type="button">Complete</button>
-            <button class="pill-button" data-filter="incomplete" type="button">Incomplete</button>
-          </div>
-          <div class="muted" id="resultsCount" aria-live="polite"></div>
-        </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="the abix chronicle">
+     <a aria-label="The ABIX Chronicle" href="/novel/the-abix-chronicle/">
+      <picture>
+       <source srcset="/images/abix-chronicle-cover-320.webp 320w, /images/abix-chronicle-cover-640.webp 640w, /images/abix-chronicle-cover-960.webp 960w" type="image/webp"/>
+       <img alt="The ABIX Chronicle" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/abix-chronicle-cover-640.jpg" srcset="/images/abix-chronicle-cover-320.jpg 320w, /images/abix-chronicle-cover-640.jpg 640w, /images/abix-chronicle-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       The ABIX Chronicle
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
       </div>
-    </section>
-
-    <main class="container">
-      <ul class="novel-grid" id="novelGrid">
-        <li class="novel-card" data-title="crossroads of the heart" data-status="incomplete">
-          <a href="/novel/crossroads-of-the-heart/" aria-label="Crossroads of the Heart">
-            <picture>
-              <source
-                srcset="/images/crossroads-cover-320.webp 320w, /images/crossroads-cover-640.webp 640w, /images/crossroads-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Crossroads of the Heart"
-                decoding="async"
-                loading="eager"
-                src="/images/crossroads-cover-640.jpg"
-                srcset="/images/crossroads-cover-320.jpg 320w, /images/crossroads-cover-640.jpg 640w, /images/crossroads-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Crossroads of the Heart</h2>
-            <div class="novel-meta">
-              <span class="badge incomplete">Incomplete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="the abix chronicle" data-status="complete">
-          <a href="/novel/the-abix-chronicle/" aria-label="The ABIX Chronicle">
-            <picture>
-              <source
-                srcset="/images/abix-chronicle-cover-320.webp 320w, /images/abix-chronicle-cover-640.webp 640w, /images/abix-chronicle-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="The ABIX Chronicle"
-                decoding="async"
-                loading="lazy"
-                src="/images/abix-chronicle-cover-640.jpg"
-                srcset="/images/abix-chronicle-cover-320.jpg 320w, /images/abix-chronicle-cover-640.jpg 640w, /images/abix-chronicle-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">The ABIX Chronicle</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="echoes of us" data-status="complete">
-          <a href="/novel/echoes-of-us/" aria-label="Echoes of Us">
-            <picture>
-              <source
-                srcset="/images/echoes-of-us-cover-320.webp 320w, /images/echoes-of-us-cover-640.webp 640w, /images/echoes-of-us-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Echoes of Us"
-                decoding="async"
-                loading="lazy"
-                src="/images/echoes-of-us-cover-640.jpg"
-                srcset="/images/echoes-of-us-cover-320.jpg 320w, /images/echoes-of-us-cover-640.jpg 640w, /images/echoes-of-us-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Echoes of Us</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="the silk of fate" data-status="incomplete">
-          <a href="/novel/the-silk-of-fate/" aria-label="The Silk of Fate">
-            <picture>
-              <source
-                srcset="/images/silk-of-fate-cover-320.webp 320w, /images/silk-of-fate-cover-640.webp 640w, /images/silk-of-fate-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="The Silk of Fate"
-                decoding="async"
-                loading="lazy"
-                src="/images/silk-of-fate-cover-640.jpg"
-                srcset="/images/silk-of-fate-cover-320.jpg 320w, /images/silk-of-fate-cover-640.jpg 640w, /images/silk-of-fate-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">The Silk of Fate</h2>
-            <div class="novel-meta">
-              <span class="badge incomplete">Incomplete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="as if you never left" data-status="complete">
-          <a href="/novel/as-if-you-never-left/" aria-label="As If You Never Left">
-            <picture>
-              <source
-                srcset="/images/as-if-you-never-left-cover-320.webp 320w, /images/as-if-you-never-left-cover-640.webp 640w, /images/as-if-you-never-left-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="As If You Never Left"
-                decoding="async"
-                loading="lazy"
-                src="/images/as-if-you-never-left-cover-640.jpg"
-                srcset="/images/as-if-you-never-left-cover-320.jpg 320w, /images/as-if-you-never-left-cover-640.jpg 640w, /images/as-if-you-never-left-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">As If You Never Left</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="the time we were" data-status="complete">
-          <a href="/novel/the-time-we-were/" aria-label="The Time We Were">
-            <picture>
-              <source
-                srcset="/images/the-time-we-were-cover-320.webp 320w, /images/the-time-we-were-cover-640.webp 640w, /images/the-time-we-were-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="The Time We Were"
-                decoding="async"
-                loading="lazy"
-                src="/images/the-time-we-were-cover-640.jpg"
-                srcset="/images/the-time-we-were-cover-320.jpg 320w, /images/the-time-we-were-cover-640.jpg 640w, /images/the-time-we-were-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">The Time We Were</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="when the song began" data-status="complete">
-          <a href="/novel/when-the-song-began/" aria-label="When the Song Began">
-            <picture>
-              <source
-                srcset="/images/when-the-song-began-cover-320.webp 320w, /images/when-the-song-began-cover-640.webp 640w, /images/when-the-song-began-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="When the Song Began"
-                decoding="async"
-                loading="lazy"
-                src="/images/when-the-song-began-cover-640.jpg"
-                srcset="/images/when-the-song-began-cover-320.jpg 320w, /images/when-the-song-began-cover-640.jpg 640w, /images/when-the-song-began-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">When the Song Began</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="unspoken roommate" data-status="complete">
-          <a href="/novel/unspoken-roommate/" aria-label="Unspoken Roommate">
-            <picture>
-              <source
-                srcset="/images/unspoken-roommate-cover-320.webp 320w, /images/unspoken-roommate-cover-640.webp 640w, /images/unspoken-roommate-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Unspoken Roommate"
-                decoding="async"
-                loading="lazy"
-                src="/images/unspoken-roommate-cover-640.jpg"
-                srcset="/images/unspoken-roommate-cover-320.jpg 320w, /images/unspoken-roommate-cover-640.jpg 640w, /images/unspoken-roommate-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Unspoken Roommate</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="a name of my own" data-status="complete">
-          <a href="/novel/a-name-of-my-own/" aria-label="A Name of My Own">
-            <picture>
-              <source
-                srcset="/images/a-name-of-my-own-cover-320.webp 320w, /images/a-name-of-my-own-cover-640.webp 640w, /images/a-name-of-my-own-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="A Name of My Own"
-                decoding="async"
-                loading="eager"
-                src="/images/a-name-of-my-own-cover-640.jpg"
-                srcset="/images/a-name-of-my-own-cover-320.jpg 320w, /images/a-name-of-my-own-cover-640.jpg 640w, /images/a-name-of-my-own-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">A Name of My Own</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="only a fan dream" data-status="incomplete">
-          <a href="/novel/only-a-fan-dream/" aria-label="Only a Fan Dream">
-            <picture>
-              <source
-                srcset="/images/only-a-fan-dream-cover-320.webp 320w, /images/only-a-fan-dream-cover-640.webp 640w, /images/only-a-fan-dream-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Only a Fan Dream"
-                decoding="async"
-                loading="lazy"
-                src="/images/only-a-fan-dream-cover-640.jpg"
-                srcset="/images/only-a-fan-dream-cover-320.jpg 320w, /images/only-a-fan-dream-cover-640.jpg 640w, /images/only-a-fan-dream-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Only a Fan Dream</h2>
-            <div class="novel-meta">
-              <span class="badge incomplete">Incomplete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="beyond borders" data-status="complete">
-          <a href="/novel/beyond-borders/" aria-label="Beyond Borders">
-            <picture>
-              <source
-                srcset="/images/beyond-borders-cover-320.webp 320w, /images/beyond-borders-cover-640.webp 640w, /images/beyond-borders-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Beyond Borders"
-                decoding="async"
-                loading="lazy"
-                src="/images/beyond-borders-cover-640.jpg"
-                srcset="/images/beyond-borders-cover-320.jpg 320w, /images/beyond-borders-cover-640.jpg 640w, /images/beyond-borders-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Beyond Borders</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="still my favourite song" data-status="complete">
-          <a href="/novel/still-my-favourite-song/" aria-label="Still My Favourite Song">
-            <picture>
-              <source
-                srcset="/images/still-my-favourite-song-cover-320.webp 320w, /images/still-my-favourite-song-cover-640.webp 640w, /images/still-my-favourite-song-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Still My Favourite Song"
-                decoding="async"
-                loading="lazy"
-                src="/images/still-my-favourite-song-cover-640.jpg"
-                srcset="/images/still-my-favourite-song-cover-320.jpg 320w, /images/still-my-favourite-song-cover-640.jpg 640w, /images/still-my-favourite-song-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Still My Favourite Song</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="when the time stops" data-status="complete">
-          <a href="/novel/when-the-time-stops/" aria-label="When the Time Stops">
-            <picture>
-              <source
-                srcset="/images/when-the-time-stops-cover-320.webp 320w, /images/when-the-time-stops-cover-640.webp 640w, /images/when-the-time-stops-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="When the Time Stops"
-                decoding="async"
-                loading="lazy"
-                src="/images/when-the-time-stops-cover-640.jpg"
-                srcset="/images/when-the-time-stops-cover-320.jpg 320w, /images/when-the-time-stops-cover-640.jpg 640w, /images/when-the-time-stops-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">When the Time Stops</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="whole before we met" data-status="complete">
-          <a href="/novel/whole-before-we-met/" aria-label="Whole Before We Met">
-            <picture>
-              <source
-                srcset="/images/whole-before-we-met-cover-320.webp 320w, /images/whole-before-we-met-cover-640.webp 640w, /images/whole-before-we-met-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Whole Before We Met"
-                decoding="async"
-                loading="lazy"
-                src="/images/whole-before-we-met-cover-640.jpg"
-                srcset="/images/whole-before-we-met-cover-320.jpg 320w, /images/whole-before-we-met-cover-640.jpg 640w, /images/whole-before-we-met-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Whole Before We Met</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-        <li class="novel-card" data-title="umrah of mercy" data-status="complete">
-          <a href="/novel/umrah-of-mercy/" aria-label="Umrah of Mercy">
-            <picture>
-              <source
-                srcset="/images/umrah-of-mercy-cover-320.webp 320w, /images/umrah-of-mercy-cover-640.webp 640w, /images/umrah-of-mercy-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Umrah of Mercy"
-                decoding="async"
-                loading="lazy"
-                src="/images/umrah-of-mercy-cover-640.jpg"
-                srcset="/images/umrah-of-mercy-cover-320.jpg 320w, /images/umrah-of-mercy-cover-640.jpg 640w, /images/umrah-of-mercy-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Umrah of Mercy</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-
-              <li class="novel-card" data-title="between two prayers" data-status="complete" data-hidden="true">
-          <a href="/novel/between-two-prayers/" aria-label="Between Two Prayers">
-            <picture>
-              <source
-                srcset="/images/between-two-prayers-cover-320.webp 320w, /images/between-two-prayers-cover-640.webp 640w, /images/between-two-prayers-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Between Two Prayers"
-                decoding="async"
-                loading="lazy"
-                src="/images/between-two-prayers-cover-640.jpg"
-                srcset="/images/between-two-prayers-cover-320.jpg 320w, /images/between-two-prayers-cover-640.jpg 640w, /images/between-two-prayers-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Between Two Prayers</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-              <span class="badge">Hidden</span>
-            </div>
-          </a>
-        </li>
-        <li class="novel-card" data-title="all the mercies" data-status="complete" data-hidden="true">
-          <a href="/novel/all-the-mercies/" aria-label="All the Mercies">
-            <picture>
-              <source
-                srcset="/images/all-the-mercies-cover-320.webp 320w, /images/all-the-mercies-cover-640.webp 640w, /images/all-the-mercies-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="All the Mercies"
-                decoding="async"
-                loading="lazy"
-                src="/images/all-the-mercies-cover-640.jpg"
-                srcset="/images/all-the-mercies-cover-320.jpg 320w, /images/all-the-mercies-cover-640.jpg 640w, /images/all-the-mercies-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">All the Mercies</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-              <span class="badge">Hidden</span>
-            </div>
-          </a>
-        </li>
-        <li class="novel-card" data-title="where the mist begins" data-status="incomplete">
-          <a href="/novel/where-the-mist-begins/" aria-label="Where the Mist Begins">
-            <picture>
-              <source
-                srcset="/images/where-the-mist-begins-cover-320.webp 320w, /images/where-the-mist-begins-cover-640.webp 640w, /images/where-the-mist-begins-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Where the Mist Begins"
-                decoding="async"
-                loading="lazy"
-                src="/images/where-the-mist-begins-cover-640.jpg"
-                srcset="/images/where-the-mist-begins-cover-320.jpg 320w, /images/where-the-mist-begins-cover-640.jpg 640w, /images/where-the-mist-begins-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Where the Mist Begins</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-        <li class="novel-card" data-title="sheltered walkways" data-status="complete">
-          <a href="/novel/sheltered-walkways/" aria-label="Sheltered Walkways">
-            <picture>
-              <source
-                srcset="/images/sheltered-walkways-cover-320.webp 320w, /images/sheltered-walkways-cover-640.webp 640w, /images/sheltered-walkways-cover-960.webp 960w"
-                type="image/webp"
-              />
-              <img
-                alt="Sheltered Walkways"
-                decoding="async"
-                loading="lazy"
-                src="/images/sheltered-walkways-cover-640.jpg"
-                srcset="/images/sheltered-walkways-cover-320.jpg 320w, /images/sheltered-walkways-cover-640.jpg 640w, /images/sheltered-walkways-cover-960.jpg 960w"
-                sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px"
-              />
-            </picture>
-            <h2 class="novel-title">Sheltered Walkways</h2>
-            <div class="novel-meta">
-              <span class="badge complete">Complete</span>
-            </div>
-          </a>
-        </li>
-</ul>
-    </main>
-
-    <footer class="footer">
-      <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>© <span id="year"></span> SeaBoiii</div>
-          <button id="secretBtn" type="button" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" aria-label="Secret button" title="🔐">🔐</button>
-        </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="echoes of us">
+     <a aria-label="Echoes of Us" href="/novel/echoes-of-us/">
+      <picture>
+       <source srcset="/images/echoes-of-us-cover-320.webp 320w, /images/echoes-of-us-cover-640.webp 640w, /images/echoes-of-us-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Echoes of Us" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/echoes-of-us-cover-640.jpg" srcset="/images/echoes-of-us-cover-320.jpg 320w, /images/echoes-of-us-cover-640.jpg 640w, /images/echoes-of-us-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Echoes of Us
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
       </div>
-    </footer>
-
-    <script>
-      document.getElementById("year").textContent = new Date().getFullYear();
+     </a>
+    </li>
+    <li class="novel-card" data-status="incomplete" data-title="the silk of fate">
+     <a aria-label="The Silk of Fate" href="/novel/the-silk-of-fate/">
+      <picture>
+       <source srcset="/images/silk-of-fate-cover-320.webp 320w, /images/silk-of-fate-cover-640.webp 640w, /images/silk-of-fate-cover-960.webp 960w" type="image/webp"/>
+       <img alt="The Silk of Fate" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/silk-of-fate-cover-640.jpg" srcset="/images/silk-of-fate-cover-320.jpg 320w, /images/silk-of-fate-cover-640.jpg 640w, /images/silk-of-fate-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       The Silk of Fate
+      </h2>
+      <div class="novel-meta">
+       <span class="badge incomplete">
+        Incomplete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="as if you never left">
+     <a aria-label="As If You Never Left" href="/novel/as-if-you-never-left/">
+      <picture>
+       <source srcset="/images/as-if-you-never-left-cover-320.webp 320w, /images/as-if-you-never-left-cover-640.webp 640w, /images/as-if-you-never-left-cover-960.webp 960w" type="image/webp"/>
+       <img alt="As If You Never Left" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/as-if-you-never-left-cover-640.jpg" srcset="/images/as-if-you-never-left-cover-320.jpg 320w, /images/as-if-you-never-left-cover-640.jpg 640w, /images/as-if-you-never-left-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       As If You Never Left
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="the time we were">
+     <a aria-label="The Time We Were" href="/novel/the-time-we-were/">
+      <picture>
+       <source srcset="/images/the-time-we-were-cover-320.webp 320w, /images/the-time-we-were-cover-640.webp 640w, /images/the-time-we-were-cover-960.webp 960w" type="image/webp"/>
+       <img alt="The Time We Were" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/the-time-we-were-cover-640.jpg" srcset="/images/the-time-we-were-cover-320.jpg 320w, /images/the-time-we-were-cover-640.jpg 640w, /images/the-time-we-were-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       The Time We Were
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="when the song began">
+     <a aria-label="When the Song Began" href="/novel/when-the-song-began/">
+      <picture>
+       <source srcset="/images/when-the-song-began-cover-320.webp 320w, /images/when-the-song-began-cover-640.webp 640w, /images/when-the-song-began-cover-960.webp 960w" type="image/webp"/>
+       <img alt="When the Song Began" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/when-the-song-began-cover-640.jpg" srcset="/images/when-the-song-began-cover-320.jpg 320w, /images/when-the-song-began-cover-640.jpg 640w, /images/when-the-song-began-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       When the Song Began
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="unspoken roommate">
+     <a aria-label="Unspoken Roommate" href="/novel/unspoken-roommate/">
+      <picture>
+       <source srcset="/images/unspoken-roommate-cover-320.webp 320w, /images/unspoken-roommate-cover-640.webp 640w, /images/unspoken-roommate-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Unspoken Roommate" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/unspoken-roommate-cover-640.jpg" srcset="/images/unspoken-roommate-cover-320.jpg 320w, /images/unspoken-roommate-cover-640.jpg 640w, /images/unspoken-roommate-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Unspoken Roommate
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="a name of my own">
+     <a aria-label="A Name of My Own" href="/novel/a-name-of-my-own/">
+      <picture>
+       <source srcset="/images/a-name-of-my-own-cover-320.webp 320w, /images/a-name-of-my-own-cover-640.webp 640w, /images/a-name-of-my-own-cover-960.webp 960w" type="image/webp"/>
+       <img alt="A Name of My Own" decoding="async" loading="eager" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/a-name-of-my-own-cover-640.jpg" srcset="/images/a-name-of-my-own-cover-320.jpg 320w, /images/a-name-of-my-own-cover-640.jpg 640w, /images/a-name-of-my-own-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       A Name of My Own
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="incomplete" data-title="only a fan dream">
+     <a aria-label="Only a Fan Dream" href="/novel/only-a-fan-dream/">
+      <picture>
+       <source srcset="/images/only-a-fan-dream-cover-320.webp 320w, /images/only-a-fan-dream-cover-640.webp 640w, /images/only-a-fan-dream-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Only a Fan Dream" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/only-a-fan-dream-cover-640.jpg" srcset="/images/only-a-fan-dream-cover-320.jpg 320w, /images/only-a-fan-dream-cover-640.jpg 640w, /images/only-a-fan-dream-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Only a Fan Dream
+      </h2>
+      <div class="novel-meta">
+       <span class="badge incomplete">
+        Incomplete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="beyond borders">
+     <a aria-label="Beyond Borders" href="/novel/beyond-borders/">
+      <picture>
+       <source srcset="/images/beyond-borders-cover-320.webp 320w, /images/beyond-borders-cover-640.webp 640w, /images/beyond-borders-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Beyond Borders" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/beyond-borders-cover-640.jpg" srcset="/images/beyond-borders-cover-320.jpg 320w, /images/beyond-borders-cover-640.jpg 640w, /images/beyond-borders-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Beyond Borders
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="still my favourite song">
+     <a aria-label="Still My Favourite Song" href="/novel/still-my-favourite-song/">
+      <picture>
+       <source srcset="/images/still-my-favourite-song-cover-320.webp 320w, /images/still-my-favourite-song-cover-640.webp 640w, /images/still-my-favourite-song-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Still My Favourite Song" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/still-my-favourite-song-cover-640.jpg" srcset="/images/still-my-favourite-song-cover-320.jpg 320w, /images/still-my-favourite-song-cover-640.jpg 640w, /images/still-my-favourite-song-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Still My Favourite Song
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="when the time stops">
+     <a aria-label="When the Time Stops" href="/novel/when-the-time-stops/">
+      <picture>
+       <source srcset="/images/when-the-time-stops-cover-320.webp 320w, /images/when-the-time-stops-cover-640.webp 640w, /images/when-the-time-stops-cover-960.webp 960w" type="image/webp"/>
+       <img alt="When the Time Stops" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/when-the-time-stops-cover-640.jpg" srcset="/images/when-the-time-stops-cover-320.jpg 320w, /images/when-the-time-stops-cover-640.jpg 640w, /images/when-the-time-stops-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       When the Time Stops
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="whole before we met">
+     <a aria-label="Whole Before We Met" href="/novel/whole-before-we-met/">
+      <picture>
+       <source srcset="/images/whole-before-we-met-cover-320.webp 320w, /images/whole-before-we-met-cover-640.webp 640w, /images/whole-before-we-met-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Whole Before We Met" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/whole-before-we-met-cover-640.jpg" srcset="/images/whole-before-we-met-cover-320.jpg 320w, /images/whole-before-we-met-cover-640.jpg 640w, /images/whole-before-we-met-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Whole Before We Met
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="umrah of mercy">
+     <a aria-label="Umrah of Mercy" href="/novel/umrah-of-mercy/">
+      <picture>
+       <source srcset="/images/umrah-of-mercy-cover-320.webp 320w, /images/umrah-of-mercy-cover-640.webp 640w, /images/umrah-of-mercy-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Umrah of Mercy" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/umrah-of-mercy-cover-640.jpg" srcset="/images/umrah-of-mercy-cover-320.jpg 320w, /images/umrah-of-mercy-cover-640.jpg 640w, /images/umrah-of-mercy-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Umrah of Mercy
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-hidden="true" data-status="complete" data-title="between two prayers">
+     <a aria-label="Between Two Prayers" href="/novel/between-two-prayers/">
+      <picture>
+       <source srcset="/images/between-two-prayers-cover-320.webp 320w, /images/between-two-prayers-cover-640.webp 640w, /images/between-two-prayers-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Between Two Prayers" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/between-two-prayers-cover-640.jpg" srcset="/images/between-two-prayers-cover-320.jpg 320w, /images/between-two-prayers-cover-640.jpg 640w, /images/between-two-prayers-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Between Two Prayers
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+       <span class="badge">
+        Hidden
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-hidden="true" data-status="complete" data-title="all the mercies">
+     <a aria-label="All the Mercies" href="/novel/all-the-mercies/">
+      <picture>
+       <source srcset="/images/all-the-mercies-cover-320.webp 320w, /images/all-the-mercies-cover-640.webp 640w, /images/all-the-mercies-cover-960.webp 960w" type="image/webp"/>
+       <img alt="All the Mercies" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/all-the-mercies-cover-640.jpg" srcset="/images/all-the-mercies-cover-320.jpg 320w, /images/all-the-mercies-cover-640.jpg 640w, /images/all-the-mercies-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       All the Mercies
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+       <span class="badge">
+        Hidden
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="incomplete" data-title="where the mist begins">
+     <a aria-label="Where the Mist Begins" href="/novel/where-the-mist-begins/">
+      <picture>
+       <source srcset="/images/where-the-mist-begins-cover-320.webp 320w, /images/where-the-mist-begins-cover-640.webp 640w, /images/where-the-mist-begins-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Where the Mist Begins" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/where-the-mist-begins-cover-640.jpg" srcset="/images/where-the-mist-begins-cover-320.jpg 320w, /images/where-the-mist-begins-cover-640.jpg 640w, /images/where-the-mist-begins-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Where the Mist Begins
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="sheltered walkways">
+     <a aria-label="Sheltered Walkways" href="/novel/sheltered-walkways/">
+      <picture>
+       <source srcset="/images/sheltered-walkways-cover-320.webp 320w, /images/sheltered-walkways-cover-640.webp 640w, /images/sheltered-walkways-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Sheltered Walkways" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/sheltered-walkways-cover-640.jpg" srcset="/images/sheltered-walkways-cover-320.jpg 320w, /images/sheltered-walkways-cover-640.jpg 640w, /images/sheltered-walkways-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Sheltered Walkways
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="soulbound in seoul">
+     <a aria-label="Soulbound in Seoul" href="/novel/soulbound-in-seoul/">
+      <picture>
+       <source srcset="/images/soulbound-in-seoul-cover-320.webp 320w, /images/soulbound-in-seoul-cover-640.webp 640w, /images/soulbound-in-seoul-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Soulbound in Seoul" decoding="async" loading="eager" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/soulbound-in-seoul-cover-640.jpg" srcset="/images/soulbound-in-seoul-cover-320.jpg 320w, /images/soulbound-in-seoul-cover-640.jpg 640w, /images/soulbound-in-seoul-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Soulbound in Seoul
+      </h2>
+      <div class="novel-meta">
+       <span class="badge complete">
+        Complete
+       </span>
+      </div>
+     </a>
+    </li>
+   </ul>
+  </main>
+  <footer class="footer">
+   <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+     <div>
+      ©
+      <span id="year">
+      </span>
+      SeaBoiii
+     </div>
+     <button aria-label="Secret button" id="secretBtn" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" title="🔐" type="button">
+      🔐
+     </button>
+    </div>
+   </div>
+  </footer>
+  <script>
+   document.getElementById("year").textContent = new Date().getFullYear();
 
       (function () {
         var root = document.documentElement;
@@ -916,6 +826,6 @@
 
         update();
       })();
-    </script>
-  </body>
+  </script>
+ </body>
 </html>
