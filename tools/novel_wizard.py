@@ -395,11 +395,14 @@ class Wizard(tk.Tk):
         self.nb = ttk.Notebook(self)
         self.nb.pack(fill="both", expand=True, padx=12, pady=(12,4))
         
-        # Bind mouse wheel events for chapter navigation
-        self.nb.bind("<MouseWheel>", self._on_mousewheel)        # Windows & macOS
-        self.nb.bind("<Shift-MouseWheel>", self._on_hmousewheel) # Horizontal wheel / Shift+wheel
-        self.nb.bind("<Button-4>", self._on_mousewheel)          # Linux scroll up
-        self.nb.bind("<Button-5>", self._on_mousewheel)          # Linux scroll down
+        # Bind horizontal wheel events for chapter navigation only.
+        # Leave vertical wheel scrolling to the text widgets so editing feels normal.
+        # Tk on Windows/macOS may reject Button-6/7 (X11-only horizontal wheel buttons).
+        self._supports_x11_hwheel_buttons = (self.tk.call("tk", "windowingsystem") == "x11")
+        self.nb.bind("<Shift-MouseWheel>", self._on_hmousewheel)  # Side wheel or Shift+wheel
+        if self._supports_x11_hwheel_buttons:
+            self.nb.bind("<Button-6>", self._on_hmousewheel)      # Linux horizontal scroll left
+            self.nb.bind("<Button-7>", self._on_hmousewheel)      # Linux horizontal scroll right
 
         # Tab navigation to avoid squished headers
         nav = ttk.Frame(self)
@@ -526,12 +529,13 @@ class Wizard(tk.Tk):
 
             text.pack(side="left", fill="both", expand=True)
 
-            # Bind mouse wheel navigation within the chapter area
+            # Bind chapter navigation to horizontal wheel only so vertical scrolling
+            # continues to scroll the chapter text while editing.
             for w in (frame, title_entry, tools, txt_frame, text):
-                w.bind("<MouseWheel>", self._on_mousewheel)
                 w.bind("<Shift-MouseWheel>", self._on_hmousewheel)
-                w.bind("<Button-4>", self._on_mousewheel)
-                w.bind("<Button-5>", self._on_mousewheel)
+                if self._supports_x11_hwheel_buttons:
+                    w.bind("<Button-6>", self._on_hmousewheel)
+                    w.bind("<Button-7>", self._on_hmousewheel)
 
             # restore preserved content if exists
             if order in preserved:
@@ -613,15 +617,20 @@ class Wizard(tk.Tk):
             self._prev_tab()  # Scroll up = previous chapter
         elif event.num == 5 or event.delta < 0:
             self._next_tab()  # Scroll down = next chapter
+        return "break"
 
     def _on_hmousewheel(self, event):
         """Handle horizontal wheel scrolling for chapter navigation."""
         # Windows/macOS: event.delta < 0 is scroll right, > 0 is scroll left
         # Linux: event.num == 6 is scroll left, == 7 is scroll right
-        if event.num == 6 or event.delta > 0:
+        num = getattr(event, "num", None)
+        delta = getattr(event, "delta", 0)
+        if num == 6 or delta > 0:
             self._prev_tab()  # Scroll left = previous chapter
-        elif event.num == 7 or event.delta < 0:
+            return "break"
+        elif num == 7 or delta < 0:
             self._next_tab()  # Scroll right = next chapter
+            return "break"
 
     def _next_tab(self):
         tabs = self.nb.tabs()
