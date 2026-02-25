@@ -1,6 +1,19 @@
-var countdownDate = new Date(
-  "January 1, 2024 00:00:00"
-).getTime(); 
+var countdownDate;
+var countdownYear;
+
+function setNextNewYearTarget() {
+  var now = new Date();
+  var target = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
+  countdownDate = target.getTime();
+  countdownYear = target.getFullYear();
+
+  var titleEl = document.querySelector(".title");
+  if (titleEl) {
+    titleEl.innerText = countdownYear;
+  }
+}
+
+setNextNewYearTarget();
 
 var x = setInterval(function () {
   var now = new Date().getTime();
@@ -20,7 +33,7 @@ var x = setInterval(function () {
   if (distance < 0) {
     clearInterval(x);
     document.getElementById("countdown-box").innerHTML =
-      "<span class='cdi'>Happy New Year!!</span>";
+      "<span class='cdi'>Happy New Year " + countdownYear + "!!</span>";
     document.querySelector(".title").innerText = "";
   }
 }, 1000);
