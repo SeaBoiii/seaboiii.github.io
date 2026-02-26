@@ -90,11 +90,10 @@ a:hover{text-decoration:underline}
 .chapter-list li a{display:flex;gap:.6rem;align-items:center;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
 .chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
 .chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
+.chapter-list li.completed a{opacity:.58;filter:saturate(.15)}
+.chapter-list li.completed a:hover{opacity:.78}
 .chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
 .chapter-title{flex:1;min-width:0}
-.chapter-state{margin-left:auto;font-size:.75rem;padding:.16rem .45rem;border-radius:999px;border:1px solid var(--pill-brd);background:var(--pill);white-space:nowrap;line-height:1.2}
-.chapter-state.done{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
-.chapter-state.wip{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
 .small-note{font-size:.85rem;color:var(--muted)}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
@@ -157,7 +156,6 @@ a:hover{text-decoration:underline}
       <a href="{{ ch.url | relative_url }}">
         <span class="chapter-no">Chapter {{ ch.order }}</span>
         <span class="chapter-title">{{ ch.Title | default: ch.title }}</span>
-        <span class="chapter-state" hidden></span>
       </a>
     </li>
   {% endfor %}
@@ -205,29 +203,22 @@ a:hover{text-decoration:underline}
     return match;
   }
 
+  function getNextListItem(li) {
+    if (!li) return null;
+    var next = li.nextElementSibling;
+    while (next && next.tagName !== 'LI') next = next.nextElementSibling;
+    return next || null;
+  }
+
   function renderContinue(url) {
     if (!continueBtn || !url) return;
     var li = getListItemByUrl(url);
-    var chapterNo = (state && state.lastOrder != null) ? state.lastOrder : (li ? li.dataset.no : '');
-    var entry = chapters[normalizePath(url)] || null;
+    var chapterNo = li ? li.dataset.no : ((state && state.lastOrder != null) ? state.lastOrder : '');
     var label = chapterNo ? ('Continue Chapter ' + chapterNo) : 'Continue';
-    if (entry && !entry.completed && typeof entry.ratio === 'number' && isFinite(entry.ratio) && entry.ratio > 0.01) {
-      var pct = Math.max(1, Math.min(99, Math.round(entry.ratio * 100)));
-      label += ' (' + pct + '%)';
-    }
     continueBtn.href = url;
     continueBtn.textContent = label;
     continueBtn.setAttribute('aria-label', label);
     continueBtn.style.display = 'inline-block';
-  }
-
-  function chapterStatusLabel(entry) {
-    if (!entry) return '';
-    if (entry.completed) return 'Completed';
-    if (typeof entry.ratio === 'number' && isFinite(entry.ratio) && entry.ratio > 0.01) {
-      return 'In progress ' + Math.max(1, Math.min(99, Math.round(entry.ratio * 100))) + '%';
-    }
-    return '';
   }
 
   try {
@@ -243,7 +234,23 @@ a:hover{text-decoration:underline}
     saved = '';
   }
 
-  if (saved) renderContinue(saved);
+  var resumeUrl = saved;
+  if (saved) {
+    var savedPath = normalizePath(saved);
+    var savedEntry = chapters[savedPath];
+    var savedLi = getListItemByUrl(saved);
+    var isCompleted = !!(savedEntry && savedEntry.completed);
+    if (!isCompleted && state && state.lastUrl && normalizePath(state.lastUrl) === savedPath) {
+      isCompleted = !!state.completed;
+    }
+    if (isCompleted && savedLi) {
+      var nextLi = getNextListItem(savedLi);
+      if (nextLi) {
+        resumeUrl = nextLi.dataset.url || (nextLi.querySelector('a') && nextLi.querySelector('a').getAttribute('href')) || saved;
+      }
+    }
+    renderContinue(resumeUrl);
+  }
 
   if (!saved && startBtn && continueBtn) {
     continueBtn.href = startBtn.getAttribute('href');
@@ -256,14 +263,9 @@ a:hover{text-decoration:underline}
   list.querySelectorAll('li').forEach(function(li) {
     var path = normalizePath(li.dataset.url);
     var entry = chapters[path];
-    var badge = li.querySelector('.chapter-state');
     if (savedPath && path && path === savedPath) li.classList.add('last-read');
-    if (!badge || !entry) return;
-    var label = chapterStatusLabel(entry);
-    if (!label) return;
-    badge.textContent = label;
-    badge.className = 'chapter-state ' + (entry.completed ? 'done' : 'wip');
-    badge.hidden = false;
+    if (!entry) return;
+    if (entry.completed) li.classList.add('completed');
   });
 })();
 
