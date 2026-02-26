@@ -376,12 +376,146 @@
         }
       })();
 
-      // Save reading progress
+      // Save + restore reading progress
       (function() {
         try {
-          var novel = '{{ page.novel | escape }}';
-          var key = 'novel:'+novel+':lastUrl';
-          localStorage.setItem(key, location.pathname);
+          var novel = {{ page.novel | jsonify }};
+          if (!novel) return;
+
+          var chapterOrderRaw = {{ page.order | jsonify }};
+          var chapterOrder = (typeof chapterOrderRaw === 'number')
+            ? chapterOrderRaw
+            : parseInt(chapterOrderRaw, 10);
+          if (!isFinite(chapterOrder)) chapterOrder = null;
+
+          var chapterTitle = {{ page.Title | default: page.title | jsonify }};
+          var path = location.pathname;
+          var lastUrlKey = 'novel:'+novel+':lastUrl';
+          var stateKey = 'novel:'+novel+':state';
+          var chaptersKey = 'novel:'+novel+':chapters';
+          var saveTimer = null;
+          var restored = false;
+
+          function clamp(n, min, max) {
+            return Math.min(max, Math.max(min, n));
+          }
+
+          function safeParse(raw, fallback) {
+            if (!raw) return fallback;
+            try { return JSON.parse(raw); } catch (e) { return fallback; }
+          }
+
+          function docHeight() {
+            var d = document.documentElement;
+            var b = document.body;
+            return Math.max(
+              d ? d.scrollHeight : 0,
+              d ? d.offsetHeight : 0,
+              b ? b.scrollHeight : 0,
+              b ? b.offsetHeight : 0
+            );
+          }
+
+          function viewportHeight() {
+            return window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+          }
+
+          function metrics() {
+            var y = window.scrollY || window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0;
+            var vh = viewportHeight();
+            var dh = docHeight();
+            var maxScroll = Math.max(0, dh - vh);
+            var ratio = maxScroll <= 0 ? 1 : clamp(y / maxScroll, 0, 1);
+            var remaining = Math.max(0, dh - (y + vh));
+            var completed = maxScroll <= 0 || remaining <= Math.max(64, vh * 0.03);
+            return {
+              scrollY: Math.round(y),
+              ratio: Number(ratio.toFixed(4)),
+              completed: completed
+            };
+          }
+
+          function saveProgress() {
+            var m = metrics();
+            var entry = {
+              url: path,
+              order: chapterOrder,
+              title: chapterTitle || '',
+              scrollY: m.scrollY,
+              ratio: m.ratio,
+              completed: m.completed,
+              updatedAt: new Date().toISOString()
+            };
+
+            localStorage.setItem(lastUrlKey, path);
+            localStorage.setItem(stateKey, JSON.stringify({
+              lastUrl: entry.url,
+              lastOrder: entry.order,
+              lastTitle: entry.title,
+              scrollY: entry.scrollY,
+              ratio: entry.ratio,
+              completed: entry.completed,
+              updatedAt: entry.updatedAt
+            }));
+
+            var chapters = safeParse(localStorage.getItem(chaptersKey), {});
+            if (!chapters || typeof chapters !== 'object' || Array.isArray(chapters)) chapters = {};
+            chapters[path] = entry;
+            localStorage.setItem(chaptersKey, JSON.stringify(chapters));
+          }
+
+          function scheduleSave() {
+            if (saveTimer) return;
+            saveTimer = setTimeout(function() {
+              saveTimer = null;
+              saveProgress();
+            }, 250);
+          }
+
+          function restoreProgress() {
+            if (restored) return;
+            if (location.hash) return;
+
+            var chapters = safeParse(localStorage.getItem(chaptersKey), {});
+            if (!chapters || typeof chapters !== 'object') return;
+
+            var entry = chapters[path];
+            if (!entry || entry.completed) return;
+
+            var target = null;
+            if (typeof entry.scrollY === 'number' && isFinite(entry.scrollY)) {
+              target = entry.scrollY;
+            }
+            if ((target == null || target <= 0) && typeof entry.ratio === 'number' && isFinite(entry.ratio)) {
+              var maxScroll = Math.max(0, docHeight() - viewportHeight());
+              target = clamp(entry.ratio, 0, 1) * maxScroll;
+            }
+            if (target == null || target < 48) return;
+
+            restored = true;
+            var apply = function() {
+              var maxScroll = Math.max(0, docHeight() - viewportHeight());
+              window.scrollTo(0, clamp(Math.round(target), 0, maxScroll));
+            };
+
+            requestAnimationFrame(function() {
+              requestAnimationFrame(apply);
+            });
+            window.addEventListener('load', apply, { once: true });
+            setTimeout(apply, 250);
+            setTimeout(apply, 800);
+          }
+
+          restoreProgress();
+          saveProgress();
+
+          window.addEventListener('scroll', scheduleSave, { passive: true });
+          window.addEventListener('resize', scheduleSave);
+          window.addEventListener('pagehide', saveProgress);
+          window.addEventListener('beforeunload', saveProgress);
+          document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') saveProgress();
+          });
         } catch(e) {}
       })();
     </script>

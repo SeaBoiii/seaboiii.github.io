@@ -87,9 +87,14 @@ a:hover{text-decoration:underline}
 .chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
 .chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
 .chapter-list{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
-.chapter-list li a{display:flex;gap:.6rem;align-items:baseline;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
+.chapter-list li a{display:flex;gap:.6rem;align-items:center;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
 .chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
+.chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
 .chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
+.chapter-title{flex:1;min-width:0}
+.chapter-state{margin-left:auto;font-size:.75rem;padding:.16rem .45rem;border-radius:999px;border:1px solid var(--pill-brd);background:var(--pill);white-space:nowrap;line-height:1.2}
+.chapter-state.done{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
+.chapter-state.wip{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
 .small-note{font-size:.85rem;color:var(--muted)}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
@@ -148,10 +153,11 @@ a:hover{text-decoration:underline}
 
 <ul id="chapterList" class="chapter-list">
   {% for ch in items %}
-    <li data-title="{{ ch.Title | default: ch.title | downcase }}" data-no="{{ ch.order }}">
+    <li data-title="{{ ch.Title | default: ch.title | downcase }}" data-no="{{ ch.order }}" data-url="{{ ch.url | relative_url }}">
       <a href="{{ ch.url | relative_url }}">
         <span class="chapter-no">Chapter {{ ch.order }}</span>
-        <span>{{ ch.Title | default: ch.title }}</span>
+        <span class="chapter-title">{{ ch.Title | default: ch.title }}</span>
+        <span class="chapter-state" hidden></span>
       </a>
     </li>
   {% endfor %}
@@ -159,23 +165,106 @@ a:hover{text-decoration:underline}
 
 </div>
 <script>
-// Continue Reading (per novel)
+// Continue Reading + chapter progress UI (per novel)
 (function() {
-  var slug = '{{ novel_slug | jsonify }}';
-  var key = 'novel:'+slug+':lastUrl';
+  var slug = {{ novel_slug | jsonify }};
+  var lastUrlKey = 'novel:'+slug+':lastUrl';
+  var stateKey = 'novel:'+slug+':state';
+  var chaptersKey = 'novel:'+slug+':chapters';
   var continueBtn = document.getElementById('continueReading');
-  var saved = localStorage.getItem(key);
-  if (saved) {
-    continueBtn.href = saved;
+  var startBtn = document.getElementById('startReading');
+  var list = document.getElementById('chapterList');
+  var state = {};
+  var chapters = {};
+  var saved = '';
+
+  function safeParse(raw, fallback) {
+    if (!raw) return fallback;
+    try { return JSON.parse(raw); } catch (e) { return fallback; }
+  }
+
+  function normalizePath(url) {
+    if (!url) return '';
+    var s = String(url);
+    try {
+      if (/^https?:\/\//i.test(s)) s = new URL(s).pathname;
+    } catch (e) {}
+    s = s.replace(/\/index\.html$/i, '/');
+    if (s.length > 1) s = s.replace(/\/+$/, '');
+    return s;
+  }
+
+  function getListItemByUrl(url) {
+    if (!list) return null;
+    var target = normalizePath(url);
+    if (!target) return null;
+    var match = null;
+    list.querySelectorAll('li').forEach(function(li) {
+      if (!match && normalizePath(li.dataset.url) === target) match = li;
+    });
+    return match;
+  }
+
+  function renderContinue(url) {
+    if (!continueBtn || !url) return;
+    var li = getListItemByUrl(url);
+    var chapterNo = (state && state.lastOrder != null) ? state.lastOrder : (li ? li.dataset.no : '');
+    var entry = chapters[normalizePath(url)] || null;
+    var label = chapterNo ? ('Continue Chapter ' + chapterNo) : 'Continue';
+    if (entry && !entry.completed && typeof entry.ratio === 'number' && isFinite(entry.ratio) && entry.ratio > 0.01) {
+      var pct = Math.max(1, Math.min(99, Math.round(entry.ratio * 100)));
+      label += ' (' + pct + '%)';
+    }
+    continueBtn.href = url;
+    continueBtn.textContent = label;
+    continueBtn.setAttribute('aria-label', label);
     continueBtn.style.display = 'inline-block';
   }
-  if (!saved) {
-    var start = document.getElementById('startReading');
-    if (start) {
-      continueBtn.href = start.getAttribute('href');
-      continueBtn.style.display = 'inline-block';
+
+  function chapterStatusLabel(entry) {
+    if (!entry) return '';
+    if (entry.completed) return 'Completed';
+    if (typeof entry.ratio === 'number' && isFinite(entry.ratio) && entry.ratio > 0.01) {
+      return 'In progress ' + Math.max(1, Math.min(99, Math.round(entry.ratio * 100))) + '%';
     }
+    return '';
   }
+
+  try {
+    state = safeParse(localStorage.getItem(stateKey), {}) || {};
+    var rawChapters = safeParse(localStorage.getItem(chaptersKey), {}) || {};
+    Object.keys(rawChapters).forEach(function(k) {
+      chapters[normalizePath(k)] = rawChapters[k];
+    });
+    saved = (state && state.lastUrl) || localStorage.getItem(lastUrlKey) || '';
+  } catch (e) {
+    state = {};
+    chapters = {};
+    saved = '';
+  }
+
+  if (saved) renderContinue(saved);
+
+  if (!saved && startBtn && continueBtn) {
+    continueBtn.href = startBtn.getAttribute('href');
+    continueBtn.textContent = 'Continue';
+    continueBtn.style.display = 'inline-block';
+  }
+
+  if (!list) return;
+  var savedPath = normalizePath(saved);
+  list.querySelectorAll('li').forEach(function(li) {
+    var path = normalizePath(li.dataset.url);
+    var entry = chapters[path];
+    var badge = li.querySelector('.chapter-state');
+    if (savedPath && path && path === savedPath) li.classList.add('last-read');
+    if (!badge || !entry) return;
+    var label = chapterStatusLabel(entry);
+    if (!label) return;
+    badge.textContent = label;
+    badge.className = 'chapter-state ' + (entry.completed ? 'done' : 'wip');
+    badge.hidden = false;
+  });
 })();
 
 // Filter chapters
