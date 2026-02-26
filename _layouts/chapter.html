@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -89,12 +89,31 @@
       .site-header {
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: 30;
         background: color-mix(in oklab, var(--bg), var(--card) 40%);
         border-bottom: 1px solid var(--border);
         backdrop-filter: blur(8px);
         padding: 0.85rem 1.25rem;
         font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+      }
+
+      .read-progress {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 3px;
+        background: color-mix(in oklab, var(--border), transparent 45%);
+        overflow: hidden;
+      }
+
+      .read-progress-fill {
+        height: 100%;
+        width: 100%;
+        transform-origin: left center;
+        transform: scaleX(0);
+        background: var(--btn-bg);
+        transition: transform 0.08s linear;
       }
 
       .header-content {
@@ -191,15 +210,18 @@
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         gap: 0.75rem;
-        margin-top: 3rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--border);
+        margin-top: 2.25rem;
+        padding: 0.85rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        box-shadow: var(--shadow);
         align-items: center;
       }
 
       .pager .btn {
         display: inline-block;
-        padding: 0.65rem 1rem;
+        padding: 0.75rem 1rem;
         border: 1px solid var(--border);
         border-radius: 8px;
         background: var(--card);
@@ -227,13 +249,171 @@
 
       .pager .toc {
         justify-self: center;
+        font-weight: 600;
+      }
+
+      .pager .next {
+        font-weight: 700;
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border-color: var(--btn-brd);
+      }
+
+      .pager .next:hover {
+        filter: brightness(1.06);
+        text-decoration: none;
+      }
+
+      .pager .btn.disabled {
+        opacity: 0.6;
+        pointer-events: none;
       }
 
       .pager span:empty {
         visibility: hidden;
       }
 
+      .chapter-complete {
+        margin-top: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        padding: 0.8rem 0.9rem;
+        border: 1px solid color-mix(in oklab, var(--btn-brd), var(--border) 50%);
+        border-radius: 12px;
+        background: color-mix(in oklab, var(--card), var(--btn-bg) 4%);
+        box-shadow: var(--shadow);
+      }
+
+      .chapter-complete-copy {
+        display: grid;
+        gap: 0.12rem;
+        min-width: 0;
+      }
+
+      .chapter-complete-copy strong {
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+        font-size: 0.95rem;
+      }
+
+      .chapter-complete-copy span {
+        color: var(--muted);
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.87rem;
+      }
+
+      .chapter-complete-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .chapter-complete-btn {
+        border: 1px solid var(--btn-brd);
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border-radius: 8px;
+        padding: 0.45rem 0.65rem;
+        font: inherit;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+
+      .chapter-complete-btn:hover {
+        filter: brightness(1.05);
+      }
+
+      .chapter-complete-btn.secondary {
+        border-color: var(--border);
+        background: var(--card);
+        color: var(--text);
+      }
+
+      .chapter-complete-btn:disabled {
+        opacity: 0.75;
+        cursor: default;
+      }
+
+      .mobile-chapter-nav {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 25;
+        border-top: 1px solid var(--border);
+        background: color-mix(in oklab, var(--bg), var(--card) 35%);
+        backdrop-filter: blur(8px);
+      }
+
+      .mobile-chapter-nav .inner {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0.5rem 0.9rem calc(0.5rem + env(safe-area-inset-bottom));
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .mobile-chapter-nav .m-btn {
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--text);
+        padding: 0.65rem 0.7rem;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.15;
+      }
+
+      .mobile-chapter-nav .m-btn.prev {
+        justify-self: start;
+      }
+
+      .mobile-chapter-nav .m-btn.toc {
+        justify-self: center;
+        font-weight: 600;
+      }
+
+      .mobile-chapter-nav .m-btn.next {
+        justify-self: end;
+        border-color: var(--btn-brd);
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        font-weight: 700;
+      }
+
+      .mobile-chapter-nav .m-btn.disabled {
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
       @media (max-width: 640px) {
+        .reader {
+          padding-bottom: 6.75rem;
+        }
+
+        .chapter-complete {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .chapter-complete-actions {
+          justify-content: stretch;
+        }
+
+        .chapter-complete-btn {
+          width: 100%;
+        }
+
         .pager {
           grid-template-columns: 1fr;
         }
@@ -243,6 +423,10 @@
         .pager .toc {
           justify-self: stretch;
           text-align: center;
+        }
+
+        .mobile-chapter-nav {
+          display: block;
         }
       }
     </style>
@@ -261,6 +445,9 @@
           </nav>
           <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
         </div>
+      </div>
+      <div class="read-progress" aria-hidden="true">
+        <div id="readProgressBar" class="read-progress-fill"></div>
       </div>
     </header>
 
@@ -290,31 +477,62 @@
 {% comment %}Compute prev/next indices BEFORE indexing the array{% endcomment %}
 {% assign prev_index = idx | minus: 1 %}
 {% assign next_index = idx | plus: 1 %}
+{% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
+{% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
+
+<section id="chapterCompletionPanel" class="chapter-complete" hidden aria-live="polite">
+  <div class="chapter-complete-copy">
+    <strong id="chapterCompletionTitle">Chapter completed</strong>
+    <span id="chapterCompletionText">Nice. Ready for the next chapter?</span>
+  </div>
+  <div class="chapter-complete-actions">
+    <button id="autoAdvanceStart" class="chapter-complete-btn" type="button" hidden>Auto-advance (5s)</button>
+    <button id="autoAdvanceCancel" class="chapter-complete-btn secondary" type="button" hidden>Cancel</button>
+  </div>
+</section>
 
 <nav class="pager">
   {% if prev_index >= 0 %}
     {% assign prev = siblings[prev_index] %}
-    <a class="btn prev" rel="prev" href="{{ prev.url | relative_url }}">← Prev</a>
+    <a class="btn prev" rel="prev" href="{{ prev.url | relative_url }}">Previous chapter</a>
   {% else %}
     <span></span>
   {% endif %}
 
-  {% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
-  {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
   {% if page.url == toc_url %}
-    <span class="btn toc" aria-current="page">Chapters</span>
+    <span class="btn toc" aria-current="page">Back to chapters</span>
   {% else %}
-    <a class="btn toc" href="{{ toc_url | relative_url }}">Chapters</a>
+    <a class="btn toc" href="{{ toc_url | relative_url }}">Back to chapters</a>
   {% endif %}
 
   {% if next_index < count and next_index >= 0 %}
     {% assign next = siblings[next_index] %}
-    <a class="btn next" rel="next" href="{{ next.url | relative_url }}">Next →</a>
+    <a class="btn next" rel="next" href="{{ next.url | relative_url }}">Next chapter</a>
   {% else %}
-    <span></span>
+    <span class="btn next disabled" aria-disabled="true">End of novel</span>
   {% endif %}
 </nav>
     </main>
+
+    <nav class="mobile-chapter-nav" aria-label="Chapter navigation">
+      <div class="inner">
+        {% if prev_index >= 0 %}
+          {% assign prev = siblings[prev_index] %}
+          <a class="m-btn prev" href="{{ prev.url | relative_url }}">Prev</a>
+        {% else %}
+          <span class="m-btn prev disabled" aria-disabled="true">Prev</span>
+        {% endif %}
+
+        <a class="m-btn toc" href="{{ toc_url | relative_url }}">Chapters</a>
+
+        {% if next_index < count and next_index >= 0 %}
+          {% assign next = siblings[next_index] %}
+          <a class="m-btn next" href="{{ next.url | relative_url }}">Next</a>
+        {% else %}
+          <span class="m-btn next disabled" aria-disabled="true">End</span>
+        {% endif %}
+      </div>
+    </nav>
 
     <script>
       // Theme toggle (synced with rest of site)
@@ -518,6 +736,150 @@
           });
         } catch(e) {}
       })();
+
+      // Reading UI chrome: top progress bar + end-of-chapter completion prompt
+      (function() {
+        var progressBar = document.getElementById('readProgressBar');
+        var completionPanel = document.getElementById('chapterCompletionPanel');
+        var completionText = document.getElementById('chapterCompletionText');
+        var autoStartBtn = document.getElementById('autoAdvanceStart');
+        var autoCancelBtn = document.getElementById('autoAdvanceCancel');
+        var nextLink = document.querySelector('.pager a[rel="next"]');
+        var rafPending = false;
+        var autoTimer = null;
+        var countdown = 0;
+
+        function clamp(n, min, max) {
+          return Math.min(max, Math.max(min, n));
+        }
+
+        function docHeight() {
+          var d = document.documentElement;
+          var b = document.body;
+          return Math.max(
+            d ? d.scrollHeight : 0,
+            d ? d.offsetHeight : 0,
+            b ? b.scrollHeight : 0,
+            b ? b.offsetHeight : 0
+          );
+        }
+
+        function viewportHeight() {
+          return window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+        }
+
+        function metrics() {
+          var y = window.scrollY || window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0;
+          var vh = viewportHeight();
+          var dh = docHeight();
+          var maxScroll = Math.max(0, dh - vh);
+          var ratio = maxScroll <= 0 ? 1 : clamp(y / maxScroll, 0, 1);
+          var remaining = Math.max(0, dh - (y + vh));
+          var completed = maxScroll <= 0 || remaining <= Math.max(64, vh * 0.03);
+          return { ratio: ratio, completed: completed };
+        }
+
+        function renderProgress(ratio) {
+          if (!progressBar) return;
+          progressBar.style.transform = 'scaleX(' + clamp(ratio, 0, 1) + ')';
+        }
+
+        function resetAutoAdvance() {
+          if (autoTimer) {
+            clearInterval(autoTimer);
+            autoTimer = null;
+          }
+          countdown = 0;
+          if (autoStartBtn) {
+            autoStartBtn.disabled = false;
+            autoStartBtn.textContent = 'Auto-advance (5s)';
+            autoStartBtn.hidden = !nextLink;
+          }
+          if (autoCancelBtn) {
+            autoCancelBtn.hidden = true;
+          }
+        }
+
+        function autoAdvanceTick() {
+          if (!nextLink || !nextLink.href) {
+            resetAutoAdvance();
+            return;
+          }
+          if (countdown <= 0) {
+            window.location.href = nextLink.href;
+            return;
+          }
+          if (autoStartBtn) {
+            autoStartBtn.textContent = 'Opening next in ' + countdown + 's';
+          }
+          countdown -= 1;
+        }
+
+        function startAutoAdvance() {
+          if (!nextLink || autoTimer) return;
+          countdown = 5;
+          if (autoStartBtn) autoStartBtn.disabled = true;
+          if (autoCancelBtn) autoCancelBtn.hidden = false;
+          autoAdvanceTick();
+          autoTimer = setInterval(autoAdvanceTick, 1000);
+        }
+
+        function setCompletionVisible(visible) {
+          if (!completionPanel) return;
+          completionPanel.hidden = !visible;
+          if (!visible) resetAutoAdvance();
+        }
+
+        function render() {
+          rafPending = false;
+          var m = metrics();
+          renderProgress(m.ratio);
+          setCompletionVisible(m.completed);
+        }
+
+        function scheduleRender() {
+          if (rafPending) return;
+          rafPending = true;
+          requestAnimationFrame(render);
+        }
+
+        if (completionText) {
+          completionText.textContent = nextLink ? 'Nice. Ready for the next chapter?' : 'You reached the end of this novel.';
+        }
+
+        if (nextLink && autoStartBtn) {
+          autoStartBtn.hidden = false;
+          autoStartBtn.addEventListener('click', startAutoAdvance);
+        }
+
+        if (autoCancelBtn) {
+          autoCancelBtn.addEventListener('click', resetAutoAdvance);
+        }
+
+        window.addEventListener('scroll', scheduleRender, { passive: true });
+        window.addEventListener('resize', scheduleRender);
+        window.addEventListener('pagehide', resetAutoAdvance);
+
+        scheduleRender();
+        window.addEventListener('load', scheduleRender, { once: true });
+        setTimeout(scheduleRender, 250);
+        setTimeout(scheduleRender, 800);
+      })();
+
+      // Prefetch next chapter for faster transitions (best effort)
+      (function() {
+        try {
+          var nextLink = document.querySelector('.pager a[rel="next"]');
+          if (!nextLink || !nextLink.href) return;
+
+          var prefetch = document.createElement('link');
+          prefetch.rel = 'prefetch';
+          prefetch.as = 'document';
+          prefetch.href = nextLink.href;
+          document.head.appendChild(prefetch);
+        } catch (e) {}
+      })();
     </script>
   </body>
 </html>
+
