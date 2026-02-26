@@ -241,6 +241,32 @@
         font-family: inherit;
       }
 
+      article p.journal-box.journal-box-cjk {
+        /* Prefer a single Windows font that covers Latin, CJK, and box drawing
+           to reduce fallback-mixing drift in Chrome. */
+        font-family: "MS Gothic", "MS PGothic", "Meiryo", "Cascadia Mono", "Consolas", "Courier New", monospace;
+      }
+
+      article p.journal-box.journal-box-fixed {
+        white-space: normal;
+      }
+
+      article p.journal-box.journal-box-fixed .journal-row {
+        display: block;
+        width: var(--journal-frame-width);
+        white-space: pre;
+      }
+
+      article p.journal-box.journal-box-fixed .journal-row-vert {
+        display: grid;
+        grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
+      }
+
+      article p.journal-box.journal-box-fixed .journal-mid,
+      article p.journal-box.journal-box-fixed .journal-gap {
+        min-width: 0;
+      }
+
       article p.journal-box .journal-pad {
         display: inline-block;
       }
@@ -873,6 +899,7 @@
 
           var boxChars = /[╔╗╚╝║╠╣═┏┓┗┛┃┣┫━│|]/;
           var verticalEdgeChars = /[║┃│|]/;
+          var cjkChars = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
 
           function splitJournalHtmlLines(html) {
             var parts = String(html || '').split(/<br\s*\/?>/i);
@@ -925,6 +952,46 @@
             return null;
           }
 
+          function findFirstTextNode(node) {
+            if (!node) return null;
+            for (var i = 0; i < node.childNodes.length; i++) {
+              var child = node.childNodes[i];
+              if (child.nodeType === 3) return child;
+              if (child.nodeType === 1) {
+                var nested = findFirstTextNode(child);
+                if (nested) return nested;
+              }
+            }
+            return null;
+          }
+
+          function stripVerticalRowEdges(lineHtml) {
+            var wrap = document.createElement('span');
+            wrap.innerHTML = lineHtml;
+
+            var firstText = findFirstTextNode(wrap);
+            var lastText = findLastTextNode(wrap);
+            if (!firstText || !lastText) return null;
+
+            var firstValue = firstText.nodeValue || '';
+            var firstMatch = firstValue.match(/^([║┃│|])/);
+            if (!firstMatch) return null;
+            var leftEdge = firstMatch[1];
+            firstText.nodeValue = firstValue.slice(leftEdge.length);
+
+            var lastValue = lastText.nodeValue || '';
+            var lastMatch = lastValue.match(/([║┃│|])$/);
+            if (!lastMatch) return null;
+            var rightEdge = lastMatch[1];
+            lastText.nodeValue = lastValue.slice(0, lastValue.length - rightEdge.length);
+
+            return {
+              leftEdge: leftEdge,
+              rightEdge: rightEdge,
+              middleHtml: wrap.innerHTML
+            };
+          }
+
           function addPadBeforeTrailingBorder(lineHtml, deltaPx) {
             if (!(deltaPx > 0.25)) return lineHtml;
 
@@ -966,6 +1033,7 @@
             if ((text.match(/\n/g) || []).length < 2) return;
             if (!/JOURNAL ENTRY/.test(text) && !/^[\s]*[╔┏|]/m.test(text)) return;
             p.classList.add('journal-box');
+            if (cjkChars.test(text)) p.classList.add('journal-box-cjk');
 
             var htmlLines = splitJournalHtmlLines(p.innerHTML);
             if (htmlLines.length < 2) return;
@@ -988,6 +1056,44 @@
                 if (row.width > targetWidth) targetWidth = row.width;
               });
               if (!(targetWidth > 0)) return;
+
+              // More robust on Windows Chrome: render border rows as a fixed-width grid so
+              // the closing vertical border sits in a dedicated column.
+              var rebuiltAny = false;
+              var rebuilt = rows.map(function(row) {
+                var lineText = row.text || '';
+                if (!lineText) {
+                  return '<span class="journal-row journal-row-raw">' + row.html + '</span>';
+                }
+
+                var first = lineText.charAt(0);
+                var last = lineText.charAt(lineText.length - 1);
+                if (!verticalEdgeChars.test(first) || !verticalEdgeChars.test(last)) {
+                  return '<span class="journal-row journal-row-raw">' + row.html + '</span>';
+                }
+
+                var parsed = stripVerticalRowEdges(row.html);
+                if (!parsed) {
+                  return '<span class="journal-row journal-row-raw">' + row.html + '</span>';
+                }
+
+                rebuiltAny = true;
+                return (
+                  '<span class="journal-row journal-row-vert">' +
+                    '<span class="journal-edge journal-edge-left">' + parsed.leftEdge + '</span>' +
+                    '<span class="journal-mid">' + parsed.middleHtml + '</span>' +
+                    '<span class="journal-gap" aria-hidden="true"></span>' +
+                    '<span class="journal-edge journal-edge-right">' + parsed.rightEdge + '</span>' +
+                  '</span>'
+                );
+              });
+
+              if (rebuiltAny) {
+                p.style.setProperty('--journal-frame-width', targetWidth.toFixed(3) + 'px');
+                p.classList.add('journal-box-fixed');
+                p.innerHTML = rebuilt.join('');
+                return;
+              }
 
               var changed = false;
               var normalized = rows.map(function(row) {
