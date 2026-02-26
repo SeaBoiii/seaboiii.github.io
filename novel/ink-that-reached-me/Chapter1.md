@@ -445,19 +445,3 @@ She didn't look.
 The notebook lay open on the table like a door.
 
 And on the other side, someone had just knocked.
-
----
-
-### STYLE NOTE (for next chapters)
-
-From Chapter 2 onward, Ren's entries will use a different box style with an era label, for example:
-
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                      JOURNAL ENTRY                           ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ Era      : Sengoku -- Kaga Province                          ┃
-┃ Date     : (era-appropriate notation)                        ┃
-┃ Light    : Lantern / Firelight                               ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-(We'll keep Hana's modern box exactly consistent, so readers can instantly tell which timeline they're in.)
