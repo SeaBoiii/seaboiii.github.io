@@ -215,6 +215,32 @@
         margin: 0 0 1.25rem;
       }
 
+      article p.journal-box {
+        margin: 1.3rem 0 1.45rem;
+        padding: 0.7rem 0.85rem;
+        white-space: pre;
+        overflow-x: auto;
+        line-height: 1.22;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+        word-spacing: 0;
+        tab-size: 2;
+        font-kerning: none;
+        font-variant-ligatures: none;
+        font-feature-settings: "liga" 0, "calt" 0;
+        font-family: "Cascadia Mono", "Consolas", "Courier New", "MS Gothic", monospace;
+        color: var(--text);
+        background: color-mix(in oklab, var(--card), var(--bg) 25%);
+        border: 1px solid color-mix(in oklab, var(--border), transparent 15%);
+        border-radius: 10px;
+      }
+
+      article p.journal-box em,
+      article p.journal-box strong,
+      article p.journal-box code {
+        font-family: inherit;
+      }
+
       article hr {
         border: 0;
         border-top: 1px solid color-mix(in oklab, var(--border), transparent 35%);
@@ -828,6 +854,28 @@
           prefetch.as = 'document';
           prefetch.href = nextLink.href;
           document.head.appendChild(prefetch);
+        } catch (e) {}
+      })();
+
+      // Ink That Reached Me: render journal box entries in monospace/preformatted text
+      // so the vertical borders line up consistently.
+      (function() {
+        try {
+          var bodyData = (document.body && document.body.dataset) || {};
+          if (bodyData.novel !== 'ink-that-reached-me') return;
+
+          var article = document.querySelector('main.reader article');
+          if (!article) return;
+
+          var boxChars = /[╔╗╚╝║╠╣═┏┓┗┛┃┣┫━│|]/;
+          article.querySelectorAll('p').forEach(function(p) {
+            var text = p.textContent || '';
+            if (!boxChars.test(text)) return;
+            // Require multiple lines to avoid styling normal prose that contains a symbol.
+            if ((text.match(/\n/g) || []).length < 2) return;
+            if (!/JOURNAL ENTRY/.test(text) && !/^[\s]*[╔┏|]/m.test(text)) return;
+            p.classList.add('journal-box');
+          });
         } catch (e) {}
       })();
     </script>
