@@ -13,6 +13,7 @@ Run from your repo root: python3 tools/novel_wizard.py
 import json, re, shutil, sys, subprocess
 from html import escape as html_escape
 from pathlib import Path
+from typing import Optional, Tuple
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
@@ -29,6 +30,10 @@ try:
     from striprtf.striprtf import rtf_to_text as _rtf_to_text  # pip install striprtf
 except Exception:
     _rtf_to_text = None
+try:
+    from bs4 import BeautifulSoup as _BeautifulSoup  # pip install beautifulsoup4
+except Exception:
+    _BeautifulSoup = None
 
 REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
@@ -146,7 +151,7 @@ def save_relationship_registry(registry: dict):
         newline="\n",
     )
 
-def upsert_relationship_registry_entry(slug: str, entry: dict | None):
+def upsert_relationship_registry_entry(slug: str, entry: Optional[dict]):
     slug = slugify(slug)
     if not slug:
         return
@@ -188,6 +193,181 @@ def relationship_badges_for_slug(slug: str) -> list[dict]:
         badges.append({"label": relation_label, "title": title})
 
     return badges
+
+def _novel_slug_from_card_href(href: str) -> str:
+    h = (href or "").strip()
+    if not h:
+        return ""
+    m = re.search(r"/novel/([^/]+)(?:/|/index\.html)?$", h)
+    if not m:
+        return ""
+    return slugify(m.group(1))
+
+def sync_relationship_badges_in_novels_index() -> dict:
+    """
+    Rebuild each novel card's relationship badges + data-* attrs from the registry.
+    Status/Hidden badges are preserved canonically from card data attributes.
+    """
+    if _BeautifulSoup is None:
+        raise RuntimeError(
+            "BeautifulSoup4 is required for syncing relationship badges.\n"
+            "Install it with: pip install beautifulsoup4"
+        )
+    if not NOVELS_INDEX_HTML.exists():
+        raise FileNotFoundError(f"Cannot find {NOVELS_INDEX_HTML}")
+
+    html = NOVELS_INDEX_HTML.read_text(encoding="utf-8")
+    soup = _BeautifulSoup(html, "html.parser")
+    cards = list(soup.select("li.novel-card"))
+
+    if not cards:
+        return {
+            "cards_total": 0,
+            "cards_touched": 0,
+            "cards_updated": 0,
+            "cards_skipped": 0,
+            "file_changed": False,
+        }
+
+    cards_touched = 0
+    cards_updated = 0
+    cards_skipped = 0
+
+    for card in cards:
+        a = card.find("a", href=True)
+        slug = _novel_slug_from_card_href(a.get("href", "") if a else "")
+        if not slug:
+            cards_skipped += 1
+            continue
+        cards_touched += 1
+
+        before = str(card)
+        rel_entry = relationship_entry_for_slug(slug)
+
+        # Sync relationship data-* attrs
+        if rel_entry.get("series_id"):
+            card["data-series"] = str(rel_entry.get("series_id"))
+        else:
+            card.attrs.pop("data-series", None)
+
+        if rel_entry.get("relation_type"):
+            card["data-relation"] = str(rel_entry.get("relation_type"))
+        else:
+            card.attrs.pop("data-relation", None)
+
+        if isinstance(rel_entry.get("reading_order"), int):
+            card["data-order"] = str(int(rel_entry.get("reading_order")))
+        else:
+            card.attrs.pop("data-order", None)
+
+        if rel_entry.get("related_to"):
+            card["data-related-to"] = str(rel_entry.get("related_to"))
+        else:
+            card.attrs.pop("data-related-to", None)
+
+        status_class = str(card.get("data-status") or "").strip().lower()
+        if status_class not in {"complete", "incomplete"}:
+            status_class = "incomplete"
+        status_text = "Complete" if status_class == "complete" else "Incomplete"
+        hidden = str(card.get("data-hidden") or "").strip().lower() == "true"
+
+        meta = card.find(class_="novel-meta")
+        if meta is None:
+            if a is None:
+                cards_skipped += 1
+                continue
+            meta = soup.new_tag("div", attrs={"class": "novel-meta"})
+            title_node = a.find(class_="novel-title")
+            if title_node is not None:
+                title_node.insert_after(meta)
+            else:
+                a.append(meta)
+        else:
+            meta["class"] = ["novel-meta"]
+
+        # Canonical rebuild of meta badges: status + relationship + hidden.
+        meta.clear()
+
+        status_badge = soup.new_tag("span", attrs={"class": ["badge", status_class]})
+        status_badge.string = status_text
+        meta.append(status_badge)
+
+        for badge in relationship_badges_for_slug(slug):
+            label = str(badge.get("label") or "").strip()
+            if not label:
+                continue
+            badge_tag = soup.new_tag("span", attrs={"class": ["badge"]})
+            title = str(badge.get("title") or "").strip()
+            if title:
+                badge_tag["title"] = title
+            badge_tag.string = label
+            meta.append(badge_tag)
+
+        if hidden:
+            hidden_badge = soup.new_tag("span", attrs={"class": ["badge"]})
+            hidden_badge.string = "Hidden"
+            meta.append(hidden_badge)
+
+        if str(card) != before:
+            cards_updated += 1
+
+    new_html = soup.prettify()
+    file_changed = new_html != html
+    if file_changed:
+        NOVELS_INDEX_HTML.write_text(new_html, encoding="utf-8", newline="\n")
+
+    return {
+        "cards_total": len(cards),
+        "cards_touched": cards_touched,
+        "cards_updated": cards_updated,
+        "cards_skipped": cards_skipped,
+        "file_changed": file_changed,
+    }
+
+def build_relationship_entry_from_values(
+    slug: str,
+    series_label: str = "",
+    series_order_raw: str = "",
+    relation_type_raw: str = "",
+    related_to_raw: str = "",
+) -> Tuple[Optional[dict], Optional[str]]:
+    series_label = (series_label or "").strip()
+    series_order_raw = (series_order_raw or "").strip()
+    relation_type = _normalize_relation_type(relation_type_raw or "")
+    related_to_raw = (related_to_raw or "").strip()
+    related_to = slugify(related_to_raw) if related_to_raw else ""
+    slug = slugify(slug)
+
+    if not any([series_label, series_order_raw, relation_type, related_to]):
+        return None, None
+
+    entry = {}
+    if series_label:
+        entry["series_label"] = series_label
+        entry["series_id"] = slugify(series_label)
+
+    if series_order_raw:
+        if not series_order_raw.isdigit() or int(series_order_raw) <= 0:
+            return None, "Series Book # must be a positive integer."
+        entry["reading_order"] = int(series_order_raw)
+
+    if relation_type:
+        entry["relation_type"] = relation_type
+
+    if related_to:
+        if related_to == slug:
+            return None, "Related slug cannot be the same as the selected novel slug."
+        entry["related_to"] = related_to
+
+    # If a related novel is chosen but no series label was supplied, inherit it when possible.
+    if related_to and not entry.get("series_label"):
+        parent = relationship_entry_for_slug(related_to)
+        parent_label = str(parent.get("series_label") or "").strip()
+        if parent_label:
+            entry["series_label"] = parent_label
+            entry["series_id"] = slugify(parent_label)
+
+    return _normalize_relationship_entry(entry), None
 
 # ---- Formatting helpers ----
 SMART_QUOTES = {
@@ -613,6 +793,196 @@ class PasteFormattedDialog(tk.Toplevel):
             self.on_done(md)
         self.destroy()
 
+class RelationshipEditorDialog(tk.Toplevel):
+    """Edit relationship metadata for existing novels via a simple form."""
+    def __init__(self, master, on_registry_changed=None):
+        super().__init__(master)
+        self.title("Relationship Editor")
+        self.resizable(True, False)
+        self.on_registry_changed = on_registry_changed
+
+        self.slug_var = tk.StringVar()
+        self.series_label_var = tk.StringVar()
+        self.series_order_var = tk.StringVar()
+        self.relation_type_var = tk.StringVar(value="")
+        self.related_to_var = tk.StringVar()
+        self.status_var = tk.StringVar(value="Select a novel to edit relationship metadata.")
+
+        self._build_ui()
+        self._reload_slugs()
+
+        self.transient(master)
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+
+    def _build_ui(self):
+        root = ttk.Frame(self, padding=12)
+        root.pack(fill="both", expand=True)
+        root.columnconfigure(1, weight=1)
+
+        ttk.Label(root, text="Novel").grid(row=0, column=0, sticky="w")
+        self.slug_combo = ttk.Combobox(root, textvariable=self.slug_var, width=36)
+        self.slug_combo.grid(row=0, column=1, sticky="we", padx=(8,8))
+        self.slug_combo.bind("<<ComboboxSelected>>", lambda e: self._load_selected())
+        self.slug_combo.bind("<FocusOut>", lambda e: self._load_selected())
+        ttk.Button(root, text="Reload", command=self._reload_slugs).grid(row=0, column=2, sticky="e")
+
+        form = ttk.LabelFrame(root, text="Relationship metadata", padding=(10, 8))
+        form.grid(row=1, column=0, columnspan=3, sticky="we", pady=(10, 0))
+        form.columnconfigure(1, weight=1)
+        form.columnconfigure(3, weight=1)
+
+        ttk.Label(form, text="Series label").grid(row=0, column=0, sticky="w")
+        self.series_entry = ttk.Entry(form, textvariable=self.series_label_var, width=28)
+        self.series_entry.grid(row=0, column=1, sticky="we", padx=(8,12))
+
+        ttk.Label(form, text="Book #").grid(row=0, column=2, sticky="e")
+        self.series_order_entry = ttk.Entry(form, textvariable=self.series_order_var, width=8)
+        self.series_order_entry.grid(row=0, column=3, sticky="w", padx=(8,0))
+
+        ttk.Label(form, text="Relation").grid(row=1, column=0, sticky="w", pady=(6,0))
+        self.relation_combo = ttk.Combobox(
+            form,
+            textvariable=self.relation_type_var,
+            values=RELATION_TYPE_CHOICES,
+            state="readonly",
+            width=16,
+        )
+        self.relation_combo.grid(row=1, column=1, sticky="w", padx=(8,12), pady=(6,0))
+
+        ttk.Label(form, text="Related slug").grid(row=1, column=2, sticky="e", pady=(6,0))
+        self.related_to_combo = ttk.Combobox(form, textvariable=self.related_to_var, width=28)
+        self.related_to_combo.grid(row=1, column=3, sticky="we", padx=(8,0), pady=(6,0))
+
+        ttk.Label(
+            root,
+            text="Tip: leave all fields blank and click Save to remove a relationship entry.",
+        ).grid(row=2, column=0, columnspan=3, sticky="w", pady=(8,0))
+
+        ttk.Label(root, textvariable=self.status_var).grid(row=3, column=0, columnspan=3, sticky="w", pady=(8,0))
+
+        btns = ttk.Frame(root)
+        btns.grid(row=4, column=0, columnspan=3, sticky="e", pady=(10,0))
+        ttk.Button(btns, text="Remove", command=self._remove_selected).pack(side="left")
+        ttk.Button(btns, text="Save", command=self._save_selected).pack(side="left", padx=(8,0))
+        ttk.Button(btns, text="Close", command=self.destroy).pack(side="left", padx=(8,0))
+
+    def _refresh_related_choices(self, current_slug: str = ""):
+        all_slugs = self._all_slugs()
+        if current_slug:
+            all_slugs = [s for s in all_slugs if s != current_slug]
+        try:
+            self.related_to_combo.configure(values=all_slugs)
+        except Exception:
+            pass
+
+    def _all_slugs(self) -> list[str]:
+        slugs = set(list_existing_slugs())
+        slugs.update(load_relationship_registry().keys())
+        return sorted(slugs)
+
+    def _reload_slugs(self):
+        current = slugify(self.slug_var.get())
+        slugs = self._all_slugs()
+        try:
+            self.slug_combo.configure(values=slugs)
+        except Exception:
+            pass
+        if current and current in slugs:
+            self.slug_var.set(current)
+        elif slugs and not self.slug_var.get().strip():
+            self.slug_var.set(slugs[0])
+        self._load_selected()
+
+    def _set_form_from_entry(self, entry: dict):
+        self.series_label_var.set(str(entry.get("series_label") or ""))
+        order = entry.get("reading_order")
+        self.series_order_var.set(str(order) if isinstance(order, int) and order > 0 else "")
+        rel_key = _normalize_relation_type(str(entry.get("relation_type") or ""))
+        rel_label = RELATION_TYPE_LABELS.get(rel_key, "")
+        self.relation_type_var.set(rel_label if rel_label in RELATION_TYPE_CHOICES else "")
+        self.related_to_var.set(str(entry.get("related_to") or ""))
+
+    def _clear_form(self):
+        self.series_label_var.set("")
+        self.series_order_var.set("")
+        self.relation_type_var.set("")
+        self.related_to_var.set("")
+
+    def _selected_slug(self) -> str:
+        return slugify(self.slug_var.get())
+
+    def _load_selected(self):
+        slug = self._selected_slug()
+        self._refresh_related_choices(slug)
+        if not slug:
+            self._clear_form()
+            self.status_var.set("Select a novel to edit relationship metadata.")
+            return
+        entry = relationship_entry_for_slug(slug)
+        if entry:
+            self._set_form_from_entry(entry)
+            self.status_var.set(f"Loaded relationship metadata for '{slug}'.")
+        else:
+            self._clear_form()
+            self.status_var.set(f"No relationship metadata saved for '{slug}'.")
+
+    def _save_selected(self):
+        slug = self._selected_slug()
+        if not slug:
+            messagebox.showerror("Relationship Editor", "Select or type a novel slug first.", parent=self)
+            return
+
+        entry, err = build_relationship_entry_from_values(
+            slug=slug,
+            series_label=self.series_label_var.get(),
+            series_order_raw=self.series_order_var.get(),
+            relation_type_raw=self.relation_type_var.get(),
+            related_to_raw=self.related_to_var.get(),
+        )
+        if err:
+            messagebox.showerror("Relationship Editor", err, parent=self)
+            return
+
+        upsert_relationship_registry_entry(slug, entry)
+        self._reload_slugs()
+        self.slug_var.set(slug)
+        self._load_selected()
+        if entry:
+            self.status_var.set(f"Saved relationship metadata for '{slug}'.")
+        else:
+            self.status_var.set(f"Removed relationship metadata for '{slug}'.")
+        if callable(self.on_registry_changed):
+            try:
+                self.on_registry_changed()
+            except Exception:
+                pass
+
+    def _remove_selected(self):
+        slug = self._selected_slug()
+        if not slug:
+            messagebox.showerror("Relationship Editor", "Select or type a novel slug first.", parent=self)
+            return
+        if not relationship_entry_for_slug(slug):
+            self.status_var.set(f"No relationship metadata exists for '{slug}'.")
+            return
+        if not messagebox.askyesno(
+            "Relationship Editor",
+            f"Remove relationship metadata for '{slug}'?",
+            parent=self,
+        ):
+            return
+        upsert_relationship_registry_entry(slug, None)
+        self._reload_slugs()
+        self.slug_var.set(slug)
+        self._load_selected()
+        self.status_var.set(f"Removed relationship metadata for '{slug}'.")
+        if callable(self.on_registry_changed):
+            try:
+                self.on_registry_changed()
+            except Exception:
+                pass
+
 # ---------- GUI ----------
 
 def _extract_chapter_num_from_name(name: str) -> int:
@@ -743,6 +1113,10 @@ class Wizard(tk.Tk):
         # Action buttons (Create/Append and Bulk Import)
         self.btn_commit = ttk.Button(top, text="Create / Append", command=self._commit)
         self.btn_commit.grid(row=6, column=5, sticky="e", pady=(8,0))
+        self.btn_relationships = ttk.Button(top, text="Edit relationships…", command=self._open_relationship_editor)
+        self.btn_relationships.grid(row=6, column=4, sticky="e", pady=(8,0), padx=(0,8))
+        self.btn_sync_relationships = ttk.Button(top, text="Sync relationship badges", command=self._sync_relationship_badges)
+        self.btn_sync_relationships.grid(row=7, column=4, sticky="e", pady=(6,0), padx=(0,8))
         self.btn_bulk = ttk.Button(top, text="Bulk import files…", command=self._bulk_import_docx)
         self.btn_bulk.grid(row=7, column=5, sticky="e", pady=(6,0))
 
@@ -794,44 +1168,38 @@ class Wizard(tk.Tk):
         except Exception:
             pass
 
-    def _build_relationship_entry_from_form(self, slug: str) -> tuple[dict | None, str | None]:
-        series_label = (self.series_label_var.get() or "").strip()
-        series_order_raw = (self.series_order_var.get() or "").strip()
-        relation_type = _normalize_relation_type(self.relation_type_var.get() or "")
-        related_to_raw = (self.related_to_var.get() or "").strip()
-        related_to = slugify(related_to_raw) if related_to_raw else ""
-        slug = slugify(slug)
+    def _build_relationship_entry_from_form(self, slug: str) -> Tuple[Optional[dict], Optional[str]]:
+        return build_relationship_entry_from_values(
+            slug=slug,
+            series_label=self.series_label_var.get(),
+            series_order_raw=self.series_order_var.get(),
+            relation_type_raw=self.relation_type_var.get(),
+            related_to_raw=self.related_to_var.get(),
+        )
 
-        if not any([series_label, series_order_raw, relation_type, related_to]):
-            return None, None
+    def _open_relationship_editor(self):
+        try:
+            dlg = RelationshipEditorDialog(self, on_registry_changed=self._refresh_relationship_choices)
+            dlg.focus_force()
+        except Exception as exc:
+            messagebox.showerror("Relationship Editor", f"Could not open editor.\n{exc}")
 
-        entry = {}
-        if series_label:
-            entry["series_label"] = series_label
-            entry["series_id"] = slugify(series_label)
+    def _sync_relationship_badges(self):
+        try:
+            stats = sync_relationship_badges_in_novels_index()
+        except Exception as exc:
+            messagebox.showerror("Sync relationship badges", str(exc))
+            return
 
-        if series_order_raw:
-            if not series_order_raw.isdigit() or int(series_order_raw) <= 0:
-                return None, "Series Book # must be a positive integer."
-            entry["reading_order"] = int(series_order_raw)
-
-        if relation_type:
-            entry["relation_type"] = relation_type
-
-        if related_to:
-            if related_to == slug:
-                return None, "Related slug cannot be the same as the new novel slug."
-            entry["related_to"] = related_to
-
-        # If the user picks a known related novel but leaves series blank, inherit series label.
-        if related_to and not entry.get("series_label"):
-            parent = relationship_entry_for_slug(related_to)
-            parent_label = str(parent.get("series_label") or "").strip()
-            if parent_label:
-                entry["series_label"] = parent_label
-                entry["series_id"] = slugify(parent_label)
-
-        return _normalize_relationship_entry(entry), None
+        changed = bool(stats.get("file_changed"))
+        msg = (
+            f"Cards found: {stats.get('cards_total', 0)}\n"
+            f"Cards processed: {stats.get('cards_touched', 0)}\n"
+            f"Cards updated: {stats.get('cards_updated', 0)}\n"
+            f"Cards skipped: {stats.get('cards_skipped', 0)}\n\n"
+            f"{'Updated' if changed else 'No changes needed for'} {NOVELS_INDEX_HTML.name}."
+        )
+        messagebox.showinfo("Sync relationship badges", msg)
 
     def _on_mode_change(self):
         mode = self.mode_var.get()
