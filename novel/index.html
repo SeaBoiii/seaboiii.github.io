@@ -353,7 +353,7 @@
   </section>
   <main class="container">
    <ul class="novel-grid" id="novelGrid">
-    <li class="novel-card" data-status="incomplete" data-title="crossroads of the heart">
+    <li class="novel-card" data-order="1" data-series="red-string" data-status="incomplete" data-title="crossroads of the heart">
      <a aria-label="Crossroads of the Heart" href="/novel/crossroads-of-the-heart/">
       <picture>
        <source srcset="/images/crossroads-cover-320.webp 320w, /images/crossroads-cover-640.webp 640w, /images/crossroads-cover-960.webp 960w" type="image/webp"/>
@@ -366,10 +366,16 @@
        <span class="badge incomplete">
         Incomplete
        </span>
+       <span class="badge" title="Series: Red String">
+        Red String
+       </span>
+       <span class="badge" title="Recommended reading order">
+        Book 1
+       </span>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="the abix chronicle">
+    <li class="novel-card" data-order="1" data-series="abix-series" data-status="complete" data-title="the abix chronicle">
      <a aria-label="The ABIX Chronicle" href="/novel/the-abix-chronicle/">
       <picture>
        <source srcset="/images/abix-chronicle-cover-320.webp 320w, /images/abix-chronicle-cover-640.webp 640w, /images/abix-chronicle-cover-960.webp 960w" type="image/webp"/>
@@ -382,7 +388,7 @@
        <span class="badge complete">
         Complete
        </span>
-       <span class="badge" title="ABIX story universe">
+       <span class="badge" title="Series: ABIX Series">
         ABIX Series
        </span>
        <span class="badge" title="Recommended reading order">
@@ -391,7 +397,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="echoes of us">
+    <li class="novel-card" data-order="2" data-related-to="the-abix-chronicle" data-relation="sequel" data-series="abix-series" data-status="complete" data-title="echoes of us">
      <a aria-label="Echoes of Us" href="/novel/echoes-of-us/">
       <picture>
        <source srcset="/images/echoes-of-us-cover-320.webp 320w, /images/echoes-of-us-cover-640.webp 640w, /images/echoes-of-us-cover-960.webp 960w" type="image/webp"/>
@@ -404,19 +410,19 @@
        <span class="badge complete">
         Complete
        </span>
-       <span class="badge">
+       <span class="badge" title="Series: ABIX Series">
         ABIX Series
        </span>
        <span class="badge" title="Recommended reading order">
         Book 2
        </span>
-       <span class="badge" title="Sequel to The ABIX Chronicle">
+       <span class="badge" title="Sequel to The Abix Chronicle">
         Sequel
        </span>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="incomplete" data-title="the silk of fate">
+    <li class="novel-card" data-order="2" data-related-to="crossroads-of-the-heart" data-relation="spin-off" data-series="red-string" data-status="incomplete" data-title="the silk of fate">
      <a aria-label="The Silk of Fate" href="/novel/the-silk-of-fate/">
       <picture>
        <source srcset="/images/silk-of-fate-cover-320.webp 320w, /images/silk-of-fate-cover-640.webp 640w, /images/silk-of-fate-cover-960.webp 960w" type="image/webp"/>
@@ -428,6 +434,15 @@
       <div class="novel-meta">
        <span class="badge incomplete">
         Incomplete
+       </span>
+       <span class="badge" title="Series: Red String">
+        Red String
+       </span>
+       <span class="badge" title="Recommended reading order">
+        Book 2
+       </span>
+       <span class="badge" title="Spin-off to Crossroads Of The Heart">
+        Spin-off
        </span>
       </div>
      </a>
@@ -608,7 +623,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-hidden="true" data-status="complete" data-title="between two prayers">
+    <li class="novel-card" data-hidden="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-status="complete" data-title="between two prayers">
      <a aria-label="Between Two Prayers" href="/novel/between-two-prayers/">
       <picture>
        <source srcset="/images/between-two-prayers-cover-320.webp 320w, /images/between-two-prayers-cover-640.webp 640w, /images/between-two-prayers-cover-960.webp 960w" type="image/webp"/>
@@ -621,13 +636,19 @@
        <span class="badge complete">
         Complete
        </span>
+       <span class="badge" title="Series: ABIX Series">
+        ABIX Series
+       </span>
+       <span class="badge" title="Spin-off to The Abix Chronicle">
+        Spin-off
+       </span>
        <span class="badge">
         Hidden
        </span>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-hidden="true" data-status="complete" data-title="all the mercies">
+    <li class="novel-card" data-hidden="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-status="complete" data-title="all the mercies">
      <a aria-label="All the Mercies" href="/novel/all-the-mercies/">
       <picture>
        <source srcset="/images/all-the-mercies-cover-320.webp 320w, /images/all-the-mercies-cover-640.webp 640w, /images/all-the-mercies-cover-960.webp 960w" type="image/webp"/>
@@ -639,6 +660,12 @@
       <div class="novel-meta">
        <span class="badge complete">
         Complete
+       </span>
+       <span class="badge" title="Series: ABIX Series">
+        ABIX Series
+       </span>
+       <span class="badge" title="Spin-off to The Abix Chronicle">
+        Spin-off
        </span>
        <span class="badge">
         Hidden
@@ -656,8 +683,8 @@
        Where the Mist Begins
       </h2>
       <div class="novel-meta">
-       <span class="badge complete">
-        Complete
+       <span class="badge incomplete">
+        Incomplete
        </span>
       </div>
      </a>

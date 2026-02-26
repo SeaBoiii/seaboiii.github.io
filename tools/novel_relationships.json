@@ -1,8 +1,25 @@
 {
+  "all-the-mercies": {
+    "related_to": "the-abix-chronicle",
+    "relation_type": "spin-off",
+    "series_id": "abix-series",
+    "series_label": "ABIX Series"
+  },
+  "between-two-prayers": {
+    "related_to": "the-abix-chronicle",
+    "relation_type": "spin-off",
+    "series_id": "abix-series",
+    "series_label": "ABIX Series"
+  },
+  "crossroads-of-the-heart": {
+    "reading_order": 1,
+    "series_id": "red-string",
+    "series_label": "Red String"
+  },
   "echoes-of-us": {
+    "reading_order": 2,
     "related_to": "the-abix-chronicle",
     "relation_type": "sequel",
-    "reading_order": 2,
     "series_id": "abix-series",
     "series_label": "ABIX Series"
   },
@@ -10,5 +27,12 @@
     "reading_order": 1,
     "series_id": "abix-series",
     "series_label": "ABIX Series"
+  },
+  "the-silk-of-fate": {
+    "reading_order": 2,
+    "related_to": "crossroads-of-the-heart",
+    "relation_type": "spin-off",
+    "series_id": "red-string",
+    "series_label": "Red String"
   }
 }
