@@ -34,5 +34,17 @@
     "relation_type": "spin-off",
     "series_id": "red-string",
     "series_label": "Red String"
+  },
+  "two-seats-apart": {
+    "reading_order": 1,
+    "series_id": "two-seats",
+    "series_label": "Two Seats"
+  },
+  "two-seats-closer": {
+    "reading_order": 2,
+    "related_to": "two-seats-apart",
+    "relation_type": "sequel",
+    "series_id": "two-seats",
+    "series_label": "Two Seats"
   }
 }
