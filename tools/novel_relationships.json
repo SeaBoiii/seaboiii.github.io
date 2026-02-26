@@ -1,0 +1,14 @@
+{
+  "echoes-of-us": {
+    "related_to": "the-abix-chronicle",
+    "relation_type": "sequel",
+    "reading_order": 2,
+    "series_id": "abix-series",
+    "series_label": "ABIX Series"
+  },
+  "the-abix-chronicle": {
+    "reading_order": 1,
+    "series_id": "abix-series",
+    "series_label": "ABIX Series"
+  }
+}

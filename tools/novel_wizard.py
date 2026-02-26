@@ -10,7 +10,8 @@ Tkinter Novel Wizard for GitHub Pages + Jekyll
 Run from your repo root: python3 tools/novel_wizard.py
 """
 
-import re, shutil, sys, subprocess
+import json, re, shutil, sys, subprocess
+from html import escape as html_escape
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -33,7 +34,17 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
 NOVELS_INDEX_HTML = NOVEL_DIR / "index.html"
+RELATIONSHIPS_JSON = REPO_ROOT / "tools" / "novel_relationships.json"
 MARKDOWN_EXTS = {".md", ".markdown", ".mdown", ".mkd"}
+
+RELATION_TYPE_LABELS = {
+    "original": "Original",
+    "prequel": "Prequel",
+    "sequel": "Sequel",
+    "companion": "Companion",
+    "spin-off": "Spin-off",
+}
+RELATION_TYPE_CHOICES = ["", "Original", "Prequel", "Sequel", "Companion", "Spin-off"]
 
 # ---------- helpers ----------
 def slugify(title: str) -> str:
@@ -50,6 +61,133 @@ def pretty(slug: str) -> str:
 def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(text, encoding="utf-8", newline="\n")
+
+def _normalize_relation_type(value: str) -> str:
+    s = (value or "").strip().lower()
+    if not s:
+        return ""
+    key = re.sub(r"[^a-z]+", "", s)
+    mapping = {
+        "original": "original",
+        "prequel": "prequel",
+        "sequel": "sequel",
+        "companion": "companion",
+        "spinoff": "spin-off",
+    }
+    return mapping.get(key, "")
+
+def _normalize_relationship_entry(value) -> dict:
+    if not isinstance(value, dict):
+        return {}
+
+    out = {}
+    series_label = str(value.get("series_label") or "").strip()
+    if series_label:
+        out["series_label"] = series_label
+
+    series_id = str(value.get("series_id") or "").strip()
+    if not series_id and series_label:
+        series_id = slugify(series_label)
+    if series_id:
+        out["series_id"] = slugify(series_id)
+
+    reading_order_raw = value.get("reading_order")
+    try:
+        if reading_order_raw not in (None, ""):
+            reading_order = int(reading_order_raw)
+            if reading_order > 0:
+                out["reading_order"] = reading_order
+    except Exception:
+        pass
+
+    relation_type = _normalize_relation_type(str(value.get("relation_type") or ""))
+    if relation_type:
+        out["relation_type"] = relation_type
+
+    related_to = str(value.get("related_to") or "").strip()
+    if related_to:
+        out["related_to"] = slugify(related_to)
+
+    return out
+
+def load_relationship_registry() -> dict:
+    if not RELATIONSHIPS_JSON.exists():
+        return {}
+    try:
+        raw = json.loads(RELATIONSHIPS_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+
+    out = {}
+    for raw_slug, raw_entry in raw.items():
+        slug = slugify(str(raw_slug or ""))
+        if not slug:
+            continue
+        entry = _normalize_relationship_entry(raw_entry)
+        if entry:
+            out[slug] = entry
+    return out
+
+def save_relationship_registry(registry: dict):
+    clean = {}
+    for raw_slug, raw_entry in (registry or {}).items():
+        slug = slugify(str(raw_slug or ""))
+        if not slug:
+            continue
+        entry = _normalize_relationship_entry(raw_entry)
+        if entry:
+            clean[slug] = entry
+    RELATIONSHIPS_JSON.parent.mkdir(parents=True, exist_ok=True)
+    RELATIONSHIPS_JSON.write_text(
+        json.dumps(clean, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+def upsert_relationship_registry_entry(slug: str, entry: dict | None):
+    slug = slugify(slug)
+    if not slug:
+        return
+    registry = load_relationship_registry()
+    if entry:
+        clean = _normalize_relationship_entry(entry)
+        if clean:
+            registry[slug] = clean
+        else:
+            registry.pop(slug, None)
+    else:
+        registry.pop(slug, None)
+    save_relationship_registry(registry)
+
+def relationship_entry_for_slug(slug: str) -> dict:
+    return load_relationship_registry().get(slugify(slug), {})
+
+def relationship_badges_for_slug(slug: str) -> list[dict]:
+    entry = relationship_entry_for_slug(slug)
+    if not entry:
+        return []
+
+    badges = []
+    series_label = str(entry.get("series_label") or "").strip()
+    if series_label:
+        badges.append({"label": series_label, "title": f"Series: {series_label}"})
+
+    reading_order = entry.get("reading_order")
+    if isinstance(reading_order, int) and reading_order > 0:
+        badges.append({"label": f"Book {reading_order}", "title": "Recommended reading order"})
+
+    relation_type = _normalize_relation_type(str(entry.get("relation_type") or ""))
+    if relation_type:
+        relation_label = RELATION_TYPE_LABELS.get(relation_type, pretty(relation_type))
+        related_to = str(entry.get("related_to") or "").strip()
+        title = relation_label
+        if related_to:
+            title = f"{relation_label} to {pretty(related_to)}"
+        badges.append({"label": relation_label, "title": title})
+
+    return badges
 
 # ---- Formatting helpers ----
 SMART_QUOTES = {
@@ -372,15 +510,44 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
     # status mapping
     status_class = "complete" if status_choice == "Complete" else "incomplete"
     status_text = "Complete" if status_class == "complete" else "Incomplete"
+    rel_entry = relationship_entry_for_slug(slug)
+
+    data_series = ""
+    data_relation = ""
+    data_order = ""
+    data_related_to = ""
+    if rel_entry.get("series_id"):
+        data_series = f''' data-series="{html_escape(str(rel_entry.get("series_id")))}"'''
+    if rel_entry.get("relation_type"):
+        data_relation = f''' data-relation="{html_escape(str(rel_entry.get("relation_type")))}"'''
+    if isinstance(rel_entry.get("reading_order"), int):
+        data_order = f''' data-order="{int(rel_entry.get("reading_order"))}"'''
+    if rel_entry.get("related_to"):
+        data_related_to = f''' data-related-to="{html_escape(str(rel_entry.get("related_to")))}"'''
+
     hidden_attr = ' data-hidden="true"' if hidden else ''
     hidden_badge = f'''              <span class="badge">Hidden</span>\n''' if hidden else ''
+    rel_badges = []
+    for badge in relationship_badges_for_slug(slug):
+        label = html_escape(str(badge.get("label") or ""))
+        if not label:
+            continue
+        title = str(badge.get("title") or "").strip()
+        title_attr = f''' title="{html_escape(title)}"''' if title else ""
+        rel_badges.append(f'''              <span class="badge"{title_attr}>{label}</span>\n''')
+    rel_badges_html = "".join(rel_badges)
+
+    safe_title = html_escape(novel_title)
+    safe_aria = html_escape(novel_title)
+    safe_cover = html_escape(cover_rel)
     li = (
-        f'''        <li class="novel-card" data-title="{novel_title.lower()}" data-status="{status_class}"{hidden_attr}>\n'''
-        f'''          <a href="/novel/{slug}/" aria-label="{novel_title}">\n'''
-        f'''            <img src="{cover_rel}" alt="{novel_title}" loading="lazy" />\n'''
-        f'''            <h2 class="novel-title">{novel_title}</h2>\n'''
+        f'''        <li class="novel-card" data-title="{html_escape(novel_title.lower())}" data-status="{status_class}"{hidden_attr}{data_series}{data_relation}{data_order}{data_related_to}>\n'''
+        f'''          <a href="/novel/{slug}/" aria-label="{safe_aria}">\n'''
+        f'''            <img src="{safe_cover}" alt="{safe_title}" loading="lazy" />\n'''
+        f'''            <h2 class="novel-title">{safe_title}</h2>\n'''
         f'''            <div class="novel-meta">\n'''
         f'''              <span class="badge {status_class}">{status_text}</span>\n'''
+        f'''{rel_badges_html}'''
         f'''{hidden_badge}'''
         f'''            </div>\n'''
         f'''          </a>\n'''
@@ -467,6 +634,10 @@ class Wizard(tk.Tk):
         self.cover_var = tk.StringVar()
         self.blurb_var = tk.StringVar()
         self.hidden_var = tk.BooleanVar(value=False)
+        self.series_label_var = tk.StringVar()
+        self.series_order_var = tk.StringVar()
+        self.relation_type_var = tk.StringVar(value="")
+        self.related_to_var = tk.StringVar()
         self.count_var = tk.IntVar(value=3)  # number of chapters to add/create
         self.existing_slug_var = tk.StringVar()
         self.start_order = 1  # where new chapters begin (append mode)
@@ -537,11 +708,43 @@ class Wizard(tk.Tk):
         self.check_hidden = ttk.Checkbutton(top, text="Hidden novel", variable=self.hidden_var)
         self.check_hidden.grid(row=4, column=4, sticky="w", pady=(8,0))
 
+        self.rel_frame = ttk.LabelFrame(top, text="Series / relationship (optional)", padding=(8, 6))
+        self.rel_frame.grid(row=5, column=0, columnspan=6, sticky="we", pady=(8,0))
+        self.rel_frame.columnconfigure(1, weight=1)
+        self.rel_frame.columnconfigure(3, weight=1)
+
+        ttk.Label(self.rel_frame, text="Series label").grid(row=0, column=0, sticky="w")
+        self.series_entry = ttk.Entry(self.rel_frame, textvariable=self.series_label_var, width=30)
+        self.series_entry.grid(row=0, column=1, sticky="we", padx=(8,12))
+
+        ttk.Label(self.rel_frame, text="Book #").grid(row=0, column=2, sticky="e")
+        self.series_order_entry = ttk.Entry(self.rel_frame, textvariable=self.series_order_var, width=8)
+        self.series_order_entry.grid(row=0, column=3, sticky="w", padx=(8,0))
+
+        ttk.Label(self.rel_frame, text="Relation").grid(row=1, column=0, sticky="w", pady=(6,0))
+        self.relation_combo = ttk.Combobox(
+            self.rel_frame,
+            textvariable=self.relation_type_var,
+            values=RELATION_TYPE_CHOICES,
+            state="readonly",
+            width=16,
+        )
+        self.relation_combo.grid(row=1, column=1, sticky="w", padx=(8,12), pady=(6,0))
+
+        ttk.Label(self.rel_frame, text="Related slug").grid(row=1, column=2, sticky="e", pady=(6,0))
+        self.related_to_combo = ttk.Combobox(
+            self.rel_frame,
+            textvariable=self.related_to_var,
+            values=list_existing_slugs(),
+            width=28,
+        )
+        self.related_to_combo.grid(row=1, column=3, sticky="we", padx=(8,0), pady=(6,0))
+
         # Action buttons (Create/Append and Bulk Import)
         self.btn_commit = ttk.Button(top, text="Create / Append", command=self._commit)
-        self.btn_commit.grid(row=4, column=5, sticky="e", pady=(8,0))
+        self.btn_commit.grid(row=6, column=5, sticky="e", pady=(8,0))
         self.btn_bulk = ttk.Button(top, text="Bulk import files…", command=self._bulk_import_docx)
-        self.btn_bulk.grid(row=5, column=5, sticky="e", pady=(6,0))
+        self.btn_bulk.grid(row=7, column=5, sticky="e", pady=(6,0))
 
         # Tabs for chapters
         self.nb = ttk.Notebook(self)
@@ -585,6 +788,51 @@ class Wizard(tk.Tk):
         )
         if p: self.cover_var.set(p)
 
+    def _refresh_relationship_choices(self):
+        try:
+            self.related_to_combo.configure(values=list_existing_slugs())
+        except Exception:
+            pass
+
+    def _build_relationship_entry_from_form(self, slug: str) -> tuple[dict | None, str | None]:
+        series_label = (self.series_label_var.get() or "").strip()
+        series_order_raw = (self.series_order_var.get() or "").strip()
+        relation_type = _normalize_relation_type(self.relation_type_var.get() or "")
+        related_to_raw = (self.related_to_var.get() or "").strip()
+        related_to = slugify(related_to_raw) if related_to_raw else ""
+        slug = slugify(slug)
+
+        if not any([series_label, series_order_raw, relation_type, related_to]):
+            return None, None
+
+        entry = {}
+        if series_label:
+            entry["series_label"] = series_label
+            entry["series_id"] = slugify(series_label)
+
+        if series_order_raw:
+            if not series_order_raw.isdigit() or int(series_order_raw) <= 0:
+                return None, "Series Book # must be a positive integer."
+            entry["reading_order"] = int(series_order_raw)
+
+        if relation_type:
+            entry["relation_type"] = relation_type
+
+        if related_to:
+            if related_to == slug:
+                return None, "Related slug cannot be the same as the new novel slug."
+            entry["related_to"] = related_to
+
+        # If the user picks a known related novel but leaves series blank, inherit series label.
+        if related_to and not entry.get("series_label"):
+            parent = relationship_entry_for_slug(related_to)
+            parent_label = str(parent.get("series_label") or "").strip()
+            if parent_label:
+                entry["series_label"] = parent_label
+                entry["series_id"] = slugify(parent_label)
+
+        return _normalize_relationship_entry(entry), None
+
     def _on_mode_change(self):
         mode = self.mode_var.get()
         if mode == "Create new":
@@ -594,11 +842,17 @@ class Wizard(tk.Tk):
             self.cover_var.set("")
             self.blurb_var.set("")
             self.hidden_var.set(False)
+            self.series_label_var.set("")
+            self.series_order_var.set("")
+            self.relation_type_var.set("")
+            self.related_to_var.set("")
+            self._refresh_relationship_choices()
             self.start_order = 1
             self._show(self.lbl_title, self.title_entry,
                        self.lbl_slug, self.slug_entry,
                        self.lbl_status, self.status_combo,
-                       self.lbl_cover, self.cover_entry, self.btn_browse)
+                       self.lbl_cover, self.cover_entry, self.btn_browse,
+                       self.rel_frame)
             # Hide append-only controls
             self._hide(self.lbl_existing, self.existing_combo)
         else:  # Append mode — hide cover & create-only fields, show existing selector
@@ -609,7 +863,8 @@ class Wizard(tk.Tk):
             self._on_existing_selected()
             self._hide(self.lbl_title, self.title_entry,
                        self.lbl_slug, self.slug_entry,
-                       self.lbl_cover, self.cover_entry, self.btn_browse)
+                       self.lbl_cover, self.cover_entry, self.btn_browse,
+                       self.rel_frame)
             self._show(self.lbl_existing, self.existing_combo,
                        self.lbl_status, self.status_combo)
         self._build_chapter_tabs()
@@ -908,6 +1163,14 @@ class Wizard(tk.Tk):
                 messagebox.showerror("Error", "Select an existing novel to append to.")
                 return
             novel_title = pretty(slug)
+        slug = slugify(slug)
+
+        relationship_entry = None
+        if mode == "Create new":
+            relationship_entry, rel_err = self._build_relationship_entry_from_form(slug)
+            if rel_err:
+                messagebox.showerror("Relationship metadata", rel_err)
+                return
 
         dest = NOVEL_DIR / slug
         dest.mkdir(parents=True, exist_ok=True)
@@ -948,6 +1211,14 @@ class Wizard(tk.Tk):
 
         # Append card only for new novels
         if mode == "Create new":
+            try:
+                upsert_relationship_registry_entry(slug, relationship_entry)
+            except Exception as exc:
+                messagebox.showwarning(
+                    "Relationship metadata",
+                    f"Could not save relationship metadata to {RELATIONSHIPS_JSON.name}.\n{exc}\n"
+                    "The novel will still be created, but relationship badges may be missing."
+                )
             append_card_to_novels_index(novel_title, slug, cover_rel, self.status_var.get(), self.hidden_var.get())
 
         # Update index.html + generate variants (best-effort)
