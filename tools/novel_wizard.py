@@ -34,6 +34,11 @@ try:
     from bs4 import BeautifulSoup as _BeautifulSoup  # pip install beautifulsoup4
 except Exception:
     _BeautifulSoup = None
+try:
+    from PIL import Image as _PILImage, ImageTk as _PILImageTk  # pip install pillow
+except Exception:
+    _PILImage = None
+    _PILImageTk = None
 
 REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
@@ -202,6 +207,80 @@ def _novel_slug_from_card_href(href: str) -> str:
     if not m:
         return ""
     return slugify(m.group(1))
+
+def _local_path_from_site_url(url: str) -> Optional[Path]:
+    u = (url or "").strip()
+    if not u:
+        return None
+    if u.startswith(("http://", "https://")):
+        return None
+    p = (REPO_ROOT / u.lstrip("/")) if u.startswith("/") else (REPO_ROOT / u)
+    return p if p.exists() else None
+
+def novel_card_preview_info(slug: str) -> dict:
+    """
+    Best-effort lookup of a novel's display title and cover image file from /novel/index.html.
+    Returns: {"slug", "title", "image_path", "image_url", "note"}.
+    """
+    slug = slugify(slug)
+    info = {
+        "slug": slug,
+        "title": pretty(slug) if slug else "",
+        "image_path": None,
+        "image_url": "",
+        "note": "",
+    }
+    if not slug:
+        return info
+    if not NOVELS_INDEX_HTML.exists():
+        info["note"] = f"{NOVELS_INDEX_HTML.name} not found"
+        return info
+    if _BeautifulSoup is None:
+        info["note"] = "Install beautifulsoup4 for cover preview lookup"
+        return info
+
+    try:
+        soup = _BeautifulSoup(NOVELS_INDEX_HTML.read_text(encoding="utf-8"), "html.parser")
+    except Exception as exc:
+        info["note"] = f"Could not parse {NOVELS_INDEX_HTML.name}: {exc}"
+        return info
+
+    for card in soup.select("li.novel-card"):
+        a = card.find("a", href=True)
+        card_slug = _novel_slug_from_card_href(a.get("href", "") if a else "")
+        if card_slug != slug:
+            continue
+
+        title_node = card.find(class_="novel-title")
+        if title_node:
+            info["title"] = title_node.get_text(" ", strip=True) or info["title"]
+
+        img = card.find("img")
+        if img and img.get("src"):
+            src = str(img.get("src") or "").strip()
+            info["image_url"] = src
+            local = _local_path_from_site_url(src)
+            if local is not None:
+                info["image_path"] = local
+                return info
+
+        # Fallback: inspect any source/srcset in <picture> and try the first candidate.
+        source = card.find("source")
+        if source and source.get("srcset"):
+            srcset = str(source.get("srcset") or "")
+            first = srcset.split(",")[0].strip().split(" ")[0].strip()
+            info["image_url"] = first or info["image_url"]
+            local = _local_path_from_site_url(first)
+            if local is not None:
+                info["image_path"] = local
+                return info
+
+        if not info["note"]:
+            info["note"] = "Card found, but no local image file resolved"
+        return info
+
+    info["note"] = "Novel card not found in novel/index.html"
+    return info
 
 def sync_relationship_badges_in_novels_index() -> dict:
     """
@@ -798,7 +877,7 @@ class RelationshipEditorDialog(tk.Toplevel):
     def __init__(self, master, on_registry_changed=None):
         super().__init__(master)
         self.title("Relationship Editor")
-        self.resizable(True, False)
+        self.resizable(True, True)
         self.on_registry_changed = on_registry_changed
 
         self.slug_var = tk.StringVar()
@@ -807,6 +886,9 @@ class RelationshipEditorDialog(tk.Toplevel):
         self.relation_type_var = tk.StringVar(value="")
         self.related_to_var = tk.StringVar()
         self.status_var = tk.StringVar(value="Select a novel to edit relationship metadata.")
+        self.preview_title_var = tk.StringVar(value="")
+        self.preview_note_var = tk.StringVar(value="")
+        self._cover_preview_img = None
 
         self._build_ui()
         self._reload_slugs()
@@ -819,6 +901,7 @@ class RelationshipEditorDialog(tk.Toplevel):
         root = ttk.Frame(self, padding=12)
         root.pack(fill="both", expand=True)
         root.columnconfigure(1, weight=1)
+        root.columnconfigure(2, weight=1)
 
         ttk.Label(root, text="Novel").grid(row=0, column=0, sticky="w")
         self.slug_combo = ttk.Combobox(root, textvariable=self.slug_var, width=36)
@@ -827,8 +910,21 @@ class RelationshipEditorDialog(tk.Toplevel):
         self.slug_combo.bind("<FocusOut>", lambda e: self._load_selected())
         ttk.Button(root, text="Reload", command=self._reload_slugs).grid(row=0, column=2, sticky="e")
 
+        preview = ttk.LabelFrame(root, text="Novel preview", padding=(10, 8))
+        preview.grid(row=1, column=0, columnspan=3, sticky="nsew", pady=(10, 0))
+        preview.columnconfigure(1, weight=1)
+        preview.rowconfigure(0, weight=1)
+
+        self.cover_preview_label = ttk.Label(preview, text="No preview", anchor="center", justify="center")
+        self.cover_preview_label.grid(row=0, column=0, rowspan=3, sticky="nw", padx=(0, 12))
+
+        ttk.Label(preview, textvariable=self.preview_title_var, justify="left").grid(row=0, column=1, sticky="w")
+        ttk.Label(preview, textvariable=self.preview_note_var, justify="left", wraplength=360).grid(
+            row=1, column=1, sticky="w", pady=(6,0)
+        )
+
         form = ttk.LabelFrame(root, text="Relationship metadata", padding=(10, 8))
-        form.grid(row=1, column=0, columnspan=3, sticky="we", pady=(10, 0))
+        form.grid(row=2, column=0, columnspan=3, sticky="we", pady=(10, 0))
         form.columnconfigure(1, weight=1)
         form.columnconfigure(3, weight=1)
 
@@ -857,15 +953,71 @@ class RelationshipEditorDialog(tk.Toplevel):
         ttk.Label(
             root,
             text="Tip: leave all fields blank and click Save to remove a relationship entry.",
-        ).grid(row=2, column=0, columnspan=3, sticky="w", pady=(8,0))
+        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(8,0))
 
-        ttk.Label(root, textvariable=self.status_var).grid(row=3, column=0, columnspan=3, sticky="w", pady=(8,0))
+        ttk.Label(root, textvariable=self.status_var).grid(row=4, column=0, columnspan=3, sticky="w", pady=(8,0))
 
         btns = ttk.Frame(root)
-        btns.grid(row=4, column=0, columnspan=3, sticky="e", pady=(10,0))
+        btns.grid(row=5, column=0, columnspan=3, sticky="e", pady=(10,0))
         ttk.Button(btns, text="Remove", command=self._remove_selected).pack(side="left")
         ttk.Button(btns, text="Save", command=self._save_selected).pack(side="left", padx=(8,0))
         ttk.Button(btns, text="Close", command=self.destroy).pack(side="left", padx=(8,0))
+
+    def _reset_cover_preview(self, title: str = "", note: str = ""):
+        self._cover_preview_img = None
+        self.cover_preview_label.configure(image="", text="No preview")
+        self.preview_title_var.set(title or "")
+        self.preview_note_var.set(note or "")
+
+    def _update_cover_preview(self, slug: str):
+        slug = slugify(slug)
+        if not slug:
+            self._reset_cover_preview("", "Select a novel to preview its cover.")
+            return
+
+        info = novel_card_preview_info(slug)
+        title = str(info.get("title") or pretty(slug))
+        img_path = info.get("image_path")
+        note = str(info.get("note") or "")
+        img_url = str(info.get("image_url") or "")
+
+        # Title line includes slug for quick confirmation.
+        self.preview_title_var.set(f"{title} ({slug})")
+
+        if img_path is None:
+            extra = []
+            if img_url:
+                extra.append(f"Image URL: {img_url}")
+            if note:
+                extra.append(note)
+            self._reset_cover_preview(self.preview_title_var.get(), "\n".join(extra).strip())
+            return
+
+        if _PILImage is None or _PILImageTk is None:
+            self._reset_cover_preview(
+                self.preview_title_var.get(),
+                f"{img_path.name}\nInstall pillow for thumbnail preview (pip install pillow)",
+            )
+            return
+
+        try:
+            with _PILImage.open(img_path) as im0:
+                im = im0.convert("RGB")
+                im.thumbnail((110, 165))
+                photo = _PILImageTk.PhotoImage(im)
+        except Exception as exc:
+            self._reset_cover_preview(
+                self.preview_title_var.get(),
+                f"{img_path.name}\nCould not load preview: {exc}",
+            )
+            return
+
+        self._cover_preview_img = photo
+        self.cover_preview_label.configure(image=photo, text="")
+        note_lines = [img_path.name]
+        if note:
+            note_lines.append(note)
+        self.preview_note_var.set("\n".join(note_lines))
 
     def _refresh_related_choices(self, current_slug: str = ""):
         all_slugs = self._all_slugs()
@@ -917,8 +1069,10 @@ class RelationshipEditorDialog(tk.Toplevel):
         self._refresh_related_choices(slug)
         if not slug:
             self._clear_form()
+            self._update_cover_preview("")
             self.status_var.set("Select a novel to edit relationship metadata.")
             return
+        self._update_cover_preview(slug)
         entry = relationship_entry_for_slug(slug)
         if entry:
             self._set_form_from_entry(entry)
