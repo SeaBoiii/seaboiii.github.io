@@ -45,7 +45,7 @@ def slugify(title: str) -> str:
 
 def pretty(slug: str) -> str:
     t = re.sub(r"[-_]+", " ", slug).strip()
-    return t[:1].upper() + t[1:] if t else "Untitled"
+    return " ".join(w.capitalize() for w in t.split()) if t else "Untitled"
 
 def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -268,7 +268,7 @@ def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
     return header + body
 
 def build_index_md(slug: str, status: str = "Incomplete", blurb: str = "") -> str:
-    t = f"{pretty(slug)} — Chapters"
+    t = pretty(slug)
     body = """<ul>
 {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
 {% assign items = site.pages

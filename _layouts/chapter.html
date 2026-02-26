@@ -303,41 +303,6 @@
         font-size: 0.87rem;
       }
 
-      .chapter-complete-actions {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
-
-      .chapter-complete-btn {
-        border: 1px solid var(--btn-brd);
-        background: var(--btn-bg);
-        color: var(--btn-text);
-        border-radius: 8px;
-        padding: 0.45rem 0.65rem;
-        font: inherit;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 0.85rem;
-        cursor: pointer;
-      }
-
-      .chapter-complete-btn:hover {
-        filter: brightness(1.05);
-      }
-
-      .chapter-complete-btn.secondary {
-        border-color: var(--border);
-        background: var(--card);
-        color: var(--text);
-      }
-
-      .chapter-complete-btn:disabled {
-        opacity: 0.75;
-        cursor: default;
-      }
-
       .mobile-chapter-nav {
         display: none;
         position: fixed;
@@ -404,14 +369,6 @@
         .chapter-complete {
           flex-direction: column;
           align-items: stretch;
-        }
-
-        .chapter-complete-actions {
-          justify-content: stretch;
-        }
-
-        .chapter-complete-btn {
-          width: 100%;
         }
 
         .pager {
@@ -484,10 +441,6 @@
   <div class="chapter-complete-copy">
     <strong id="chapterCompletionTitle">Chapter completed</strong>
     <span id="chapterCompletionText">Nice. Ready for the next chapter?</span>
-  </div>
-  <div class="chapter-complete-actions">
-    <button id="autoAdvanceStart" class="chapter-complete-btn" type="button" hidden>Auto-advance (5s)</button>
-    <button id="autoAdvanceCancel" class="chapter-complete-btn secondary" type="button" hidden>Cancel</button>
   </div>
 </section>
 
@@ -737,17 +690,13 @@
         } catch(e) {}
       })();
 
-      // Reading UI chrome: top progress bar + end-of-chapter completion prompt
+      // Reading UI chrome: top progress bar + end-of-chapter completion panel
       (function() {
         var progressBar = document.getElementById('readProgressBar');
         var completionPanel = document.getElementById('chapterCompletionPanel');
         var completionText = document.getElementById('chapterCompletionText');
-        var autoStartBtn = document.getElementById('autoAdvanceStart');
-        var autoCancelBtn = document.getElementById('autoAdvanceCancel');
         var nextLink = document.querySelector('.pager a[rel="next"]');
         var rafPending = false;
-        var autoTimer = null;
-        var countdown = 0;
 
         function clamp(n, min, max) {
           return Math.min(max, Math.max(min, n));
@@ -784,50 +733,9 @@
           progressBar.style.transform = 'scaleX(' + clamp(ratio, 0, 1) + ')';
         }
 
-        function resetAutoAdvance() {
-          if (autoTimer) {
-            clearInterval(autoTimer);
-            autoTimer = null;
-          }
-          countdown = 0;
-          if (autoStartBtn) {
-            autoStartBtn.disabled = false;
-            autoStartBtn.textContent = 'Auto-advance (5s)';
-            autoStartBtn.hidden = !nextLink;
-          }
-          if (autoCancelBtn) {
-            autoCancelBtn.hidden = true;
-          }
-        }
-
-        function autoAdvanceTick() {
-          if (!nextLink || !nextLink.href) {
-            resetAutoAdvance();
-            return;
-          }
-          if (countdown <= 0) {
-            window.location.href = nextLink.href;
-            return;
-          }
-          if (autoStartBtn) {
-            autoStartBtn.textContent = 'Opening next in ' + countdown + 's';
-          }
-          countdown -= 1;
-        }
-
-        function startAutoAdvance() {
-          if (!nextLink || autoTimer) return;
-          countdown = 5;
-          if (autoStartBtn) autoStartBtn.disabled = true;
-          if (autoCancelBtn) autoCancelBtn.hidden = false;
-          autoAdvanceTick();
-          autoTimer = setInterval(autoAdvanceTick, 1000);
-        }
-
         function setCompletionVisible(visible) {
           if (!completionPanel) return;
           completionPanel.hidden = !visible;
-          if (!visible) resetAutoAdvance();
         }
 
         function render() {
@@ -847,18 +755,8 @@
           completionText.textContent = nextLink ? 'Nice. Ready for the next chapter?' : 'You reached the end of this novel.';
         }
 
-        if (nextLink && autoStartBtn) {
-          autoStartBtn.hidden = false;
-          autoStartBtn.addEventListener('click', startAutoAdvance);
-        }
-
-        if (autoCancelBtn) {
-          autoCancelBtn.addEventListener('click', resetAutoAdvance);
-        }
-
         window.addEventListener('scroll', scheduleRender, { passive: true });
         window.addEventListener('resize', scheduleRender);
-        window.addEventListener('pagehide', resetAutoAdvance);
 
         scheduleRender();
         window.addEventListener('load', scheduleRender, { once: true });
