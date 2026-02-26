@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Tkinter Novel Wizard for GitHub Pages + Jekyll
 - Create a new novel with chapters (minimal inputs)
 - Append additional chapters to an existing novel (no cover input)
-- Formatted paste (HTML/RTF → Markdown) + single DOCX import
-- NEW: Bulk DOCX import (select multiple .docx files; sorted by filename; fills titles & content; auto-scales tabs)
+- Formatted paste (HTML/RTF → Markdown) + single DOCX/Markdown import
+- NEW: Bulk DOCX/Markdown import (select multiple files; sorted by filename; fills titles & content; auto-scales tabs)
 
 Run from your repo root: python3 tools/novel_wizard.py
 """
@@ -33,6 +33,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
 NOVELS_INDEX_HTML = NOVEL_DIR / "index.html"
+MARKDOWN_EXTS = {".md", ".markdown", ".mdown", ".mkd"}
 
 # ---------- helpers ----------
 def slugify(title: str) -> str:
@@ -99,6 +100,156 @@ def docx_file_to_markdown(path: Path) -> str:
             return ""
     return ""
 
+def read_text_with_fallback(path: Path) -> str:
+    for enc in ("utf-8", "utf-8-sig", "cp1252"):
+        try:
+            return path.read_text(encoding=enc)
+        except Exception:
+            continue
+    return ""
+
+def split_markdown_front_matter(text: str) -> tuple[dict, str]:
+    s = (text or "").lstrip("\ufeff")
+    m = re.match(r"^---\s*\r?\n(?P<fm>.*?)(?:\r?\n)---\s*(?:\r?\n)?", s, flags=re.S)
+    if not m:
+        return {}, s
+    kv = {}
+    for line in (m.group("fm") or "").splitlines():
+        mm = re.match(r"^\s*([^:]+)\s*:\s*(.*)\s*$", line)
+        if mm:
+            kv[mm.group(1).strip()] = mm.group(2).strip()
+    return kv, s[m.end():]
+
+def _titleish_line(line: str) -> str:
+    s = line.rstrip("\r\n")
+    s = re.sub(r"^\s{0,3}#{1,6}\s*", "", s)        # markdown heading marker
+    s = re.sub(r"\s*#{1,6}\s*$", "", s)            # trailing heading hashes
+    s = re.sub(r"^\s*(\*\*|__)", "", s)            # leading bold marker
+    s = re.sub(r"(\*\*|__)\s*$", "", s)            # trailing bold marker
+    return s.strip()
+
+def _strip_chapter_prefix_title(title: str) -> str:
+    s = (title or "").strip()
+    if not s:
+        return ""
+    # "Chapter 5", "Chapter 5: Title", "Chapter 5 - Title"
+    s2 = re.sub(r"(?i)^\s*chapter\b\s*\d+\b\s*[:.\-–—]*\s*", "", s).strip()
+    return s2
+
+def _split_markdown_title_from_body(body: str) -> tuple[str, str]:
+    """
+    Extract a likely chapter title while preserving body formatting exactly
+    (including indentation) for the remaining content.
+
+    Heuristics (in order):
+    - First non-empty line is an H1 -> title
+    - First non-empty line looks like "Chapter X[: - title]" -> title (same line or next non-empty line)
+    """
+    if not body:
+        return "", body
+
+    lines = body.splitlines(keepends=True)
+    if not lines:
+        return "", body
+
+    nonempty = [i for i, line in enumerate(lines) if line.strip()]
+    if not nonempty:
+        return "", body
+
+    first_i = nonempty[0]
+    first_line = lines[first_i]
+    first_titleish = _titleish_line(first_line)
+
+    # Case 1: "Chapter X" line (plain or markdown heading)
+    chapter_line_match = re.match(
+        r"^\s{0,3}(?:#{1,6}\s*)?(?:\*\*|__)?\s*chapter\b\s*([0-9]+)\b(?P<rest>.*)$",
+        first_line,
+        flags=re.I,
+    )
+    if chapter_line_match:
+        rest = chapter_line_match.group("rest") or ""
+        rest_title = re.sub(r"^[\s:.\-–—]+", "", _titleish_line(rest))
+        rest_title = _strip_chapter_prefix_title(rest_title)
+        if rest_title:
+            title = rest_title
+            keep = lines[:first_i] + lines[first_i + 1 :]
+            if first_i < len(keep) and keep[first_i].strip() == "":
+                del keep[first_i]
+            return title, "".join(keep)
+
+        # Title is usually on the line after "Chapter X"
+        if len(nonempty) >= 2:
+            second_i = nonempty[1]
+            candidate_line = lines[second_i]
+            candidate_title = _titleish_line(candidate_line)
+            candidate_title = _strip_chapter_prefix_title(candidate_title)
+            if (
+                candidate_title
+                and not re.match(r"(?i)^chapter\b\s*\d+\b", candidate_title)
+                and not re.match(r"^[-=_*~]{3,}$", candidate_title)
+            ):
+                # Remove chapter line + title line, preserve all indentation/spacing after them.
+                keep = []
+                for i, line in enumerate(lines):
+                    if i in (first_i, second_i):
+                        continue
+                    keep.append(line)
+                # Remove a single blank line immediately after the removed header block.
+                anchor = min(first_i, second_i)
+                if anchor < len(keep) and keep[anchor].strip() == "":
+                    del keep[anchor]
+                return candidate_title, "".join(keep)
+
+    # Case 2: leading H1
+    if re.match(r"^\s{0,3}#\s+\S", first_line):
+        title = _strip_chapter_prefix_title(first_titleish)
+        keep = lines[:first_i] + lines[first_i + 1 :]
+        # Remove one immediate blank line after the extracted title line.
+        if first_i < len(keep) and keep[first_i].strip() == "":
+            del keep[first_i]
+        return title, "".join(keep)
+
+    return "", body
+
+def markdown_file_import_info(path: Path) -> dict:
+    text = read_text_with_fallback(path)
+    fm, body = split_markdown_front_matter(text)
+
+    title = _strip_chapter_prefix_title(str(fm.get("Title") or fm.get("title") or "").strip())
+    if not title:
+        inferred_title, body_wo_title = _split_markdown_title_from_body(body)
+        if inferred_title:
+            title = _strip_chapter_prefix_title(inferred_title)
+            body = body_wo_title
+
+    order = None
+    raw_order = fm.get("order")
+    if raw_order is not None and str(raw_order).strip().isdigit():
+        order = int(str(raw_order).strip())
+
+    return {
+        "body": normalize_smart_punctuation(body or ""),
+        "title": title,
+        "order": order,
+    }
+
+def import_file_info(path: Path) -> dict:
+    ext = path.suffix.lower()
+    if ext == ".docx":
+        body = docx_file_to_markdown(path)
+        title, body_wo_title = _split_markdown_title_from_body(body)
+        return {
+            "body": body_wo_title if title else body,
+            "title": _strip_chapter_prefix_title(title),
+            "order": None,
+            "kind": "docx",
+        }
+    if ext in MARKDOWN_EXTS:
+        info = markdown_file_import_info(path)
+        info["kind"] = "markdown"
+        return info
+    return {"body": "", "title": "", "order": None, "kind": "unknown"}
+
 # ---- Chapter/index builders ----
 
 def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
@@ -110,7 +261,8 @@ def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
         f"order: {order}\n"
         "---\n\n"
     )
-    body = (body or "").lstrip()
+    # Preserve leading indentation/spacing from imported or pasted content.
+    body = body or ""
     if not body.endswith("\n"):
         body += "\n"
     return header + body
@@ -388,7 +540,7 @@ class Wizard(tk.Tk):
         # Action buttons (Create/Append and Bulk Import)
         self.btn_commit = ttk.Button(top, text="Create / Append", command=self._commit)
         self.btn_commit.grid(row=4, column=5, sticky="e", pady=(8,0))
-        self.btn_bulk = ttk.Button(top, text="Bulk import .docx…", command=self._bulk_import_docx)
+        self.btn_bulk = ttk.Button(top, text="Bulk import files…", command=self._bulk_import_docx)
         self.btn_bulk.grid(row=5, column=5, sticky="e", pady=(6,0))
 
         # Tabs for chapters
@@ -524,8 +676,8 @@ class Wizard(tk.Tk):
 
             ttk.Button(tools, text="Paste formatted…",
                     command=lambda t=text: self._paste_formatted_into(text_widget=t)).pack(side="left")
-            ttk.Button(tools, text="Import .docx…",
-                    command=lambda t=text: self._import_docx_into(text_widget=t)).pack(side="left", padx=(6,0))
+            ttk.Button(tools, text="Import file…",
+                    command=lambda t=text, tv=title_var: self._import_docx_into(text_widget=t, title_var=tv)).pack(side="left", padx=(6,0))
 
             text.pack(side="left", fill="both", expand=True)
 
@@ -550,25 +702,60 @@ class Wizard(tk.Tk):
 
 
     def _bulk_import_docx(self):
-        files = filedialog.askopenfilenames(title="Select .docx files (multiple)",
-                                            filetypes=[("Word document","*.docx")])
+        files = filedialog.askopenfilenames(
+            title="Select chapter files (DOCX / Markdown; multiple)",
+            filetypes=[
+                ("Supported files", "*.docx;*.md;*.markdown;*.mdown;*.mkd"),
+                ("Markdown", "*.md;*.markdown;*.mdown;*.mkd"),
+                ("Word document", "*.docx"),
+                ("All files", "*.*"),
+            ],
+        )
         if not files:
             return
-        
+
         # Extract chapter numbers from files and map them
-        file_map = {}  # chapter_number -> file_path
+        file_map = {}       # chapter_number -> file_path
+        import_cache = {}   # file_path -> parsed/imported data
+        skipped_no_order = []
+        failed_docx = []
         for path in files:
+            p = Path(path)
+            info = import_file_info(p)
+            import_cache[path] = info
+
+            if info.get("kind") == "docx" and not (info.get("body") or "").strip():
+                failed_docx.append(p.name)
+                continue
+
             ch_num = _extract_chapter_num_from_name(path)
-            if ch_num != 10**9:  # Has a valid number
-                file_map[ch_num] = path
-        
+            if ch_num == 10**9 and info.get("order") is not None:
+                ch_num = int(info["order"])
+
+            if ch_num == 10**9:
+                skipped_no_order.append(p.name)
+                continue
+
+            file_map[ch_num] = path
+
         if not file_map:
-            messagebox.showerror("No chapters", "Could not extract chapter numbers from filenames. Use format like 'Chapter1.docx'.")
+            if failed_docx:
+                messagebox.showerror(
+                    "Import failed",
+                    "Could not convert the selected DOCX files.\n"
+                    "Install 'mammoth' (pip install mammoth) for DOCX import, or import Markdown files."
+                )
+                return
+            messagebox.showerror(
+                "No chapters",
+                "Could not extract chapter numbers from filenames.\n"
+                "Use names like 'Chapter1.md' / 'Chapter1.docx' or include 'order:' in Markdown front matter."
+            )
             return
-        
+
         min_ch = min(file_map.keys())
         max_ch = max(file_map.keys())
-        
+
         # Check if imported chapters conflict with existing chapters (append mode)
         if self.mode_var.get() == "Append to existing" and min_ch < self.start_order:
             reply = messagebox.askyesno("Chapter conflict", 
@@ -582,25 +769,44 @@ class Wizard(tk.Tk):
                 min_ch = min(file_map.keys())
                 max_ch = max(file_map.keys())
             # If user clicks 'No', continue with full range (allow all numbers)
-        
+
         # Create tabs for the full range from min_ch to max_ch (fills gaps automatically)
         n = max_ch - min_ch + 1
         self.count_var.set(n)
         self.start_order = min_ch
         self._build_chapter_tabs()
-        
+
         # Populate tabs with files that exist, leave gaps empty
         for rec in self.chapter_tabs:
             order = rec['order']
             if order in file_map:
                 path = file_map[order]
+                info = import_cache.get(path) or import_file_info(Path(path))
                 stem = Path(path).stem
-                title_guess = re.sub(r"[_-]+", " ", stem).strip().title()
-                md = docx_file_to_markdown(Path(path))
+                stem_guess = re.sub(r"[_-]+", " ", stem).strip().title()
+                stem_after_chapter = re.sub(
+                    r"(?i)^.*?\bchapter\s*\d+\b\s*[:.\-–—]*\s*",
+                    "",
+                    stem_guess,
+                ).strip()
+                title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after_chapter or stem_guess)
+                md = info.get("body") or ""
                 rec["title_var"].set(title_guess or f"Chapter {order}")
                 rec["text"].delete("1.0", "end")
                 rec["text"].insert("1.0", md)
             # else: leave empty (gap chapter)
+
+        notices = []
+        if skipped_no_order:
+            notices.append(
+                f"Skipped {len(skipped_no_order)} file(s) without a chapter number/order (e.g. {skipped_no_order[0]})."
+            )
+        if failed_docx:
+            notices.append(
+                f"Skipped {len(failed_docx)} DOCX file(s) that could not be converted (install 'mammoth' for DOCX import)."
+            )
+        if notices:
+            messagebox.showwarning("Bulk import notes", "\n".join(notices))
 
     def _paste_formatted_into(self, text_widget: tk.Text=None):
         if not text_widget:
@@ -648,18 +854,38 @@ class Wizard(tk.Tk):
         idx = tabs.index(cur)
         self.nb.select(tabs[(idx - 1) % len(tabs)])
 
-    def _import_docx_into(self, text_widget: tk.Text=None):
+    def _import_docx_into(self, text_widget: tk.Text=None, title_var: tk.StringVar=None):
         if not text_widget:
             return
-        p = filedialog.askopenfilename(title="Select .docx file",
-                                       filetypes=[("Word document","*.docx")])
+        p = filedialog.askopenfilename(
+            title="Select chapter file (.docx or .md)",
+            filetypes=[
+                ("Supported files", "*.docx;*.md;*.markdown;*.mdown;*.mkd"),
+                ("Markdown", "*.md;*.markdown;*.mdown;*.mkd"),
+                ("Word document", "*.docx"),
+                ("All files", "*.*"),
+            ],
+        )
         if not p:
             return
-        md = docx_file_to_markdown(Path(p))
-        if not md:
-            messagebox.showerror("Import failed",
-                "Could not convert DOCX. Install 'mammoth' (pip install mammoth) for best results.")
+        info = import_file_info(Path(p))
+        md = info.get("body") or ""
+        if Path(p).suffix.lower() == ".docx" and not md:
+            messagebox.showerror(
+                "Import failed",
+                "Could not convert DOCX. Install 'mammoth' (pip install mammoth) for best results."
+            )
             return
+        if info.get("kind") == "unknown":
+            messagebox.showerror("Import failed", "Unsupported file type. Use .docx or .md/.markdown.")
+            return
+        imported_title = (info.get("title") or "").strip()
+        if title_var is not None and imported_title:
+            try:
+                if not title_var.get().strip():
+                    title_var.set(imported_title)
+            except Exception:
+                pass
         text_widget.insert("insert", md)
 
     def _commit(self):
@@ -755,3 +981,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
