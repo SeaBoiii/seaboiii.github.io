@@ -437,12 +437,15 @@
 {% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
 {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
 
+
+<!--
 <section id="chapterCompletionPanel" class="chapter-complete" hidden aria-live="polite">
   <div class="chapter-complete-copy">
     <strong id="chapterCompletionTitle">Chapter completed</strong>
     <span id="chapterCompletionText">Nice. Ready for the next chapter?</span>
   </div>
 </section>
+-->
 
 <nav class="pager">
   {% if prev_index >= 0 %}
