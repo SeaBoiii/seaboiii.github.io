@@ -187,8 +187,12 @@
 
       @media (min-width: 720px) {
         .controls {
-          grid-template-columns: 1fr auto auto;
+          grid-template-columns: 1fr auto auto auto;
           align-items: center;
+        }
+
+        .filter-group-series-list {
+          grid-column: 1 / -1;
         }
       }
 
@@ -335,7 +339,7 @@
     </div>
     <div class="controls">
      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
-     <div aria-label="Filter novels" class="filter-group" role="group">
+     <div aria-label="Filter by status" class="filter-group" data-filter-group="status" role="group">
       <button class="pill-button active" data-filter="all" type="button">
        All
       </button>
@@ -346,7 +350,20 @@
        Incomplete
       </button>
      </div>
+     <div aria-label="Filter by series" class="filter-group" data-filter-group="series" role="group">
+      <button class="pill-button active" data-filter="all" title="Show all novels" type="button">
+       Any
+      </button>
+      <button class="pill-button" data-filter="series" title="Only novels in a series" type="button">
+       Series
+      </button>
+      <button class="pill-button" data-filter="standalone" title="Only standalone novels" type="button">
+       Standalone
+      </button>
+     </div>
      <div aria-live="polite" class="muted" id="resultsCount">
+     </div>
+     <div aria-label="Filter by specific series" class="filter-group filter-group-series-list" data-filter-group="series-name" role="group">
      </div>
     </div>
    </div>
@@ -673,7 +690,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="incomplete" data-title="where the mist begins">
+    <li class="novel-card" data-status="complete" data-title="where the mist begins">
      <a aria-label="Where the Mist Begins" href="/novel/where-the-mist-begins/">
       <picture>
        <source srcset="/images/where-the-mist-begins-cover-320.webp 320w, /images/where-the-mist-begins-cover-640.webp 640w, /images/where-the-mist-begins-cover-960.webp 960w" type="image/webp"/>
@@ -683,8 +700,8 @@
        Where the Mist Begins
       </h2>
       <div class="novel-meta">
-       <span class="badge incomplete">
-        Incomplete
+       <span class="badge complete">
+        Complete
        </span>
       </div>
      </a>
@@ -867,11 +884,101 @@
         var search = document.getElementById("novelSearch");
         var grid = document.getElementById("novelGrid");
         var count = document.getElementById("resultsCount");
-        var filterButtons = document.querySelectorAll("[data-filter]");
+        var statusFilterGroup = document.querySelector('[data-filter-group="status"]');
+        var seriesFilterGroup = document.querySelector('[data-filter-group="series"]');
+        var seriesNameFilterGroup = document.querySelector('[data-filter-group="series-name"]');
         var secretBtn = document.getElementById("secretBtn");
-        var activeFilter = "all";
+        var activeStatusFilter = "all";
+        var activeSeriesFilter = "all";
+        var activeSeriesNameFilter = "all";
         var unlockedKey = "site:novels-unlocked";
         var correctPassword = "seaboiii";
+
+        function hasSeries(card) {
+          return !!(card.dataset.series || "").trim();
+        }
+
+        function matchesSeriesFilter(card) {
+          if (activeSeriesFilter === "all") return true;
+          if (activeSeriesFilter === "series") return hasSeries(card);
+          if (activeSeriesFilter === "standalone") return !hasSeries(card);
+          return true;
+        }
+
+        function matchesSeriesNameFilter(card) {
+          if (activeSeriesNameFilter === "all") return true;
+          return (card.dataset.series || "").trim() === activeSeriesNameFilter;
+        }
+
+        function titleCaseWords(s) {
+          return String(s || "")
+            .split(/\s+/)
+            .filter(Boolean)
+            .map(function (word) {
+              return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            })
+            .join(" ");
+        }
+
+        function fallbackSeriesLabel(seriesId) {
+          return titleCaseWords(String(seriesId || "").replace(/[-_]+/g, " "));
+        }
+
+        function seriesLabelFromCard(card) {
+          var badge = card.querySelector('.novel-meta .badge[title^="Series:"]');
+          if (badge) {
+            var text = (badge.textContent || "").trim();
+            if (text) return text;
+            var title = (badge.getAttribute("title") || "").trim();
+            var m = title.match(/^Series:\s*(.+)$/i);
+            if (m && m[1]) return m[1].trim();
+          }
+          return fallbackSeriesLabel((card.dataset.series || "").trim());
+        }
+
+        function buildSeriesNameFilterButtons() {
+          if (!seriesNameFilterGroup || !grid) return;
+
+          var seen = Object.create(null);
+          var items = [];
+          grid.querySelectorAll(".novel-card").forEach(function (card) {
+            var seriesId = (card.dataset.series || "").trim();
+            if (!seriesId || seen[seriesId]) return;
+            seen[seriesId] = true;
+            items.push({
+              id: seriesId,
+              label: seriesLabelFromCard(card)
+            });
+          });
+
+          items.sort(function (a, b) {
+            return a.label.localeCompare(b.label);
+          });
+
+          seriesNameFilterGroup.innerHTML = "";
+          if (!items.length) {
+            seriesNameFilterGroup.style.display = "none";
+            activeSeriesNameFilter = "all";
+            return;
+          }
+
+          seriesNameFilterGroup.style.display = "";
+
+          function addBtn(label, value, title, active) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "pill-button" + (active ? " active" : "");
+            btn.dataset.filter = value;
+            if (title) btn.title = title;
+            btn.textContent = label;
+            seriesNameFilterGroup.appendChild(btn);
+          }
+
+          addBtn("All series", "all", "Show all series names", activeSeriesNameFilter === "all");
+          items.forEach(function (item) {
+            addBtn(item.label, item.id, "Only " + item.label, activeSeriesNameFilter === item.id);
+          });
+        }
 
         function shouldShow(card) {
           var title = card.dataset.title || "";
@@ -880,10 +987,12 @@
           var term = (search.value || "").trim().toLowerCase();
 
           var matchesTitle = !term || title.includes(term);
-          var matchesStatus = activeFilter === "all" || status === activeFilter;
+          var matchesStatus = activeStatusFilter === "all" || status === activeStatusFilter;
+          var matchesSeries = matchesSeriesFilter(card);
+          var matchesSeriesName = matchesSeriesNameFilter(card);
           var unlocked = localStorage.getItem(unlockedKey) === "true";
 
-          return matchesTitle && matchesStatus && (unlocked || !hidden);
+          return matchesTitle && matchesStatus && matchesSeries && matchesSeriesName && (unlocked || !hidden);
         }
 
         function update() {
@@ -896,15 +1005,32 @@
           count.textContent = visible + " novel" + (visible === 1 ? "" : "s") + " shown";
         }
 
-        filterButtons.forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            filterButtons.forEach(function (b) {
-              b.classList.remove("active");
+        function bindFilterGroup(group, onChange) {
+          if (!group) return;
+          var buttons = group.querySelectorAll("[data-filter]");
+          buttons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              buttons.forEach(function (b) {
+                b.classList.remove("active");
+              });
+              btn.classList.add("active");
+              onChange(btn.dataset.filter || "all");
+              update();
             });
-            btn.classList.add("active");
-            activeFilter = btn.dataset.filter;
-            update();
           });
+        }
+
+        bindFilterGroup(statusFilterGroup, function (value) {
+          activeStatusFilter = value;
+        });
+
+        bindFilterGroup(seriesFilterGroup, function (value) {
+          activeSeriesFilter = value;
+        });
+
+        buildSeriesNameFilterButtons();
+        bindFilterGroup(seriesNameFilterGroup, function (value) {
+          activeSeriesNameFilter = value;
         });
 
         search.addEventListener("input", update);
