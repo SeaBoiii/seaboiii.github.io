@@ -241,12 +241,6 @@
         font-family: inherit;
       }
 
-      article p.journal-box.journal-box-cjk {
-        /* Prefer a single Windows font that covers Latin, CJK, and box drawing
-           to reduce fallback-mixing drift in Chrome. */
-        font-family: "MS Gothic", "MS PGothic", "Meiryo", "Cascadia Mono", "Consolas", "Courier New", monospace;
-      }
-
       article p.journal-box.journal-box-fixed {
         white-space: normal;
       }
@@ -899,7 +893,6 @@
 
           var boxChars = /[╔╗╚╝║╠╣═┏┓┗┛┃┣┫━│|]/;
           var verticalEdgeChars = /[║┃│|]/;
-          var cjkChars = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
 
           function splitJournalHtmlLines(html) {
             var parts = String(html || '').split(/<br\s*\/?>/i);
@@ -1033,7 +1026,6 @@
             if ((text.match(/\n/g) || []).length < 2) return;
             if (!/JOURNAL ENTRY/.test(text) && !/^[\s]*[╔┏|]/m.test(text)) return;
             p.classList.add('journal-box');
-            if (cjkChars.test(text)) p.classList.add('journal-box-cjk');
 
             var htmlLines = splitJournalHtmlLines(p.innerHTML);
             if (htmlLines.length < 2) return;
@@ -1089,7 +1081,7 @@
               });
 
               if (rebuiltAny) {
-                p.style.setProperty('--journal-frame-width', targetWidth.toFixed(3) + 'px');
+                p.style.setProperty('--journal-frame-width', Math.ceil(targetWidth) + 'px');
                 p.classList.add('journal-box-fixed');
                 p.innerHTML = rebuilt.join('');
                 return;
