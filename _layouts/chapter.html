@@ -21,9 +21,8 @@
         --btn-text: #ffffff;
         --btn-brd: #111111;
         --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        --quote-bar: #c1c8d3;
-        --quote-bg: #f6f8fb;
-        --quote-edge: #e3e7ee;
+        --quote-bar: #b9c0cb;
+        --quote-bg: #f4f6f8;
         --quote-text: #111111;
         --quote-strong: #0b0d10;
         color-scheme: light dark;
@@ -41,9 +40,8 @@
           --btn-text: #0b0e13;
           --btn-brd: #e7eaf0;
           --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-          --quote-bar: #667081;
-          --quote-bg: #090c11;
-          --quote-edge: #171d26;
+          --quote-bar: #5a6474;
+          --quote-bg: #0f141c;
           --quote-text: #eef2f8;
           --quote-strong: #ffffff;
         }
@@ -60,9 +58,8 @@
         --btn-text: #ffffff;
         --btn-brd: #111111;
         --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        --quote-bar: #c1c8d3;
-        --quote-bg: #f6f8fb;
-        --quote-edge: #e3e7ee;
+        --quote-bar: #b9c0cb;
+        --quote-bg: #f4f6f8;
         --quote-text: #111111;
         --quote-strong: #0b0d10;
       }
@@ -78,9 +75,8 @@
         --btn-text: #0b0e13;
         --btn-brd: #e7eaf0;
         --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        --quote-bar: #667081;
-        --quote-bg: #090c11;
-        --quote-edge: #171d26;
+        --quote-bar: #5a6474;
+        --quote-bg: #0f141c;
         --quote-text: #eef2f8;
         --quote-strong: #ffffff;
       }
@@ -219,14 +215,21 @@
         margin: 0 0 1.25rem;
       }
 
+      article hr {
+        border: 0;
+        border-top: 1px solid color-mix(in oklab, var(--border), transparent 35%);
+        width: min(34ch, 58%);
+        margin: 2rem auto;
+        opacity: 0.75;
+      }
+
       article blockquote {
         margin: 1.1rem 0 1.35rem;
-        padding: 0.45rem 0.85rem 0.45rem 0.9rem;
-        border: 1px solid var(--quote-edge);
+        padding: 0.35rem 0 0.35rem 0.95rem;
         border-left: 4px solid var(--quote-bar);
         color: var(--quote-text);
         background: var(--quote-bg);
-        border-radius: 8px;
+        border-radius: 0 8px 8px 0;
       }
 
       article blockquote p {
@@ -430,7 +433,11 @@
       }
     </style>
   </head>
-  <body>
+  <body
+    data-novel="{{ page.novel | escape }}"
+    data-chapter-order="{{ page.order | default: '' }}"
+    data-chapter-title="{{ page.Title | default: page.title | escape }}"
+  >
     <header class="site-header">
       <div class="header-content">
         <a class="brand" href="{{ "/" | relative_url }}">{{ site.title }}</a>
@@ -595,16 +602,17 @@
       // Save + restore reading progress
       (function() {
         try {
-          var novel = {{ page.novel | jsonify }};
+          var bodyData = (document.body && document.body.dataset) || {};
+          var novel = bodyData.novel || '';
           if (!novel) return;
 
-          var chapterOrderRaw = {{ page.order | jsonify }};
+          var chapterOrderRaw = bodyData.chapterOrder || '';
           var chapterOrder = (typeof chapterOrderRaw === 'number')
             ? chapterOrderRaw
             : parseInt(chapterOrderRaw, 10);
           if (!isFinite(chapterOrder)) chapterOrder = null;
 
-          var chapterTitle = {{ page.Title | default: page.title | jsonify }};
+          var chapterTitle = bodyData.chapterTitle || '';
           var path = location.pathname;
           var lastUrlKey = 'novel:'+novel+':lastUrl';
           var stateKey = 'novel:'+novel+':state';

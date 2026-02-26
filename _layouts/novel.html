@@ -107,7 +107,7 @@ a:hover{text-decoration:underline}
 .theme-toggle:hover{filter:brightness(1.05)}
 </style>
 </head>
-<body>
+<body data-novel-slug="{{ page.novel | escape }}">
 {% assign novel_slug = page.novel %}
 {% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
 {% assign status = page.status | default: 'Incomplete' %}
@@ -172,7 +172,7 @@ a:hover{text-decoration:underline}
 <script>
 // Continue Reading + chapter progress UI (per novel)
 (function() {
-  var slug = {{ novel_slug | jsonify }};
+  var slug = (document.body && document.body.dataset && document.body.dataset.novelSlug) || '';
   var lastUrlKey = 'novel:'+slug+':lastUrl';
   var stateKey = 'novel:'+slug+':state';
   var chaptersKey = 'novel:'+slug+':chapters';
