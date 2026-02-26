@@ -241,30 +241,6 @@
         font-family: inherit;
       }
 
-      article p.journal-box.journal-box-fixed {
-        white-space: normal;
-      }
-
-      article p.journal-box.journal-box-fixed .journal-row {
-        display: block;
-        width: var(--journal-frame-width);
-        white-space: pre;
-      }
-
-      article p.journal-box.journal-box-fixed .journal-row-vert {
-        display: grid;
-        grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
-      }
-
-      article p.journal-box.journal-box-fixed .journal-mid,
-      article p.journal-box.journal-box-fixed .journal-gap {
-        min-width: 0;
-      }
-
-      article p.journal-box .journal-pad {
-        display: inline-block;
-      }
-
       article hr {
         border: 0;
         border-top: 1px solid color-mix(in oklab, var(--border), transparent 35%);
@@ -882,7 +858,7 @@
       })();
 
       // Ink That Reached Me: render journal box entries in monospace/preformatted text
-      // and normalize closing border alignment after markdown/inline formatting renders.
+      // so the vertical borders line up consistently.
       (function() {
         try {
           var bodyData = (document.body && document.body.dataset) || {};
@@ -892,133 +868,6 @@
           if (!article) return;
 
           var boxChars = /[╔╗╚╝║╠╣═┏┓┗┛┃┣┫━│|]/;
-          var verticalEdgeChars = /[║┃│|]/;
-
-          function splitJournalHtmlLines(html) {
-            var parts = String(html || '').split(/<br\s*\/?>/i);
-            return parts.map(function(part, index) {
-              if (index === 0) return part;
-              return part.replace(/^\r?\n/, '');
-            });
-          }
-
-          function makeMeasurer(source) {
-            var cs = window.getComputedStyle(source);
-            var m = document.createElement('span');
-            m.setAttribute('aria-hidden', 'true');
-            m.style.position = 'absolute';
-            m.style.left = '-99999px';
-            m.style.top = '0';
-            m.style.visibility = 'hidden';
-            m.style.display = 'inline-block';
-            m.style.whiteSpace = 'pre';
-            m.style.margin = '0';
-            m.style.padding = '0';
-            m.style.border = '0';
-            m.style.font = cs.font;
-            m.style.fontKerning = cs.fontKerning;
-            m.style.fontFeatureSettings = cs.fontFeatureSettings;
-            m.style.fontVariantLigatures = cs.fontVariantLigatures;
-            m.style.letterSpacing = cs.letterSpacing;
-            m.style.wordSpacing = cs.wordSpacing;
-            m.style.lineHeight = cs.lineHeight;
-            m.style.tabSize = cs.tabSize;
-            document.body.appendChild(m);
-            return m;
-          }
-
-          function measureHtmlWidth(measurer, html) {
-            measurer.innerHTML = html;
-            return measurer.getBoundingClientRect().width || 0;
-          }
-
-          function findLastTextNode(node) {
-            if (!node) return null;
-            for (var i = node.childNodes.length - 1; i >= 0; i--) {
-              var child = node.childNodes[i];
-              if (child.nodeType === 3) return child;
-              if (child.nodeType === 1) {
-                var nested = findLastTextNode(child);
-                if (nested) return nested;
-              }
-            }
-            return null;
-          }
-
-          function findFirstTextNode(node) {
-            if (!node) return null;
-            for (var i = 0; i < node.childNodes.length; i++) {
-              var child = node.childNodes[i];
-              if (child.nodeType === 3) return child;
-              if (child.nodeType === 1) {
-                var nested = findFirstTextNode(child);
-                if (nested) return nested;
-              }
-            }
-            return null;
-          }
-
-          function stripVerticalRowEdges(lineHtml) {
-            var wrap = document.createElement('span');
-            wrap.innerHTML = lineHtml;
-
-            var firstText = findFirstTextNode(wrap);
-            var lastText = findLastTextNode(wrap);
-            if (!firstText || !lastText) return null;
-
-            var firstValue = firstText.nodeValue || '';
-            var firstMatch = firstValue.match(/^([║┃│|])/);
-            if (!firstMatch) return null;
-            var leftEdge = firstMatch[1];
-            firstText.nodeValue = firstValue.slice(leftEdge.length);
-
-            var lastValue = lastText.nodeValue || '';
-            var lastMatch = lastValue.match(/([║┃│|])$/);
-            if (!lastMatch) return null;
-            var rightEdge = lastMatch[1];
-            lastText.nodeValue = lastValue.slice(0, lastValue.length - rightEdge.length);
-
-            return {
-              leftEdge: leftEdge,
-              rightEdge: rightEdge,
-              middleHtml: wrap.innerHTML
-            };
-          }
-
-          function addPadBeforeTrailingBorder(lineHtml, deltaPx) {
-            if (!(deltaPx > 0.25)) return lineHtml;
-
-            var wrap = document.createElement('span');
-            wrap.innerHTML = lineHtml;
-
-            var lastText = findLastTextNode(wrap);
-            if (!lastText || !lastText.nodeValue) return lineHtml;
-
-            var value = lastText.nodeValue;
-            var m = value.match(/([║┃│|])(\s*)$/);
-            if (!m) return lineHtml;
-
-            var edgeChar = m[1];
-            var trailing = m[2] || '';
-            var edgeIndex = value.length - trailing.length - 1;
-            var before = value.slice(0, edgeIndex);
-            var after = value.slice(edgeIndex + 1);
-
-            lastText.nodeValue = before;
-
-            var spacer = document.createElement('span');
-            spacer.className = 'journal-pad';
-            spacer.setAttribute('aria-hidden', 'true');
-            spacer.style.width = deltaPx.toFixed(3) + 'px';
-
-            var parent = lastText.parentNode;
-            var next = lastText.nextSibling;
-            parent.insertBefore(spacer, next);
-            parent.insertBefore(document.createTextNode(edgeChar + after), spacer.nextSibling);
-
-            return wrap.innerHTML;
-          }
-
           article.querySelectorAll('p').forEach(function(p) {
             var text = p.textContent || '';
             if (!boxChars.test(text)) return;
@@ -1026,90 +875,6 @@
             if ((text.match(/\n/g) || []).length < 2) return;
             if (!/JOURNAL ENTRY/.test(text) && !/^[\s]*[╔┏|]/m.test(text)) return;
             p.classList.add('journal-box');
-
-            var htmlLines = splitJournalHtmlLines(p.innerHTML);
-            if (htmlLines.length < 2) return;
-
-            var measurer = makeMeasurer(p);
-            try {
-              var rows = htmlLines.map(function(lineHtml) {
-                var probe = document.createElement('span');
-                probe.innerHTML = lineHtml;
-                var lineText = (probe.textContent || '').replace(/\r?\n/g, '');
-                return {
-                  html: lineHtml,
-                  text: lineText,
-                  width: measureHtmlWidth(measurer, lineHtml)
-                };
-              });
-
-              var targetWidth = 0;
-              rows.forEach(function(row) {
-                if (row.width > targetWidth) targetWidth = row.width;
-              });
-              if (!(targetWidth > 0)) return;
-
-              // More robust on Windows Chrome: render border rows as a fixed-width grid so
-              // the closing vertical border sits in a dedicated column.
-              var rebuiltAny = false;
-              var rebuilt = rows.map(function(row) {
-                var lineText = row.text || '';
-                if (!lineText) {
-                  return '<span class="journal-row journal-row-raw">' + row.html + '</span>';
-                }
-
-                var first = lineText.charAt(0);
-                var last = lineText.charAt(lineText.length - 1);
-                if (!verticalEdgeChars.test(first) || !verticalEdgeChars.test(last)) {
-                  return '<span class="journal-row journal-row-raw">' + row.html + '</span>';
-                }
-
-                var parsed = stripVerticalRowEdges(row.html);
-                if (!parsed) {
-                  return '<span class="journal-row journal-row-raw">' + row.html + '</span>';
-                }
-
-                rebuiltAny = true;
-                return (
-                  '<span class="journal-row journal-row-vert">' +
-                    '<span class="journal-edge journal-edge-left">' + parsed.leftEdge + '</span>' +
-                    '<span class="journal-mid">' + parsed.middleHtml + '</span>' +
-                    '<span class="journal-gap" aria-hidden="true"></span>' +
-                    '<span class="journal-edge journal-edge-right">' + parsed.rightEdge + '</span>' +
-                  '</span>'
-                );
-              });
-
-              if (rebuiltAny) {
-                p.style.setProperty('--journal-frame-width', Math.ceil(targetWidth) + 'px');
-                p.classList.add('journal-box-fixed');
-                p.innerHTML = rebuilt.join('');
-                return;
-              }
-
-              var changed = false;
-              var normalized = rows.map(function(row) {
-                var lineText = row.text || '';
-                if (!lineText) return row.html;
-
-                var first = lineText.charAt(0);
-                var last = lineText.charAt(lineText.length - 1);
-                if (!verticalEdgeChars.test(first) || !verticalEdgeChars.test(last)) return row.html;
-
-                var delta = targetWidth - row.width;
-                if (!(delta > 0.25)) return row.html;
-
-                var nextHtml = addPadBeforeTrailingBorder(row.html, delta);
-                if (nextHtml !== row.html) changed = true;
-                return nextHtml;
-              });
-
-              if (changed) {
-                p.innerHTML = normalized.join('<br>\n');
-              }
-            } finally {
-              if (measurer && measurer.parentNode) measurer.parentNode.removeChild(measurer);
-            }
           });
         } catch (e) {}
       })();
