@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Gender love euphoria — Chapters
+Title: Gender, Love, Euphoria
 novel: gender-love-euphoria
 status: Complete
 blurb: >-
