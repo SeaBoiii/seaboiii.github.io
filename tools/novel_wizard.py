@@ -1205,6 +1205,18 @@ def _clean_novel_title_for_editor(title: str) -> str:
     s = re.sub(r"\s*[—\-]\s*chapters\s*$", "", s, flags=re.I)
     return s.strip()
 
+def _sanitize_auto_chapter_title(title: str) -> str:
+    """
+    Auto-generated import titles should avoid ':' because unquoted YAML front matter
+    can misparse them in `Title: ...` lines.
+    """
+    s = normalize_smart_punctuation(str(title or "")).strip()
+    if not s:
+        return ""
+    s = re.sub(r"\s*:\s*", " - ", s)
+    s = re.sub(r"\s{2,}", " ", s).strip()
+    return s
+
 def _canonical_novel_title(slug: str, preferred_title: str = "") -> str:
     card_title = _clean_novel_title_for_editor(str(novel_card_details(slug).get("title") or ""))
     if card_title:
@@ -2391,6 +2403,7 @@ class Wizard(tk.Tk):
             title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after or stem_guess)
             if not title_guess and ent["kind"] == "epilogue":
                 title_guess = f"Epilogue {ent['num']}"
+            title_guess = _sanitize_auto_chapter_title(title_guess)
             if not title_guess:
                 title_guess = f"Chapter {rec['order']}"
 
@@ -2481,7 +2494,7 @@ class Wizard(tk.Tk):
         if info.get("kind") == "unknown":
             messagebox.showerror("Import failed", "Unsupported file type. Use .docx or .md/.markdown.")
             return
-        imported_title = (info.get("title") or "").strip()
+        imported_title = _sanitize_auto_chapter_title((info.get("title") or "").strip())
         if title_var is not None and imported_title:
             try:
                 if not title_var.get().strip():
