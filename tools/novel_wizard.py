@@ -1323,13 +1323,27 @@ def copy_cover_to_images_and_cleanup(src_path: str, slug: str) -> tuple[str, lis
     cover_rel = copy_cover_to_images(src_path, slug)
     dst_path = _local_path_from_site_url(cover_rel)
     removed = []
+
+    def _remove_if_exists(path: Path):
+        try:
+            if path.exists():
+                path.unlink()
+                removed.append(path)
+        except Exception:
+            pass
+
+    # Keep only the newly selected source extension (if any).
     for ext in SUPPORTED_COVER_EXTS:
         candidate = IMAGES_DIR / f"{slug}-cover{ext}"
         if dst_path is not None and candidate == dst_path:
             continue
-        if candidate.exists():
-            candidate.unlink()
-            removed.append(candidate)
+        _remove_if_exists(candidate)
+
+    # Force optimized responsive variants to regenerate from the new source.
+    for ext in ("jpg", "webp"):
+        for candidate in IMAGES_DIR.glob(f"{slug}-cover-*.{ext}"):
+            _remove_if_exists(candidate)
+
     return cover_rel, removed
 
 def _card_image_url(card) -> str:

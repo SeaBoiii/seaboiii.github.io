@@ -26,14 +26,38 @@ IMAGES_SRC = REPO / "images_src"  # optional fallback for originals
 SIZES = [320, 640, 960]
 
 
-def variants_exist(base_out: str) -> bool:
-    """Return True if all webp/jpg variants for base_out exist in /images."""
+def variant_paths(base_out: str) -> list[Path]:
+    paths = []
     for w in SIZES:
-        if not (IMAGES_DIR / f"{base_out}-{w}.webp").exists():
-            return False
-        if not (IMAGES_DIR / f"{base_out}-{w}.jpg").exists():
-            return False
-    return True
+        paths.append(IMAGES_DIR / f"{base_out}-{w}.webp")
+        paths.append(IMAGES_DIR / f"{base_out}-{w}.jpg")
+    return paths
+
+
+def variants_need_regen(base_out: str, source_path: Path | None) -> bool:
+    """
+    Return True when variants are missing or when source_path is newer than
+    any generated variant.
+    """
+    paths = variant_paths(base_out)
+    for p in paths:
+        if not p.exists():
+            return True
+    if source_path is None or not source_path.exists():
+        return False
+
+    try:
+        src_mtime = source_path.stat().st_mtime
+    except OSError:
+        return False
+
+    for p in paths:
+        try:
+            if p.stat().st_mtime < src_mtime:
+                return True
+        except OSError:
+            return True
+    return False
 
 
 def find_original_image(src_url: str) -> Path | None:
@@ -152,18 +176,19 @@ def main():
         alt = img.get("alt", "").strip()
         base_out = normalize_base_from_src(src)
 
-        if not variants_exist(base_out):
-            orig = find_original_image(src)
-            if not orig:
-                for ext in (".png", ".jpg", ".jpeg", ".webp"):
-                    probe = IMAGES_DIR / f"{base_out}{ext}"
-                    if probe.exists():
-                        orig = probe
-                        break
-                    probe = IMAGES_SRC / f"{base_out}{ext}"
-                    if probe.exists():
-                        orig = probe
-                        break
+        orig = find_original_image(src)
+        if not orig:
+            for ext in (".png", ".jpg", ".jpeg", ".webp"):
+                probe = IMAGES_DIR / f"{base_out}{ext}"
+                if probe.exists():
+                    orig = probe
+                    break
+                probe = IMAGES_SRC / f"{base_out}{ext}"
+                if probe.exists():
+                    orig = probe
+                    break
+
+        if variants_need_regen(base_out, orig):
             if orig and orig.exists():
                 print(f"Optimizing {orig} -> /images/{base_out}-{{320,640,960}}.webp/.jpg")
                 make_variants(orig, base_out)
