@@ -191,18 +191,15 @@
 
       @media (min-width: 720px) {
         .controls {
-          grid-template-columns: minmax(220px, 1fr) auto auto auto;
+          grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(130px, 1fr));
           align-items: end;
-        }
-
-        .filter-block-series-list {
-          grid-column: 1 / -1;
         }
       }
 
       .filter-block {
         display: grid;
         gap: 0.35rem;
+        min-width: 0;
       }
 
       .filter-label {
@@ -223,6 +220,21 @@
       }
 
       .search:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 40%);
+        outline-offset: 2px;
+      }
+
+      .filter-select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.6rem 0.75rem;
+        background: var(--card);
+        color: var(--text);
+        font-size: 0.9rem;
+      }
+
+      .filter-select:focus-visible {
         outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 40%);
         outline-offset: 2px;
       }
@@ -354,6 +366,7 @@
       }
 
       #resultsCount {
+        grid-column: 1 / -1;
         justify-self: end;
         font-size: 0.82rem;
         border: 1px dashed var(--border);
@@ -406,45 +419,64 @@
     <div class="controls">
      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
      <div class="filter-block">
-      <span class="filter-label">
+      <label class="filter-label" for="statusFilter">
        Status
-      </span>
-      <div aria-label="Filter by status" class="filter-group" data-filter-group="status" role="group">
-       <button class="pill-button active" data-filter="all" type="button">
+      </label>
+      <select class="filter-select" id="statusFilter">
+       <option value="all">
         All
-       </button>
-       <button class="pill-button" data-filter="complete" type="button">
+       </option>
+       <option value="complete">
         Complete
-       </button>
-       <button class="pill-button" data-filter="incomplete" type="button">
+       </option>
+       <option value="incomplete">
         Incomplete
-       </button>
-      </div>
+       </option>
+      </select>
      </div>
      <div class="filter-block">
-      <span class="filter-label">
+      <label class="filter-label" for="categoryFilter">
        Category
-      </span>
-      <div aria-label="Filter by series" class="filter-group" data-filter-group="series" role="group">
-       <button class="pill-button active" data-filter="all" title="Show all novels" type="button">
+      </label>
+      <select class="filter-select" id="categoryFilter">
+       <option value="all">
         Any
-       </button>
-       <button class="pill-button" data-filter="series" title="Only novels in a series" type="button">
+       </option>
+       <option value="series">
         Series
-       </button>
-       <button class="pill-button" data-filter="standalone" title="Only standalone novels" type="button">
+       </option>
+       <option value="standalone">
         Standalone
-       </button>
-      </div>
+       </option>
+      </select>
+     </div>
+     <div class="filter-block">
+      <label class="filter-label" for="sortFilter">
+       Sort
+      </label>
+      <select class="filter-select" id="sortFilter">
+       <option value="recent">
+        Recent
+       </option>
+       <option value="alpha">
+        A-Z
+       </option>
+       <option value="series-order">
+        Series Order
+       </option>
+      </select>
+     </div>
+     <div class="filter-block">
+      <label class="filter-label" for="seriesFilter">
+       Series
+      </label>
+      <select class="filter-select" id="seriesFilter">
+       <option value="all">
+        All series
+       </option>
+      </select>
      </div>
      <div aria-live="polite" class="muted" id="resultsCount">
-     </div>
-     <div class="filter-block filter-block-series-list">
-      <span class="filter-label">
-       Series
-      </span>
-      <div aria-label="Filter by specific series" class="filter-group filter-group-series-list" data-filter-group="series-name" role="group">
-      </div>
      </div>
     </div>
    </div>
@@ -1040,16 +1072,62 @@
         var search = document.getElementById("novelSearch");
         var grid = document.getElementById("novelGrid");
         var count = document.getElementById("resultsCount");
-        var statusFilterGroup = document.querySelector('[data-filter-group="status"]');
-        var seriesFilterGroup = document.querySelector('[data-filter-group="series"]');
-        var seriesNameFilterGroup = document.querySelector('[data-filter-group="series-name"]');
-        var seriesNameFilterWrap = seriesNameFilterGroup ? seriesNameFilterGroup.closest(".filter-block") : null;
+        var statusSelect = document.getElementById("statusFilter");
+        var categorySelect = document.getElementById("categoryFilter");
+        var sortSelect = document.getElementById("sortFilter");
+        var seriesSelect = document.getElementById("seriesFilter");
         var secretBtn = document.getElementById("secretBtn");
+        if (
+          !search ||
+          !grid ||
+          !count ||
+          !statusSelect ||
+          !categorySelect ||
+          !sortSelect ||
+          !seriesSelect ||
+          !secretBtn
+        ) return;
+        var cards = Array.prototype.slice.call(grid.querySelectorAll(".novel-card"));
         var activeStatusFilter = "all";
         var activeSeriesFilter = "all";
         var activeSeriesNameFilter = "all";
+        var activeSortFilter = "recent";
         var unlockedKey = "site:novels-unlocked";
+        var uiStateKey = "site:novels-ui";
         var correctPassword = "seaboiii";
+
+        cards.forEach(function (card, idx) {
+          card.dataset.initialIndex = String(idx);
+        });
+
+        function loadUiState() {
+          try {
+            var raw = localStorage.getItem(uiStateKey);
+            if (!raw) return {};
+            var data = JSON.parse(raw);
+            return (data && typeof data === "object") ? data : {};
+          } catch (e) {
+            return {};
+          }
+        }
+
+        function saveUiState() {
+          var payload = {
+            statusFilter: activeStatusFilter,
+            seriesFilter: activeSeriesFilter,
+            seriesNameFilter: activeSeriesNameFilter,
+            sortFilter: activeSortFilter,
+            searchTerm: (search.value || "").trim()
+          };
+          try {
+            localStorage.setItem(uiStateKey, JSON.stringify(payload));
+          } catch (e) {}
+        }
+
+        function normalizeChoice(value, allowed, fallback) {
+          if (allowed.indexOf(value) >= 0) return value;
+          return fallback;
+        }
 
         function normalizeMetaRows() {
           if (!grid) return;
@@ -1117,6 +1195,13 @@
           return (card.dataset.series || "").trim() === activeSeriesNameFilter;
         }
 
+        function cardTitle(card) {
+          var raw = (card.dataset.title || "").trim();
+          if (raw) return raw.toLowerCase();
+          var node = card.querySelector(".novel-title");
+          return node ? (node.textContent || "").trim().toLowerCase() : "";
+        }
+
         function titleCaseWords(s) {
           return String(s || "")
             .split(/\s+/)
@@ -1143,12 +1228,70 @@
           return fallbackSeriesLabel((card.dataset.series || "").trim());
         }
 
-        function buildSeriesNameFilterButtons() {
-          if (!seriesNameFilterGroup || !grid) return;
+        function cardSeriesOrder(card) {
+          var raw = (card.dataset.order || "").trim();
+          if (!raw) return 2147483647;
+          var n = parseInt(raw, 10);
+          return Number.isFinite(n) ? n : 2147483647;
+        }
 
+        function sortCards() {
+          var sorted = cards.slice();
+          sorted.sort(function (a, b) {
+            var aIdx = parseInt(a.dataset.initialIndex || "0", 10) || 0;
+            var bIdx = parseInt(b.dataset.initialIndex || "0", 10) || 0;
+
+            if (activeSortFilter === "recent") {
+              if (aIdx !== bIdx) return bIdx - aIdx;
+              return 0;
+            }
+
+            if (activeSortFilter === "alpha") {
+              var alphaCmp = cardTitle(a).localeCompare(cardTitle(b));
+              if (alphaCmp !== 0) return alphaCmp;
+              return aIdx - bIdx;
+            }
+
+            if (activeSortFilter === "series-order") {
+              var aSeries = (a.dataset.series || "").trim();
+              var bSeries = (b.dataset.series || "").trim();
+              var aHasSeries = !!aSeries;
+              var bHasSeries = !!bSeries;
+
+              if (aHasSeries !== bHasSeries) return aHasSeries ? -1 : 1;
+              if (aHasSeries && bHasSeries) {
+                var seriesCmp = seriesLabelFromCard(a).localeCompare(seriesLabelFromCard(b));
+                if (seriesCmp !== 0) return seriesCmp;
+
+                var orderCmp = cardSeriesOrder(a) - cardSeriesOrder(b);
+                if (orderCmp !== 0) return orderCmp;
+              }
+
+              var titleCmp = cardTitle(a).localeCompare(cardTitle(b));
+              if (titleCmp !== 0) return titleCmp;
+              return aIdx - bIdx;
+            }
+
+            return aIdx - bIdx;
+          });
+
+          sorted.forEach(function (card) {
+            grid.appendChild(card);
+          });
+        }
+
+        function optionExists(select, value) {
+          var found = false;
+          Array.prototype.forEach.call(select.options, function (opt) {
+            if (!found && opt.value === value) found = true;
+          });
+          return found;
+        }
+
+        function buildSeriesSelectOptions() {
           var seen = Object.create(null);
           var items = [];
-          grid.querySelectorAll(".novel-card").forEach(function (card) {
+          cards.forEach(function (card) {
             var seriesId = (card.dataset.series || "").trim();
             if (!seriesId || seen[seriesId]) return;
             seen[seriesId] = true;
@@ -1162,41 +1305,35 @@
             return a.label.localeCompare(b.label);
           });
 
-          seriesNameFilterGroup.innerHTML = "";
+          var preferred = activeSeriesNameFilter;
+          seriesSelect.innerHTML = "";
+
+          var allOpt = document.createElement("option");
+          allOpt.value = "all";
+          allOpt.textContent = "All series";
+          seriesSelect.appendChild(allOpt);
+
+          items.forEach(function (item) {
+            var opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = item.label;
+            opt.title = "Only " + item.label;
+            seriesSelect.appendChild(opt);
+          });
+
+          seriesSelect.disabled = !items.length;
           if (!items.length) {
-            if (seriesNameFilterWrap) {
-              seriesNameFilterWrap.style.display = "none";
-            } else {
-              seriesNameFilterGroup.style.display = "none";
-            }
             activeSeriesNameFilter = "all";
+            seriesSelect.value = "all";
             return;
           }
 
-          if (seriesNameFilterWrap) {
-            seriesNameFilterWrap.style.display = "";
-          } else {
-            seriesNameFilterGroup.style.display = "";
-          }
-
-          function addBtn(label, value, title, active) {
-            var btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "pill-button" + (active ? " active" : "");
-            btn.dataset.filter = value;
-            if (title) btn.title = title;
-            btn.textContent = label;
-            seriesNameFilterGroup.appendChild(btn);
-          }
-
-          addBtn("All series", "all", "Show all series names", activeSeriesNameFilter === "all");
-          items.forEach(function (item) {
-            addBtn(item.label, item.id, "Only " + item.label, activeSeriesNameFilter === item.id);
-          });
+          activeSeriesNameFilter = optionExists(seriesSelect, preferred) ? preferred : "all";
+          seriesSelect.value = activeSeriesNameFilter;
         }
 
         function shouldShow(card) {
-          var title = card.dataset.title || "";
+          var title = cardTitle(card);
           var status = card.dataset.status || "";
           var hidden = card.dataset.hidden === "true";
           var term = (search.value || "").trim().toLowerCase();
@@ -1212,41 +1349,58 @@
 
         function update() {
           var visible = 0;
-          grid.querySelectorAll(".novel-card").forEach(function (card) {
+          sortCards();
+          cards.forEach(function (card) {
             var show = shouldShow(card);
             card.style.display = show ? "flex" : "none";
             if (show) visible += 1;
           });
           count.textContent = visible + " novel" + (visible === 1 ? "" : "s") + " shown";
+          saveUiState();
         }
 
-        function bindFilterGroup(group, onChange) {
-          if (!group) return;
-          var buttons = group.querySelectorAll("[data-filter]");
-          buttons.forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              buttons.forEach(function (b) {
-                b.classList.remove("active");
-              });
-              btn.classList.add("active");
-              onChange(btn.dataset.filter || "all");
-              update();
-            });
-          });
+        var savedUi = loadUiState();
+        activeStatusFilter = normalizeChoice(savedUi.statusFilter, ["all", "complete", "incomplete"], "all");
+        activeSeriesFilter = normalizeChoice(savedUi.seriesFilter, ["all", "series", "standalone"], "all");
+        activeSortFilter = normalizeChoice(savedUi.sortFilter, ["recent", "alpha", "series-order"], "recent");
+        activeSeriesNameFilter = (typeof savedUi.seriesNameFilter === "string" && savedUi.seriesNameFilter.trim())
+          ? savedUi.seriesNameFilter.trim()
+          : "all";
+        if (typeof savedUi.searchTerm === "string") {
+          search.value = savedUi.searchTerm;
         }
-
-        bindFilterGroup(statusFilterGroup, function (value) {
-          activeStatusFilter = value;
-        });
-
-        bindFilterGroup(seriesFilterGroup, function (value) {
-          activeSeriesFilter = value;
-        });
 
         normalizeMetaRows();
-        buildSeriesNameFilterButtons();
-        bindFilterGroup(seriesNameFilterGroup, function (value) {
-          activeSeriesNameFilter = value;
+        buildSeriesSelectOptions();
+
+        statusSelect.value = activeStatusFilter;
+        categorySelect.value = activeSeriesFilter;
+        sortSelect.value = activeSortFilter;
+        if (optionExists(seriesSelect, activeSeriesNameFilter)) {
+          seriesSelect.value = activeSeriesNameFilter;
+        } else {
+          seriesSelect.value = "all";
+          activeSeriesNameFilter = "all";
+        }
+
+        statusSelect.addEventListener("change", function () {
+          activeStatusFilter = normalizeChoice(statusSelect.value, ["all", "complete", "incomplete"], "all");
+          update();
+        });
+
+        categorySelect.addEventListener("change", function () {
+          activeSeriesFilter = normalizeChoice(categorySelect.value, ["all", "series", "standalone"], "all");
+          update();
+        });
+
+        sortSelect.addEventListener("change", function () {
+          activeSortFilter = normalizeChoice(sortSelect.value, ["recent", "alpha", "series-order"], "recent");
+          update();
+        });
+
+        seriesSelect.addEventListener("change", function () {
+          activeSeriesNameFilter = seriesSelect.value || "all";
+          update();
         });
 
         search.addEventListener("input", update);
