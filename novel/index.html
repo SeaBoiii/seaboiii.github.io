@@ -180,20 +180,37 @@
 
       .controls {
         display: grid;
-        gap: 0.75rem;
+        gap: 0.85rem;
         grid-template-columns: 1fr;
         margin: 1.5rem 0 0;
+        padding: 0.95rem;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: color-mix(in oklab, var(--card), var(--bg) 35%);
       }
 
       @media (min-width: 720px) {
         .controls {
-          grid-template-columns: 1fr auto auto auto;
-          align-items: center;
+          grid-template-columns: minmax(220px, 1fr) auto auto auto;
+          align-items: end;
         }
 
-        .filter-group-series-list {
+        .filter-block-series-list {
           grid-column: 1 / -1;
         }
+      }
+
+      .filter-block {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .filter-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--muted);
       }
 
       .search {
@@ -205,10 +222,25 @@
         color: var(--text);
       }
 
+      .search:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 40%);
+        outline-offset: 2px;
+      }
+
       .filter-group {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.4rem;
         flex-wrap: wrap;
+        align-items: center;
+        padding: 0.28rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: color-mix(in oklab, var(--card), var(--bg) 30%);
+      }
+
+      .filter-group-series-list {
+        border-radius: 12px;
+        min-height: 2.3rem;
       }
 
       .pill-button {
@@ -219,6 +251,16 @@
         padding: 0.35rem 0.7rem;
         cursor: pointer;
         font-size: 0.85rem;
+        transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+      }
+
+      .pill-button:hover {
+        background: color-mix(in oklab, var(--card), var(--text) 8%);
+      }
+
+      .pill-button:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 40%);
+        outline-offset: 1px;
       }
 
       .pill-button.active {
@@ -270,12 +312,22 @@
       }
 
       .novel-meta {
+        display: grid;
+        gap: 0.35rem;
+        width: 100%;
+        margin-top: 0.85rem;
+      }
+
+      .meta-row {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.45rem;
         flex-wrap: wrap;
         align-items: center;
         justify-content: center;
-        margin-top: 0.85rem;
+      }
+
+      .meta-row-extra .badge {
+        font-size: 0.72rem;
       }
 
       .badge {
@@ -299,6 +351,20 @@
 
       .muted {
         color: var(--muted);
+      }
+
+      #resultsCount {
+        justify-self: end;
+        font-size: 0.82rem;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        padding: 0.28rem 0.62rem;
+      }
+
+      @media (max-width: 719px) {
+        #resultsCount {
+          justify-self: start;
+        }
       }
 
       .footer {
@@ -339,31 +405,46 @@
     </div>
     <div class="controls">
      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
-     <div aria-label="Filter by status" class="filter-group" data-filter-group="status" role="group">
-      <button class="pill-button active" data-filter="all" type="button">
-       All
-      </button>
-      <button class="pill-button" data-filter="complete" type="button">
-       Complete
-      </button>
-      <button class="pill-button" data-filter="incomplete" type="button">
-       Incomplete
-      </button>
+     <div class="filter-block">
+      <span class="filter-label">
+       Status
+      </span>
+      <div aria-label="Filter by status" class="filter-group" data-filter-group="status" role="group">
+       <button class="pill-button active" data-filter="all" type="button">
+        All
+       </button>
+       <button class="pill-button" data-filter="complete" type="button">
+        Complete
+       </button>
+       <button class="pill-button" data-filter="incomplete" type="button">
+        Incomplete
+       </button>
+      </div>
      </div>
-     <div aria-label="Filter by series" class="filter-group" data-filter-group="series" role="group">
-      <button class="pill-button active" data-filter="all" title="Show all novels" type="button">
-       Any
-      </button>
-      <button class="pill-button" data-filter="series" title="Only novels in a series" type="button">
-       Series
-      </button>
-      <button class="pill-button" data-filter="standalone" title="Only standalone novels" type="button">
-       Standalone
-      </button>
+     <div class="filter-block">
+      <span class="filter-label">
+       Category
+      </span>
+      <div aria-label="Filter by series" class="filter-group" data-filter-group="series" role="group">
+       <button class="pill-button active" data-filter="all" title="Show all novels" type="button">
+        Any
+       </button>
+       <button class="pill-button" data-filter="series" title="Only novels in a series" type="button">
+        Series
+       </button>
+       <button class="pill-button" data-filter="standalone" title="Only standalone novels" type="button">
+        Standalone
+       </button>
+      </div>
      </div>
      <div aria-live="polite" class="muted" id="resultsCount">
      </div>
-     <div aria-label="Filter by specific series" class="filter-group filter-group-series-list" data-filter-group="series-name" role="group">
+     <div class="filter-block filter-block-series-list">
+      <span class="filter-label">
+       Series
+      </span>
+      <div aria-label="Filter by specific series" class="filter-group filter-group-series-list" data-filter-group="series-name" role="group">
+      </div>
      </div>
     </div>
    </div>
@@ -962,12 +1043,63 @@
         var statusFilterGroup = document.querySelector('[data-filter-group="status"]');
         var seriesFilterGroup = document.querySelector('[data-filter-group="series"]');
         var seriesNameFilterGroup = document.querySelector('[data-filter-group="series-name"]');
+        var seriesNameFilterWrap = seriesNameFilterGroup ? seriesNameFilterGroup.closest(".filter-block") : null;
         var secretBtn = document.getElementById("secretBtn");
         var activeStatusFilter = "all";
         var activeSeriesFilter = "all";
         var activeSeriesNameFilter = "all";
         var unlockedKey = "site:novels-unlocked";
         var correctPassword = "seaboiii";
+
+        function normalizeMetaRows() {
+          if (!grid) return;
+          grid.querySelectorAll(".novel-meta").forEach(function (meta) {
+            var hasRows = false;
+            Array.prototype.forEach.call(meta.children, function (child) {
+              if (child.classList && child.classList.contains("meta-row")) {
+                hasRows = true;
+              }
+            });
+            if (hasRows) return;
+
+            var badges = Array.prototype.filter.call(meta.children, function (child) {
+              return child.classList && child.classList.contains("badge");
+            });
+            if (!badges.length) return;
+
+            var statusBadge = null;
+            badges.forEach(function (badge) {
+              if (
+                !statusBadge &&
+                (badge.classList.contains("complete") || badge.classList.contains("incomplete"))
+              ) {
+                statusBadge = badge;
+              }
+            });
+
+            if (!statusBadge) {
+              statusBadge = badges[0];
+            }
+
+            var statusRow = document.createElement("div");
+            statusRow.className = "meta-row meta-row-status";
+            statusRow.appendChild(statusBadge);
+
+            var extraRow = document.createElement("div");
+            extraRow.className = "meta-row meta-row-extra";
+            badges.forEach(function (badge) {
+              if (badge !== statusBadge) {
+                extraRow.appendChild(badge);
+              }
+            });
+
+            meta.innerHTML = "";
+            meta.appendChild(statusRow);
+            if (extraRow.childElementCount > 0) {
+              meta.appendChild(extraRow);
+            }
+          });
+        }
 
         function hasSeries(card) {
           return !!(card.dataset.series || "").trim();
@@ -1032,12 +1164,20 @@
 
           seriesNameFilterGroup.innerHTML = "";
           if (!items.length) {
-            seriesNameFilterGroup.style.display = "none";
+            if (seriesNameFilterWrap) {
+              seriesNameFilterWrap.style.display = "none";
+            } else {
+              seriesNameFilterGroup.style.display = "none";
+            }
             activeSeriesNameFilter = "all";
             return;
           }
 
-          seriesNameFilterGroup.style.display = "";
+          if (seriesNameFilterWrap) {
+            seriesNameFilterWrap.style.display = "";
+          } else {
+            seriesNameFilterGroup.style.display = "";
+          }
 
           function addBtn(label, value, title, active) {
             var btn = document.createElement("button");
@@ -1103,6 +1243,7 @@
           activeSeriesFilter = value;
         });
 
+        normalizeMetaRows();
         buildSeriesNameFilterButtons();
         bindFilterGroup(seriesNameFilterGroup, function (value) {
           activeSeriesNameFilter = value;

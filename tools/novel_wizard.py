@@ -365,12 +365,17 @@ def sync_relationship_badges_in_novels_index() -> dict:
         else:
             meta["class"] = ["novel-meta"]
 
-        # Canonical rebuild of meta badges: status + relationship + hidden.
+        # Canonical rebuild of meta badges with grouped rows:
+        # status row first, then relationship/hidden tags row.
         meta.clear()
 
+        status_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-status"]})
         status_badge = soup.new_tag("span", attrs={"class": ["badge", status_class]})
         status_badge.string = status_text
-        meta.append(status_badge)
+        status_row.append(status_badge)
+        meta.append(status_row)
+
+        extra_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-extra"]})
 
         for badge in relationship_badges_for_slug(slug):
             label = str(badge.get("label") or "").strip()
@@ -381,12 +386,15 @@ def sync_relationship_badges_in_novels_index() -> dict:
             if title:
                 badge_tag["title"] = title
             badge_tag.string = label
-            meta.append(badge_tag)
+            extra_row.append(badge_tag)
 
         if hidden:
             hidden_badge = soup.new_tag("span", attrs={"class": ["badge"]})
             hidden_badge.string = "Hidden"
-            meta.append(hidden_badge)
+            extra_row.append(hidden_badge)
+
+        if extra_row.contents:
+            meta.append(extra_row)
 
         if str(card) != before:
             cards_updated += 1
@@ -833,7 +841,7 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
         data_related_to = f''' data-related-to="{html_escape(str(rel_entry.get("related_to")))}"'''
 
     hidden_attr = ' data-hidden="true"' if hidden else ''
-    hidden_badge = f'''              <span class="badge">Hidden</span>\n''' if hidden else ''
+    hidden_badge = f'''                <span class="badge">Hidden</span>\n''' if hidden else ''
     rel_badges = []
     for badge in relationship_badges_for_slug(slug):
         label = html_escape(str(badge.get("label") or ""))
@@ -841,8 +849,14 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
             continue
         title = str(badge.get("title") or "").strip()
         title_attr = f''' title="{html_escape(title)}"''' if title else ""
-        rel_badges.append(f'''              <span class="badge"{title_attr}>{label}</span>\n''')
+        rel_badges.append(f'''                <span class="badge"{title_attr}>{label}</span>\n''')
     rel_badges_html = "".join(rel_badges)
+    extra_badges_html = rel_badges_html + hidden_badge
+    extra_row_html = (
+        f'''              <div class="meta-row meta-row-extra">\n'''
+        f'''{extra_badges_html}'''
+        f'''              </div>\n'''
+    ) if extra_badges_html else ""
 
     safe_title = html_escape(novel_title)
     safe_aria = html_escape(novel_title)
@@ -853,9 +867,10 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
         f'''            <img src="{safe_cover}" alt="{safe_title}" loading="lazy" />\n'''
         f'''            <h2 class="novel-title">{safe_title}</h2>\n'''
         f'''            <div class="novel-meta">\n'''
-        f'''              <span class="badge {status_class}">{status_text}</span>\n'''
-        f'''{rel_badges_html}'''
-        f'''{hidden_badge}'''
+        f'''              <div class="meta-row meta-row-status">\n'''
+        f'''                <span class="badge {status_class}">{status_text}</span>\n'''
+        f'''              </div>\n'''
+        f'''{extra_row_html}'''
         f'''            </div>\n'''
         f'''          </a>\n'''
         f'''        </li>\n'''
