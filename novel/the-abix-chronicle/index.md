@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: The abix chronicle — Chapters
+Title: The ABIX Chronicle
 novel: the-abix-chronicle
 status: Complete
 blurb: >-

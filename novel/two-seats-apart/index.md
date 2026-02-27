@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Two seats apart — Chapters
+Title: Two Seats Apart
 novel: two-seats-apart
 status: Complete
 blurb: >-

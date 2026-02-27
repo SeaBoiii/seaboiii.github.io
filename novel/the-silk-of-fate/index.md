@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: The silk of fate — Chapters
+Title: The Silk of Fate
 novel: the-silk-of-fate
 status: Incomplete
 blurb: >-

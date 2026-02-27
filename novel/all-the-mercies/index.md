@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: All the mercies — Chapters
+Title: All the Mercies
 novel: all-the-mercies
 status: Complete
 blurb: >-

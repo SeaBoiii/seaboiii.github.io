@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: The ledger of ash — Chapters
+Title: The Ledger of Ash
 novel: the-ledger-of-ash
 status: Complete
 blurb: >-

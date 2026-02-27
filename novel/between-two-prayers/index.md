@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Between two prayers — Chapters
+Title: Between Two Prayers
 novel: between-two-prayers
 status: Complete
 blurb: >-

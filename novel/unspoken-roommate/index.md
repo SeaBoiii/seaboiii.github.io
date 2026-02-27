@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Unspoken roommate — Chapters
+Title: Unspoken Roommate
 novel: unspoken-roommate
 status: Complete
 blurb: >-

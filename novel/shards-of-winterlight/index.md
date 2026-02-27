@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Shards Of Winterlight
+Title: Shards of Winterlight
 novel: shards-of-winterlight
 status: Complete
 blurb: >-

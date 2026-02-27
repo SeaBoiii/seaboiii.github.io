@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Still my favourite song — Chapters
+Title: Still My Favourite Song
 novel: still-my-favourite-song
 status: Complete
 blurb: >-

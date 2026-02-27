@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Tkinter Novel Wizard for GitHub Pages + Jekyll
-- Create a new novel with chapters (minimal inputs)
-- Append additional chapters to an existing novel (no cover input)
-- Formatted paste (HTML/RTF → Markdown) + single DOCX/Markdown import
-- NEW: Bulk DOCX/Markdown import (select multiple files; sorted by filename; fills titles & content; auto-scales tabs)
+- Mode 1: Create New (create novel, chapters, cover, relationship metadata)
+- Mode 2: Edit Current (edit metadata/relationships, append chapters, replace cover)
+- Formatted paste (HTML/RTF -> Markdown) + single DOCX/Markdown import
+- Bulk DOCX/Markdown import with chapter + epilogue ordering support
+- Built-in git commit (summary + description); user handles git push
 
 Run from your repo root: python3 tools/novel_wizard.py
 """
@@ -70,7 +71,8 @@ def pretty(slug: str) -> str:
 
 def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8", newline="\n")
+    with p.open("w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
 
 def _normalize_relation_type(value: str) -> str:
     s = (value or "").strip().lower()
@@ -150,10 +152,9 @@ def save_relationship_registry(registry: dict):
         if entry:
             clean[slug] = entry
     RELATIONSHIPS_JSON.parent.mkdir(parents=True, exist_ok=True)
-    RELATIONSHIPS_JSON.write_text(
+    write_text(
+        RELATIONSHIPS_JSON,
         json.dumps(clean, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-        newline="\n",
     )
 
 def upsert_relationship_registry_entry(slug: str, entry: Optional[dict]):
@@ -393,7 +394,7 @@ def sync_relationship_badges_in_novels_index() -> dict:
     new_html = soup.prettify()
     file_changed = new_html != html
     if file_changed:
-        NOVELS_INDEX_HTML.write_text(new_html, encoding="utf-8", newline="\n")
+        write_text(NOVELS_INDEX_HTML, new_html)
 
     return {
         "cards_total": len(cards),
@@ -664,9 +665,7 @@ def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
         body += "\n"
     return header + body
 
-def build_index_md(slug: str, status: str = "Incomplete", blurb: str = "") -> str:
-    t = pretty(slug)
-    body = """<ul>
+DEFAULT_NOVEL_INDEX_BODY = """<ul>
 {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
 {% assign items = site.pages
   | where_exp: 'p', 'p.url contains pathprefix'
@@ -677,7 +676,23 @@ def build_index_md(slug: str, status: str = "Incomplete", blurb: str = "") -> st
 {% endfor %}
 </ul>
 """
-    blurb_text = blurb.strip() if blurb else "A captivating story."
+
+def _format_blurb_yaml_block(blurb: str) -> str:
+    text = (blurb or "").strip() or "A captivating story."
+    lines = text.splitlines() or ["A captivating story."]
+    return "\n".join(f"  {line}" for line in lines)
+
+def build_index_md(
+    slug: str,
+    status: str = "Incomplete",
+    blurb: str = "",
+    title: Optional[str] = None,
+    body: Optional[str] = None,
+) -> str:
+    t = (title or pretty(slug)).strip() or pretty(slug)
+    body_text = body if body is not None else DEFAULT_NOVEL_INDEX_BODY
+    body_text = body_text if body_text.endswith("\n") else body_text + "\n"
+    blurb_yaml = _format_blurb_yaml_block(blurb)
     return (
         "---\n"
         f"layout: novel\n"
@@ -685,10 +700,10 @@ def build_index_md(slug: str, status: str = "Incomplete", blurb: str = "") -> st
         f"novel: {slug}\n"
         f"status: {status}\n"
         f"blurb: >-\n"
-        f"  {blurb_text}\n"
+        f"{blurb_yaml}\n"
         f"order: 0\n"
         "---\n\n"
-        f"{body}"
+        f"{body_text}"
     )
 
 # ---- Novel scanning helpers (for append mode) ----
@@ -732,6 +747,39 @@ def get_existing_info(slug: str):
     orders = [o for o in orders if o >= 0]
     max_order = max(orders) if orders else 0
     return {"exists": True, "max_order": max_order, "count": len(md_files)}
+
+def load_existing_chapter_entries(slug: str) -> list[dict]:
+    folder = NOVEL_DIR / slugify(slug)
+    if not folder.exists():
+        return []
+
+    entries = []
+    for p in folder.glob("*.md"):
+        if p.name.lower() == "index.md":
+            continue
+
+        order = read_order_from_file(p)
+        if order < 0:
+            continue
+
+        text = read_text_with_fallback(p)
+        fm_block, body = _split_front_matter_and_body(text)
+        fm = _parse_front_matter_values(fm_block)
+        title = str(fm.get("Title") or fm.get("title") or "").strip()
+        if not title:
+            title = f"Chapter {order}"
+
+        entries.append(
+            {
+                "order": int(order),
+                "title": title,
+                "body": (body or "").rstrip(),
+                "path": p,
+            }
+        )
+
+    entries.sort(key=lambda e: (int(e["order"]), str(e["path"]).lower()))
+    return entries
 
 def list_existing_slugs() -> list[str]:
     if not NOVEL_DIR.exists():
@@ -1139,22 +1187,381 @@ class RelationshipEditorDialog(tk.Toplevel):
 
 # ---------- GUI ----------
 
+MODE_CREATE = "Create New"
+MODE_EDIT = "Edit Current"
+EDIT_SUBMODE_APPEND = "Append Chapters"
+EDIT_SUBMODE_EDIT = "Edit Current Chapters"
+SUPPORTED_COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+
+def _normalize_status_choice(value: str) -> str:
+    return "Complete" if str(value or "").strip().lower() == "complete" else "Incomplete"
+
+def _clean_novel_title_for_editor(title: str) -> str:
+    s = str(title or "").strip()
+    if not s:
+        return ""
+    # Handle mojibake em dash in some legacy files.
+    s = s.replace("â€”", "—")
+    s = re.sub(r"\s*[—\-]\s*chapters\s*$", "", s, flags=re.I)
+    return s.strip()
+
+def _canonical_novel_title(slug: str, preferred_title: str = "") -> str:
+    card_title = _clean_novel_title_for_editor(str(novel_card_details(slug).get("title") or ""))
+    if card_title:
+        return card_title
+
+    preferred = _clean_novel_title_for_editor(preferred_title)
+    if preferred:
+        return preferred
+
+    return pretty(slug)
+
+def _split_front_matter_and_body(text: str) -> tuple[str, str]:
+    s = (text or "").lstrip("\ufeff")
+    m = re.match(
+        r"^---\s*\r?\n(?P<fm>.*?)(?:\r?\n)---\s*(?:\r?\n)?(?P<body>.*)$",
+        s,
+        flags=re.S,
+    )
+    if not m:
+        return "", s
+    return m.group("fm"), m.group("body")
+
+def _parse_front_matter_values(fm_block: str) -> dict:
+    out = {}
+    lines = (fm_block or "").splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$", line)
+        if not m:
+            i += 1
+            continue
+        key = m.group(1).strip()
+        val = (m.group(2) or "").rstrip()
+        if val in {"|", "|-", "|+", ">", ">-", ">+"}:
+            i += 1
+            buf = []
+            while i < len(lines):
+                nxt = lines[i]
+                if re.match(r"^\s*[A-Za-z0-9_-]+\s*:\s*", nxt) and not nxt.startswith("  "):
+                    i -= 1
+                    break
+                buf.append(nxt[2:] if nxt.startswith("  ") else nxt.strip())
+                i += 1
+            val = "\n".join(buf).strip()
+        out[key] = val.strip()
+        i += 1
+    return out
+
+def read_novel_index_metadata(slug: str) -> dict:
+    slug = slugify(slug)
+    idx = NOVEL_DIR / slug / "index.md"
+    data = {
+        "exists": idx.exists(),
+        "title": pretty(slug),
+        "status": "Incomplete",
+        "blurb": "",
+        "body": DEFAULT_NOVEL_INDEX_BODY,
+    }
+    if not idx.exists():
+        return data
+
+    text = read_text_with_fallback(idx)
+    fm_block, body = _split_front_matter_and_body(text)
+    fm = _parse_front_matter_values(fm_block)
+
+    title = str(fm.get("Title") or fm.get("title") or "").strip()
+    if title:
+        data["title"] = _clean_novel_title_for_editor(title)
+
+    status = str(fm.get("status") or "").strip()
+    if status:
+        data["status"] = _normalize_status_choice(status)
+
+    blurb = str(fm.get("blurb") or "").strip()
+    if blurb:
+        data["blurb"] = blurb
+
+    if body.strip():
+        data["body"] = body if body.endswith("\n") else body + "\n"
+
+    return data
+
+def write_novel_index_metadata(slug: str, title: str, status: str, blurb: str) -> Path:
+    slug = slugify(slug)
+    idx = NOVEL_DIR / slug / "index.md"
+    existing = read_novel_index_metadata(slug)
+    normalized_title = _canonical_novel_title(
+        slug=slug,
+        preferred_title=title or existing.get("title") or "",
+    )
+    md = build_index_md(
+        slug=slug,
+        status=_normalize_status_choice(status),
+        blurb=blurb,
+        title=normalized_title,
+        body=existing.get("body") or DEFAULT_NOVEL_INDEX_BODY,
+    )
+    write_text(idx, md)
+    return idx
+
+def copy_cover_to_images_and_cleanup(src_path: str, slug: str) -> tuple[str, list[Path]]:
+    slug = slugify(slug)
+    cover_rel = copy_cover_to_images(src_path, slug)
+    dst_path = _local_path_from_site_url(cover_rel)
+    removed = []
+    for ext in SUPPORTED_COVER_EXTS:
+        candidate = IMAGES_DIR / f"{slug}-cover{ext}"
+        if dst_path is not None and candidate == dst_path:
+            continue
+        if candidate.exists():
+            candidate.unlink()
+            removed.append(candidate)
+    return cover_rel, removed
+
+def _card_image_url(card) -> str:
+    img = card.find("img")
+    if img and img.get("src"):
+        return str(img.get("src") or "").strip()
+    source = card.find("source")
+    if source and source.get("srcset"):
+        srcset = str(source.get("srcset") or "")
+        return srcset.split(",")[0].strip().split(" ")[0].strip()
+    return ""
+
+def novel_card_details(slug: str) -> dict:
+    slug = slugify(slug)
+    out = {
+        "exists": False,
+        "slug": slug,
+        "title": pretty(slug),
+        "status": "Incomplete",
+        "hidden": False,
+        "image_url": "",
+        "image_path": None,
+        "note": "",
+    }
+    if not slug:
+        return out
+    if not NOVELS_INDEX_HTML.exists():
+        out["note"] = f"{NOVELS_INDEX_HTML.name} not found"
+        return out
+    if _BeautifulSoup is None:
+        out["note"] = "Install beautifulsoup4 for novel card lookup"
+        return out
+
+    try:
+        soup = _BeautifulSoup(NOVELS_INDEX_HTML.read_text(encoding="utf-8"), "html.parser")
+    except Exception as exc:
+        out["note"] = f"Could not parse {NOVELS_INDEX_HTML.name}: {exc}"
+        return out
+
+    for card in soup.select("li.novel-card"):
+        a = card.find("a", href=True)
+        card_slug = _novel_slug_from_card_href(a.get("href", "") if a else "")
+        if card_slug != slug:
+            continue
+
+        out["exists"] = True
+        status = str(card.get("data-status") or "").strip().lower()
+        out["status"] = "Complete" if status == "complete" else "Incomplete"
+        out["hidden"] = str(card.get("data-hidden") or "").strip().lower() == "true"
+
+        tnode = card.find(class_="novel-title")
+        if tnode:
+            out["title"] = tnode.get_text(" ", strip=True) or out["title"]
+
+        image_url = _card_image_url(card)
+        out["image_url"] = image_url
+        if image_url:
+            out["image_path"] = _local_path_from_site_url(image_url)
+        if out["image_path"] is None:
+            out["note"] = "Card found, but no local image file resolved"
+        return out
+
+    out["note"] = "Novel card not found in novel/index.html"
+    return out
+
+def update_novel_card_in_novels_index(
+    slug: str,
+    novel_title: Optional[str] = None,
+    status_choice: Optional[str] = None,
+    hidden: Optional[bool] = None,
+    cover_rel: Optional[str] = None,
+) -> bool:
+    slug = slugify(slug)
+    if not slug:
+        return False
+    if _BeautifulSoup is None:
+        raise RuntimeError("BeautifulSoup4 is required to update novel cards.")
+    if not NOVELS_INDEX_HTML.exists():
+        raise FileNotFoundError(f"Cannot find {NOVELS_INDEX_HTML}")
+
+    html = NOVELS_INDEX_HTML.read_text(encoding="utf-8")
+    soup = _BeautifulSoup(html, "html.parser")
+    card = None
+    for c in soup.select("li.novel-card"):
+        a = c.find("a", href=True)
+        if _novel_slug_from_card_href(a.get("href", "") if a else "") == slug:
+            card = c
+            break
+    if card is None:
+        return False
+
+    before = str(card)
+    title_text = (novel_title or pretty(slug)).strip() or pretty(slug)
+    status_text = _normalize_status_choice(status_choice or "")
+    status_class = "complete" if status_text == "Complete" else "incomplete"
+
+    card["data-title"] = title_text.lower()
+    card["data-status"] = status_class
+    if hidden is True:
+        card["data-hidden"] = "true"
+    elif hidden is False:
+        card.attrs.pop("data-hidden", None)
+
+    a = card.find("a", href=True)
+    if a is not None:
+        a["aria-label"] = title_text
+
+    tnode = card.find(class_="novel-title")
+    if tnode is None and a is not None:
+        tnode = soup.new_tag("h2", attrs={"class": "novel-title"})
+        a.append(tnode)
+    if tnode is not None:
+        tnode.string = title_text
+
+    if cover_rel:
+        new_img = soup.new_tag("img")
+        new_img["src"] = cover_rel
+        new_img["alt"] = title_text
+        new_img["loading"] = "lazy"
+        picture = card.find("picture")
+        old_img = picture.find("img") if picture is not None else card.find("img")
+        if picture is not None:
+            picture.replace_with(new_img)
+        elif old_img is not None:
+            old_img.replace_with(new_img)
+        elif a is not None:
+            a.insert(0, new_img)
+    else:
+        pic = card.find("picture")
+        pic_img = pic.find("img") if pic is not None else None
+        if pic_img is not None:
+            pic_img["alt"] = title_text
+        img = card.find("img")
+        if img is not None:
+            img["alt"] = title_text
+
+    if str(card) == before:
+        return False
+
+    write_text(NOVELS_INDEX_HTML, soup.prettify())
+    return True
+
+def load_novel_catalog() -> dict:
+    catalog = {}
+
+    if NOVELS_INDEX_HTML.exists() and _BeautifulSoup is not None:
+        try:
+            soup = _BeautifulSoup(NOVELS_INDEX_HTML.read_text(encoding="utf-8"), "html.parser")
+            for card in soup.select("li.novel-card"):
+                a = card.find("a", href=True)
+                slug = _novel_slug_from_card_href(a.get("href", "") if a else "")
+                if not slug:
+                    continue
+                title_node = card.find(class_="novel-title")
+                title = title_node.get_text(" ", strip=True) if title_node else pretty(slug)
+                image_url = _card_image_url(card)
+                status = str(card.get("data-status") or "").strip().lower()
+                catalog[slug] = {
+                    "exists": True,
+                    "slug": slug,
+                    "title": title or pretty(slug),
+                    "status": "Complete" if status == "complete" else "Incomplete",
+                    "hidden": str(card.get("data-hidden") or "").strip().lower() == "true",
+                    "image_url": image_url,
+                    "image_path": _local_path_from_site_url(image_url) if image_url else None,
+                }
+        except Exception:
+            pass
+
+    for slug in list_existing_slugs():
+        s = slugify(slug)
+        if not s:
+            continue
+        catalog.setdefault(
+            s,
+            {
+                "exists": False,
+                "slug": s,
+                "title": pretty(s),
+                "status": "Incomplete",
+                "hidden": False,
+                "image_url": "",
+                "image_path": None,
+            },
+        )
+
+    for slug in load_relationship_registry().keys():
+        s = slugify(slug)
+        if not s:
+            continue
+        catalog.setdefault(
+            s,
+            {
+                "exists": False,
+                "slug": s,
+                "title": pretty(s),
+                "status": "Incomplete",
+                "hidden": False,
+                "image_url": "",
+                "image_path": None,
+            },
+        )
+
+    return catalog
+
+def _extract_import_sequence(name: str, fallback_order: Optional[int] = None) -> Optional[Tuple[str, int]]:
+    stem = Path(name).stem
+
+    m_ep = re.search(r"(?i)\bepilogue\b[\s._-]*([0-9]+)?", stem)
+    if m_ep:
+        val = m_ep.group(1)
+        return ("epilogue", int(val) if val and str(val).isdigit() else 1)
+
+    m_ch = re.search(r"(?i)\bchapter\b[\s._-]*([0-9]+)", stem)
+    if m_ch:
+        return ("chapter", int(m_ch.group(1)))
+
+    if fallback_order is not None and int(fallback_order) > 0:
+        return ("chapter", int(fallback_order))
+
+    m_any = re.search(r"([0-9]+)", stem)
+    if m_any:
+        return ("chapter", int(m_any.group(1)))
+
+    return None
+
 def _extract_chapter_num_from_name(name: str) -> int:
-    m = re.search(r"(\d+)", Path(name).stem)
-    return int(m.group(1)) if m else 10**9  # large sentinel if no number
+    slot = _extract_import_sequence(name)
+    if not slot:
+        return 10**9
+    return int(slot[1])
 
 class Wizard(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Novel Wizard (Tkinter)")
-        self.geometry("1000x760")
-        self.minsize(880, 640)
+        self.title("Novel Wizard")
+        self._configure_window()
+        self._configure_styles()
 
         # Vars
-        self.mode_var = tk.StringVar(value="Create new")  # or "Append to existing"
+        self.mode_var = tk.StringVar(value=MODE_CREATE)
         self.title_var = tk.StringVar()
         self.slug_var = tk.StringVar()
-        self.status_var = tk.StringVar(value="Incomplete")  # default
+        self.status_var = tk.StringVar(value="Complete")
         self.cover_var = tk.StringVar()
         self.blurb_var = tk.StringVar()
         self.hidden_var = tk.BooleanVar(value=False)
@@ -1162,90 +1569,143 @@ class Wizard(tk.Tk):
         self.series_order_var = tk.StringVar()
         self.relation_type_var = tk.StringVar(value="")
         self.related_to_var = tk.StringVar()
-        self.count_var = tk.IntVar(value=3)  # number of chapters to add/create
+        self.count_var = tk.IntVar(value=3)
         self.existing_slug_var = tk.StringVar()
-        self.start_order = 1  # where new chapters begin (append mode)
+        self.edit_submode_var = tk.StringVar(value=EDIT_SUBMODE_APPEND)
+        self.commit_summary_var = tk.StringVar()
+        self.start_order = 1
+
+        self._auto_summary = ""
+        self._auto_description = ""
+        self.catalog = {}
+        self._existing_slugs = []
+        self._existing_chapter_entries = []
 
         # Chapters buffer: list of dict {order,title_var,text}
         self.chapter_tabs = []
 
+        self._selected_cover_preview_img = None
+        self._upload_cover_preview_img = None
+        self._related_cover_preview_img = None
+
         self._build_ui()
+        self._refresh_catalog()
+        self._on_mode_change()
+
+    def _configure_window(self):
+        sw = int(self.winfo_screenwidth())
+        sh = int(self.winfo_screenheight())
+        w = min(1380, max(1120, int(sw * 0.88)))
+        h = min(1040, max(820, int(sh * 0.90)))
+        x = max(0, (sw - w) // 2)
+        y = max(0, (sh - h) // 2 - 24)
+        self.geometry(f"{w}x{h}+{x}+{y}")
+        self.minsize(1060, 760)
+
+    def _configure_styles(self):
+        style = ttk.Style(self)
+        if "clam" in style.theme_names():
+            style.theme_use("clam")
+        style.configure("Primary.TButton", padding=(18, 10))
+        style.configure("Hint.TLabel", foreground="#475569")
 
     # UI layout
     def _build_ui(self):
-        # Top form
-        top = ttk.Frame(self, padding=12)
-        top.pack(fill="x")
-        self.top = top
+        self.main = ttk.Frame(self, padding=12)
+        self.main.pack(fill="both", expand=True)
+        self.main.columnconfigure(0, weight=1)
+        self.main.rowconfigure(3, weight=1)
 
-        # Mode row
-        ttk.Label(top, text="Mode").grid(row=0, column=0, sticky="w")
-        mode = ttk.Combobox(top, textvariable=self.mode_var, values=["Create new","Append to existing"], state="readonly", width=20)
-        mode.grid(row=0, column=1, sticky="w")
-        mode.bind("<<ComboboxSelected>>", lambda e: self._on_mode_change())
+        mode_bar = ttk.Frame(self.main)
+        mode_bar.grid(row=0, column=0, sticky="we")
+        mode_bar.columnconfigure(5, weight=1)
 
-        # Existing novel selector (append mode only)
-        self.lbl_existing = ttk.Label(top, text="Existing novel")
+        ttk.Label(mode_bar, text="Mode").grid(row=0, column=0, sticky="w")
+        self.mode_combo = ttk.Combobox(
+            mode_bar,
+            textvariable=self.mode_var,
+            values=[MODE_CREATE, MODE_EDIT],
+            state="readonly",
+            width=16,
+        )
+        self.mode_combo.grid(row=0, column=1, sticky="w", padx=(8, 18))
+        self.mode_combo.bind("<<ComboboxSelected>>", lambda e: self._on_mode_change())
+
+        self.lbl_existing = ttk.Label(mode_bar, text="Novel")
         self.lbl_existing.grid(row=0, column=2, sticky="e")
-        self.existing_combo = ttk.Combobox(top, textvariable=self.existing_slug_var, values=list_existing_slugs(), state="readonly", width=32)
-        self.existing_combo.grid(row=0, column=3, sticky="we", padx=(6,12))
+        self.existing_combo = ttk.Combobox(mode_bar, textvariable=self.existing_slug_var, width=34)
+        self.existing_combo.grid(row=0, column=3, sticky="we", padx=(8, 8))
         self.existing_combo.bind("<<ComboboxSelected>>", lambda e: self._on_existing_selected())
-        top.columnconfigure(3, weight=1)
+        self.existing_combo.bind("<Return>", lambda e: self._on_existing_selected())
+        self.existing_combo.bind("<FocusOut>", lambda e: self._on_existing_selected())
+        self.existing_combo.bind("<KeyRelease>", lambda e: self._on_existing_query_change())
 
-        # New / common fields
-        self.lbl_title = ttk.Label(top, text="Novel Title")
-        self.lbl_title.grid(row=1, column=0, sticky="w", pady=(6,0))
-        self.title_entry = ttk.Entry(top, textvariable=self.title_var, width=40)
-        self.title_entry.grid(row=1, column=1, sticky="we", columnspan=3, padx=(8,12), pady=(6,0))
+        self.btn_reload = ttk.Button(mode_bar, text="Reload", command=self._refresh_catalog)
+        self.btn_reload.grid(row=0, column=4, sticky="e")
 
-        self.lbl_slug = ttk.Label(top, text="Slug (auto)")
-        self.lbl_slug.grid(row=2, column=0, sticky="w")
-        self.slug_entry = ttk.Entry(top, textvariable=self.slug_var, width=40, state="readonly")
-        self.slug_entry.grid(row=2, column=1, sticky="we", columnspan=3, padx=(8,12))
+        top = ttk.Frame(self.main)
+        top.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
+        top.columnconfigure(0, weight=3)
+        top.columnconfigure(1, weight=2)
 
-        def _sync_slug(*_):
-            if self.mode_var.get() == "Create new":
-                self.slug_var.set(slugify(self.title_var.get()))
-        self.title_var.trace_add("write", _sync_slug)
+        form = ttk.LabelFrame(top, text="Novel Details", padding=(10, 8))
+        form.grid(row=0, column=0, sticky="nsew")
+        form.columnconfigure(1, weight=1)
+        form.columnconfigure(3, weight=1)
 
-        self.lbl_status = ttk.Label(top, text="Status")
-        self.lbl_status.grid(row=1, column=4, sticky="e")
-        self.status_combo = ttk.Combobox(top, textvariable=self.status_var, values=["Complete","Incomplete"], state="readonly", width=16)
-        self.status_combo.grid(row=1, column=5, sticky="w", pady=(6,0))
+        self.lbl_title = ttk.Label(form, text="Novel Title")
+        self.lbl_title.grid(row=0, column=0, sticky="w")
+        self.title_entry = ttk.Entry(form, textvariable=self.title_var)
+        self.title_entry.grid(row=0, column=1, columnspan=3, sticky="we", padx=(8, 0))
 
-        self.lbl_count = ttk.Label(top, text="# Chapters to add")
-        self.lbl_count.grid(row=2, column=4, sticky="e")
-        self.spin_count = ttk.Spinbox(top, from_=1, to=200, textvariable=self.count_var, width=8, command=self._build_chapter_tabs)
-        self.spin_count.grid(row=2, column=5, sticky="w")
+        self.lbl_slug = ttk.Label(form, text="Slug")
+        self.lbl_slug.grid(row=1, column=0, sticky="w", pady=(6, 0))
+        self.slug_entry = ttk.Entry(form, textvariable=self.slug_var, state="readonly")
+        self.slug_entry.grid(row=1, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(6, 0))
 
-        self.lbl_cover = ttk.Label(top, text="Cover Image")
-        self.lbl_cover.grid(row=3, column=0, sticky="w", pady=(8,0))
-        self.cover_entry = ttk.Entry(top, textvariable=self.cover_var, width=40)
-        self.cover_entry.grid(row=3, column=1, sticky="we", columnspan=3, padx=(8,12), pady=(8,0))
-        self.btn_browse = ttk.Button(top, text="Browse…", command=self._pick_cover)
-        self.btn_browse.grid(row=3, column=4, sticky="e", pady=(8,0))
+        self.lbl_status = ttk.Label(form, text="Status")
+        self.lbl_status.grid(row=2, column=0, sticky="w", pady=(8, 0))
+        self.status_combo = ttk.Combobox(
+            form,
+            textvariable=self.status_var,
+            values=["Complete", "Incomplete"],
+            state="readonly",
+            width=14,
+        )
+        self.status_combo.grid(row=2, column=1, sticky="w", padx=(8, 8), pady=(8, 0))
 
-        self.lbl_blurb = ttk.Label(top, text="Blurb (required)")
-        self.lbl_blurb.grid(row=4, column=0, sticky="w", pady=(8,0))
-        self.blurb_entry = ttk.Entry(top, textvariable=self.blurb_var, width=40)
-        self.blurb_entry.grid(row=4, column=1, sticky="we", columnspan=3, padx=(8,12), pady=(8,0))
-        self.check_hidden = ttk.Checkbutton(top, text="Hidden novel", variable=self.hidden_var)
-        self.check_hidden.grid(row=4, column=4, sticky="w", pady=(8,0))
+        self.status_chip = tk.Label(form, text="", padx=8, pady=2, bd=1, relief="solid")
+        self.status_chip.grid(row=2, column=2, sticky="w", pady=(8, 0))
 
-        self.rel_frame = ttk.LabelFrame(top, text="Series / relationship (optional)", padding=(8, 6))
-        self.rel_frame.grid(row=5, column=0, columnspan=6, sticky="we", pady=(8,0))
+        self.check_hidden = ttk.Checkbutton(form, text="Hidden novel", variable=self.hidden_var)
+        self.check_hidden.grid(row=2, column=3, sticky="e", pady=(8, 0))
+
+        self.lbl_blurb = ttk.Label(form, text="Blurb")
+        self.lbl_blurb.grid(row=3, column=0, sticky="w", pady=(8, 0))
+        self.blurb_entry = ttk.Entry(form, textvariable=self.blurb_var)
+        self.blurb_entry.grid(row=3, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(8, 0))
+
+        self.lbl_cover = ttk.Label(form, text="Cover Image")
+        self.lbl_cover.grid(row=4, column=0, sticky="w", pady=(8, 0))
+        self.cover_entry = ttk.Entry(form, textvariable=self.cover_var)
+        self.cover_entry.grid(row=4, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
+        self.btn_browse = ttk.Button(form, text="Browse...", command=self._pick_cover)
+        self.btn_browse.grid(row=4, column=3, sticky="e", pady=(8, 0))
+
+        self.rel_frame = ttk.LabelFrame(form, text="Relationships", padding=(8, 6))
+        self.rel_frame.grid(row=5, column=0, columnspan=4, sticky="we", pady=(10, 0))
         self.rel_frame.columnconfigure(1, weight=1)
         self.rel_frame.columnconfigure(3, weight=1)
 
         ttk.Label(self.rel_frame, text="Series label").grid(row=0, column=0, sticky="w")
-        self.series_entry = ttk.Entry(self.rel_frame, textvariable=self.series_label_var, width=30)
-        self.series_entry.grid(row=0, column=1, sticky="we", padx=(8,12))
+        self.series_entry = ttk.Entry(self.rel_frame, textvariable=self.series_label_var)
+        self.series_entry.grid(row=0, column=1, sticky="we", padx=(8, 12))
 
         ttk.Label(self.rel_frame, text="Book #").grid(row=0, column=2, sticky="e")
         self.series_order_entry = ttk.Entry(self.rel_frame, textvariable=self.series_order_var, width=8)
-        self.series_order_entry.grid(row=0, column=3, sticky="w", padx=(8,0))
+        self.series_order_entry.grid(row=0, column=3, sticky="w", padx=(8, 0))
 
-        ttk.Label(self.rel_frame, text="Relation").grid(row=1, column=0, sticky="w", pady=(6,0))
+        ttk.Label(self.rel_frame, text="Relation").grid(row=1, column=0, sticky="w", pady=(6, 0))
         self.relation_combo = ttk.Combobox(
             self.rel_frame,
             textvariable=self.relation_type_var,
@@ -1253,74 +1713,395 @@ class Wizard(tk.Tk):
             state="readonly",
             width=16,
         )
-        self.relation_combo.grid(row=1, column=1, sticky="w", padx=(8,12), pady=(6,0))
+        self.relation_combo.grid(row=1, column=1, sticky="w", padx=(8, 12), pady=(6, 0))
 
-        ttk.Label(self.rel_frame, text="Related slug").grid(row=1, column=2, sticky="e", pady=(6,0))
-        self.related_to_combo = ttk.Combobox(
-            self.rel_frame,
-            textvariable=self.related_to_var,
-            values=list_existing_slugs(),
-            width=28,
+        ttk.Label(self.rel_frame, text="Related slug").grid(row=1, column=2, sticky="e", pady=(6, 0))
+        self.related_to_combo = ttk.Combobox(self.rel_frame, textvariable=self.related_to_var, width=28)
+        self.related_to_combo.grid(row=1, column=3, sticky="we", padx=(8, 0), pady=(6, 0))
+        self.related_to_combo.bind("<KeyRelease>", lambda e: self._on_related_query_change())
+        self.related_to_combo.bind("<<ComboboxSelected>>", lambda e: self._on_related_query_change())
+        self.related_to_combo.bind("<FocusOut>", lambda e: self._refresh_related_cover_preview())
+
+        ttk.Label(
+            form,
+            text="Related slug is searchable. Type a few letters to narrow likely novels.",
+            style="Hint.TLabel",
+        ).grid(row=6, column=0, columnspan=4, sticky="w", pady=(8, 0))
+
+        preview_col = ttk.Frame(top)
+        preview_col.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
+        preview_col.columnconfigure(1, weight=1)
+
+        self.selected_preview_title_var = tk.StringVar(value="")
+        self.selected_preview_note_var = tk.StringVar(value="")
+        self.selected_preview_frame = ttk.LabelFrame(preview_col, text="Selected Novel Preview", padding=(8, 6))
+        self.selected_preview_frame.grid(row=0, column=0, sticky="we")
+        self.selected_preview_frame.columnconfigure(1, weight=1)
+        self.selected_cover_preview = ttk.Label(self.selected_preview_frame, text="No preview", anchor="center", justify="center")
+        self.selected_cover_preview.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
+        ttk.Label(self.selected_preview_frame, textvariable=self.selected_preview_title_var).grid(row=0, column=1, sticky="w")
+        ttk.Label(self.selected_preview_frame, textvariable=self.selected_preview_note_var, wraplength=270).grid(
+            row=1, column=1, sticky="w", pady=(6, 0)
         )
-        self.related_to_combo.grid(row=1, column=3, sticky="we", padx=(8,0), pady=(6,0))
 
-        # Action buttons (Create/Append and Bulk Import)
-        self.btn_commit = ttk.Button(top, text="Create / Append", command=self._commit)
-        self.btn_commit.grid(row=6, column=5, sticky="e", pady=(8,0))
-        self.btn_relationships = ttk.Button(top, text="Edit relationships…", command=self._open_relationship_editor)
-        self.btn_relationships.grid(row=6, column=4, sticky="e", pady=(8,0), padx=(0,8))
-        self.btn_sync_relationships = ttk.Button(top, text="Sync relationship badges", command=self._sync_relationship_badges)
-        self.btn_sync_relationships.grid(row=7, column=4, sticky="e", pady=(6,0), padx=(0,8))
-        self.btn_bulk = ttk.Button(top, text="Bulk import files…", command=self._bulk_import_docx)
-        self.btn_bulk.grid(row=7, column=5, sticky="e", pady=(6,0))
+        self.upload_preview_title_var = tk.StringVar(value="")
+        self.upload_preview_note_var = tk.StringVar(value="")
+        self.upload_preview_frame = ttk.LabelFrame(preview_col, text="Cover Upload Preview", padding=(8, 6))
+        self.upload_preview_frame.grid(row=1, column=0, sticky="we", pady=(10, 0))
+        self.upload_preview_frame.columnconfigure(1, weight=1)
+        self.upload_cover_preview = ttk.Label(self.upload_preview_frame, text="No preview", anchor="center", justify="center")
+        self.upload_cover_preview.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
+        ttk.Label(self.upload_preview_frame, textvariable=self.upload_preview_title_var).grid(row=0, column=1, sticky="w")
+        ttk.Label(self.upload_preview_frame, textvariable=self.upload_preview_note_var, wraplength=270).grid(
+            row=1, column=1, sticky="w", pady=(6, 0)
+        )
 
-        # Tabs for chapters
-        self.nb = ttk.Notebook(self)
-        self.nb.pack(fill="both", expand=True, padx=12, pady=(12,4))
-        
-        # Bind horizontal wheel events for chapter navigation only.
-        # Leave vertical wheel scrolling to the text widgets so editing feels normal.
-        # Tk on Windows/macOS may reject Button-6/7 (X11-only horizontal wheel buttons).
+        self.related_preview_title_var = tk.StringVar(value="")
+        self.related_preview_note_var = tk.StringVar(value="")
+        self.related_preview_frame = ttk.LabelFrame(preview_col, text="Related Novel Preview", padding=(8, 6))
+        self.related_preview_frame.grid(row=2, column=0, sticky="we", pady=(10, 0))
+        self.related_preview_frame.columnconfigure(1, weight=1)
+        self.related_cover_preview = ttk.Label(self.related_preview_frame, text="No preview", anchor="center", justify="center")
+        self.related_cover_preview.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
+        ttk.Label(self.related_preview_frame, textvariable=self.related_preview_title_var).grid(row=0, column=1, sticky="w")
+        ttk.Label(self.related_preview_frame, textvariable=self.related_preview_note_var, wraplength=270).grid(
+            row=1, column=1, sticky="w", pady=(6, 0)
+        )
+
+        chapter_bar = ttk.Frame(self.main)
+        chapter_bar.grid(row=2, column=0, sticky="we", pady=(10, 0))
+        self.lbl_edit_submode = ttk.Label(chapter_bar, text="Edit mode")
+        self.lbl_edit_submode.pack(side="left")
+        self.edit_submode_combo = ttk.Combobox(
+            chapter_bar,
+            textvariable=self.edit_submode_var,
+            values=[EDIT_SUBMODE_APPEND, EDIT_SUBMODE_EDIT],
+            state="readonly",
+            width=24,
+        )
+        self.edit_submode_combo.pack(side="left", padx=(8, 14))
+        self.edit_submode_combo.bind("<<ComboboxSelected>>", lambda e: self._on_edit_submode_change())
+
+        self.lbl_count = ttk.Label(chapter_bar, text="# Chapters")
+        self.lbl_count.pack(side="left")
+        self.spin_count = ttk.Spinbox(
+            chapter_bar,
+            from_=1,
+            to=200,
+            textvariable=self.count_var,
+            width=8,
+            command=self._build_chapter_tabs,
+        )
+        self.spin_count.pack(side="left", padx=(8, 12))
+        self.chapter_hint_var = tk.StringVar(value="")
+        ttk.Label(chapter_bar, textvariable=self.chapter_hint_var, style="Hint.TLabel").pack(side="left")
+        self.btn_bulk = ttk.Button(chapter_bar, text="Bulk Import Files...", command=self._bulk_import_docx)
+        self.btn_bulk.pack(side="right")
+
+        self.nb = ttk.Notebook(self.main)
+        self.nb.grid(row=3, column=0, sticky="nsew", pady=(8, 0))
+
         self._supports_x11_hwheel_buttons = (self.tk.call("tk", "windowingsystem") == "x11")
-        self.nb.bind("<Shift-MouseWheel>", self._on_hmousewheel)  # Side wheel or Shift+wheel
+        self.nb.bind("<Shift-MouseWheel>", self._on_hmousewheel)
         if self._supports_x11_hwheel_buttons:
-            self.nb.bind("<Button-6>", self._on_hmousewheel)      # Linux horizontal scroll left
-            self.nb.bind("<Button-7>", self._on_hmousewheel)      # Linux horizontal scroll right
+            self.nb.bind("<Button-6>", self._on_hmousewheel)
+            self.nb.bind("<Button-7>", self._on_hmousewheel)
 
-        # Tab navigation to avoid squished headers
-        nav = ttk.Frame(self)
-        nav.pack(fill="x", padx=12, pady=(0,8))
-        ttk.Button(nav, text="◀ Prev", width=10, command=self._prev_tab).pack(side="left")
-        ttk.Button(nav, text="Next ▶", width=10, command=self._next_tab).pack(side="left", padx=(8,0))
+        nav = ttk.Frame(self.main)
+        nav.grid(row=4, column=0, sticky="w", pady=(8, 0))
+        ttk.Button(nav, text="Prev Chapter", width=14, command=self._prev_tab).pack(side="left")
+        ttk.Button(nav, text="Next Chapter", width=14, command=self._next_tab).pack(side="left", padx=(8, 0))
 
-        self._on_mode_change()  # sets defaults and builds tabs
+        commit_frame = ttk.LabelFrame(self.main, text="Commit Message", padding=(8, 6))
+        commit_frame.grid(row=5, column=0, sticky="we", pady=(10, 0))
+        commit_frame.columnconfigure(1, weight=1)
+        ttk.Label(commit_frame, text="Summary").grid(row=0, column=0, sticky="w")
+        self.commit_summary_entry = ttk.Entry(commit_frame, textvariable=self.commit_summary_var)
+        self.commit_summary_entry.grid(row=0, column=1, sticky="we", padx=(8, 0))
+        ttk.Label(commit_frame, text="Description").grid(row=1, column=0, sticky="nw", pady=(8, 0))
+        self.commit_desc_text = tk.Text(commit_frame, height=3, wrap="word")
+        self.commit_desc_text.grid(row=1, column=1, sticky="we", padx=(8, 0), pady=(8, 0))
 
-    # --- visibility helpers ---
-    def _show(self, *widgets):
-        for w in widgets:
-            try:
-                w.grid()
-            except Exception:
-                pass
-    def _hide(self, *widgets):
-        for w in widgets:
-            try:
-                w.grid_remove()
-            except Exception:
-                pass
+        self.action_row = ttk.Frame(self.main)
+        self.action_row.grid(row=6, column=0, sticky="we", pady=(10, 0))
+        self.action_row.columnconfigure(0, weight=1)
+        self.action_row.columnconfigure(1, weight=1)
+        self.action_row.columnconfigure(2, weight=1)
+        self.btn_commit = ttk.Button(self.action_row, text="Create & Commit", style="Primary.TButton", command=self._commit)
+        self.btn_commit.grid(row=0, column=2, sticky="e")
+
+        self.title_var.trace_add("write", lambda *_: self._on_title_changed())
+        self.status_var.trace_add("write", lambda *_: self._update_status_chip())
+        self.cover_var.trace_add("write", lambda *_: self._refresh_upload_cover_preview())
+        self.count_var.trace_add("write", lambda *_: self._build_chapter_tabs())
+
+    def _get_commit_description(self) -> str:
+        return self.commit_desc_text.get("1.0", "end").strip()
+
+    def _set_commit_description(self, text: str):
+        self.commit_desc_text.delete("1.0", "end")
+        if text:
+            self.commit_desc_text.insert("1.0", text)
+
+    def _update_status_chip(self):
+        status = _normalize_status_choice(self.status_var.get())
+        if status == "Complete":
+            self.status_chip.configure(text="Complete", bg="#dcfce7", fg="#166534")
+        else:
+            self.status_chip.configure(text="Incomplete", bg="#fee2e2", fg="#991b1b")
+
+    def _load_preview_image(self, path: Optional[Path], size: tuple[int, int] = (84, 126)):
+        if path is None:
+            return None, "No local image found."
+        if not path.exists():
+            return None, f"{path.name} is missing."
+        if _PILImage is None or _PILImageTk is None:
+            return None, f"{path.name}\nInstall pillow for thumbnail previews."
+        try:
+            with _PILImage.open(path) as im0:
+                im = im0.convert("RGB")
+                im.thumbnail(size)
+                return _PILImageTk.PhotoImage(im), path.name
+        except Exception as exc:
+            return None, f"{path.name}\nCould not load preview: {exc}"
+
+    def _refresh_catalog(self):
+        self.catalog = load_novel_catalog()
+        self._existing_slugs = sorted(list_existing_slugs())
+        self._refresh_existing_choices(self.existing_slug_var.get())
+        self._refresh_related_choices(self.related_to_var.get())
+
+    def _ranked_slugs(self, query: str, candidates: list[str], exclude_slug: str = "") -> list[str]:
+        q = (query or "").strip().lower()
+        exclude_slug = slugify(exclude_slug)
+        ranked = []
+        for slug in candidates:
+            s = slugify(slug)
+            if not s or s == exclude_slug:
+                continue
+            title = str((self.catalog.get(s) or {}).get("title") or pretty(s)).lower()
+            if not q:
+                score = (2, title, s)
+            elif s.startswith(q) or title.startswith(q):
+                score = (0, len(s), title, s)
+            elif q in s or q in title:
+                idx_slug = s.find(q) if q in s else 999
+                idx_title = title.find(q) if q in title else 999
+                score = (1, min(idx_slug, idx_title), title, s)
+            else:
+                continue
+            ranked.append((score, s))
+        ranked.sort(key=lambda item: item[0])
+        return [slug for _, slug in ranked]
+
+    def _refresh_existing_choices(self, query: str = ""):
+        ranked = self._ranked_slugs(query, self._existing_slugs)
+        try:
+            self.existing_combo.configure(values=ranked[:30])
+        except Exception:
+            pass
+
+    def _refresh_related_choices(self, query: str = ""):
+        current_slug = slugify(self.slug_var.get())
+        ranked = self._ranked_slugs(query, sorted(self.catalog.keys()), exclude_slug=current_slug)
+        try:
+            self.related_to_combo.configure(values=ranked[:30])
+        except Exception:
+            pass
+
+    def _set_auto_commit_message(self, force: bool = False):
+        slug = slugify(self.slug_var.get()) or "novel"
+        title = (self.title_var.get() or pretty(slug)).strip()
+        if self.mode_var.get() == MODE_CREATE:
+            summary = f"feat(novel): create {slug}"
+            desc = f"Create '{title}' with metadata, relationships, cover updates, and chapter files."
+        else:
+            summary = f"chore(novel): update {slug}"
+            desc = f"Update '{title}' metadata, relationships, cover assets, and appended chapters."
+
+        cur_summary = self.commit_summary_var.get().strip()
+        cur_desc = self._get_commit_description()
+        if force or (not cur_summary or cur_summary == self._auto_summary):
+            self.commit_summary_var.set(summary)
+        if force or (not cur_desc or cur_desc == self._auto_description):
+            self._set_commit_description(desc)
+        self._auto_summary = summary
+        self._auto_description = desc
+
+    def _on_title_changed(self):
+        if self.mode_var.get() == MODE_CREATE:
+            self.slug_var.set(slugify(self.title_var.get()))
+            self._refresh_related_choices(self.related_to_var.get())
+            self._set_auto_commit_message()
+
+    def _on_existing_query_change(self):
+        self._refresh_existing_choices(self.existing_slug_var.get())
+
+    def _on_related_query_change(self):
+        self._refresh_related_choices(self.related_to_var.get())
+        self._refresh_related_cover_preview()
+
+    def _is_edit_chapter_mode(self) -> bool:
+        return self.mode_var.get() == MODE_EDIT and self.edit_submode_var.get() == EDIT_SUBMODE_EDIT
+
+    def _show_edit_submode_controls(self):
+        if not self.lbl_edit_submode.winfo_ismapped():
+            self.lbl_edit_submode.pack(side="left", before=self.lbl_count)
+            self.edit_submode_combo.pack(side="left", padx=(8, 14), before=self.lbl_count)
+
+    def _hide_edit_submode_controls(self):
+        if self.lbl_edit_submode.winfo_ismapped():
+            self.lbl_edit_submode.pack_forget()
+        if self.edit_submode_combo.winfo_ismapped():
+            self.edit_submode_combo.pack_forget()
+
+    def _on_edit_submode_change(self):
+        if self.mode_var.get() != MODE_EDIT:
+            return
+        self._refresh_edit_submode_state(rebuild_tabs=True)
+
+    def _refresh_edit_submode_state(self, rebuild_tabs: bool = True):
+        if self.mode_var.get() != MODE_EDIT:
+            self._existing_chapter_entries = []
+            self.spin_count.state(["!disabled"])
+            self.btn_bulk.state(["!disabled"])
+            return
+
+        slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
+        info = get_existing_info(slug) if slug else {"max_order": 0, "count": 0}
+        self.start_order = (info.get("max_order") or 0) + 1
+        self._existing_chapter_entries = load_existing_chapter_entries(slug) if slug else []
+
+        if self._is_edit_chapter_mode():
+            self.spin_count.state(["disabled"])
+            self.btn_bulk.state(["disabled"])
+            self.btn_bulk.configure(text="Bulk Append Files...")
+            target_count = max(1, len(self._existing_chapter_entries))
+            if int(self.count_var.get() or 0) != target_count:
+                self.count_var.set(target_count)
+            if self._existing_chapter_entries:
+                self.chapter_hint_var.set(f"Editing {len(self._existing_chapter_entries)} existing chapter(s).")
+            else:
+                self.chapter_hint_var.set("No existing chapters found. Switch to Append Chapters to add new ones.")
+        else:
+            self.spin_count.state(["!disabled"])
+            self.btn_bulk.state(["!disabled"])
+            self.btn_bulk.configure(text="Bulk Append Files...")
+            self.chapter_hint_var.set(f"Appending starts at chapter {self.start_order}.")
+
+        if rebuild_tabs:
+            self.chapter_tabs = []
+            self._build_chapter_tabs()
 
     def _pick_cover(self):
         p = filedialog.askopenfilename(
             title="Choose cover image",
-            filetypes=[("Images","*.png;*.jpg;*.jpeg;*.webp;*.gif"),("All files","*.*")]
+            filetypes=[("Images", "*.png;*.jpg;*.jpeg;*.webp;*.gif"), ("All files", "*.*")],
         )
-        if p: self.cover_var.set(p)
+        if p:
+            self.cover_var.set(p)
 
-    def _refresh_relationship_choices(self):
-        try:
-            self.related_to_combo.configure(values=list_existing_slugs())
-        except Exception:
-            pass
+    def _refresh_selected_cover_preview(self):
+        if self.mode_var.get() != MODE_EDIT:
+            self._selected_cover_preview_img = None
+            self.selected_cover_preview.configure(image="", text="Create mode")
+            self.selected_preview_title_var.set("Selected novel preview")
+            self.selected_preview_note_var.set("Switch to Edit Current to preview existing novels.")
+            return
+
+        slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
+        if not slug:
+            self._selected_cover_preview_img = None
+            self.selected_cover_preview.configure(image="", text="No preview")
+            self.selected_preview_title_var.set("Selected novel preview")
+            self.selected_preview_note_var.set("Select a novel to preview.")
+            return
+
+        info = self.catalog.get(slug) or {}
+        if not info.get("exists"):
+            info = novel_card_details(slug)
+        title = str(info.get("title") or pretty(slug))
+        self.selected_preview_title_var.set(f"{title} ({slug})")
+
+        photo, note = self._load_preview_image(info.get("image_path"))
+        if photo is not None:
+            self._selected_cover_preview_img = photo
+            self.selected_cover_preview.configure(image=photo, text="")
+        else:
+            self._selected_cover_preview_img = None
+            self.selected_cover_preview.configure(image="", text="No preview")
+
+        note_lines = [f"Status: {info.get('status') or 'Unknown'}"]
+        if info.get("hidden"):
+            note_lines.append("Hidden card")
+        note_lines.append(note)
+        self.selected_preview_note_var.set("\n".join([line for line in note_lines if line]))
+
+    def _refresh_upload_cover_preview(self):
+        path_raw = self.cover_var.get().strip()
+        if not path_raw:
+            self._upload_cover_preview_img = None
+            self.upload_cover_preview.configure(image="", text="No preview")
+            if self.mode_var.get() == MODE_CREATE:
+                self.upload_preview_title_var.set("New cover")
+                self.upload_preview_note_var.set("Select a cover image to preview upload.")
+            else:
+                self.upload_preview_title_var.set("Replacement cover")
+                self.upload_preview_note_var.set("Optional. Pick a file only when replacing the current cover.")
+            return
+
+        p = Path(path_raw).expanduser()
+        self.upload_preview_title_var.set(p.name)
+        photo, note = self._load_preview_image(p)
+        if photo is not None:
+            self._upload_cover_preview_img = photo
+            self.upload_cover_preview.configure(image=photo, text="")
+        else:
+            self._upload_cover_preview_img = None
+            self.upload_cover_preview.configure(image="", text="No preview")
+        self.upload_preview_note_var.set(note)
+
+    def _refresh_related_cover_preview(self):
+        query = self.related_to_var.get().strip()
+        if not query:
+            self._related_cover_preview_img = None
+            self.related_cover_preview.configure(image="", text="No preview")
+            self.related_preview_title_var.set("Related novel")
+            self.related_preview_note_var.set("Type a related slug to see likely matches.")
+            return
+
+        exact = slugify(query)
+        ranked = self._ranked_slugs(query, sorted(self.catalog.keys()), exclude_slug=self.slug_var.get())
+        slug = exact if exact in self.catalog else (ranked[0] if ranked else "")
+        if not slug:
+            self._related_cover_preview_img = None
+            self.related_cover_preview.configure(image="", text="No preview")
+            self.related_preview_title_var.set("Related novel")
+            self.related_preview_note_var.set("No matching novel found.")
+            return
+
+        info = self.catalog.get(slug) or {}
+        if not info.get("exists"):
+            info = novel_card_details(slug)
+        title = str(info.get("title") or pretty(slug))
+        self.related_preview_title_var.set(f"{title} ({slug})")
+
+        photo, note = self._load_preview_image(info.get("image_path"))
+        if photo is not None:
+            self._related_cover_preview_img = photo
+            self.related_cover_preview.configure(image=photo, text="")
+        else:
+            self._related_cover_preview_img = None
+            self.related_cover_preview.configure(image="", text="No preview")
+
+        note_lines = []
+        if slug != exact:
+            note_lines.append(f"Best match for '{query}'")
+        note_lines.append(f"Status: {info.get('status') or 'Unknown'}")
+        if info.get("hidden"):
+            note_lines.append("Hidden card")
+        note_lines.append(note)
+        self.related_preview_note_var.set("\n".join([line for line in note_lines if line]))
 
     def _build_relationship_entry_from_form(self, slug: str) -> Tuple[Optional[dict], Optional[str]]:
         return build_relationship_entry_from_values(
@@ -1331,36 +2112,14 @@ class Wizard(tk.Tk):
             related_to_raw=self.related_to_var.get(),
         )
 
-    def _open_relationship_editor(self):
-        try:
-            dlg = RelationshipEditorDialog(self, on_registry_changed=self._refresh_relationship_choices)
-            dlg.focus_force()
-        except Exception as exc:
-            messagebox.showerror("Relationship Editor", f"Could not open editor.\n{exc}")
-
-    def _sync_relationship_badges(self):
-        try:
-            stats = sync_relationship_badges_in_novels_index()
-        except Exception as exc:
-            messagebox.showerror("Sync relationship badges", str(exc))
-            return
-
-        changed = bool(stats.get("file_changed"))
-        msg = (
-            f"Cards found: {stats.get('cards_total', 0)}\n"
-            f"Cards processed: {stats.get('cards_touched', 0)}\n"
-            f"Cards updated: {stats.get('cards_updated', 0)}\n"
-            f"Cards skipped: {stats.get('cards_skipped', 0)}\n\n"
-            f"{'Updated' if changed else 'No changes needed for'} {NOVELS_INDEX_HTML.name}."
-        )
-        messagebox.showinfo("Sync relationship badges", msg)
-
     def _on_mode_change(self):
         mode = self.mode_var.get()
-        if mode == "Create new":
-            # Minimal inputs for create
+        if mode == MODE_CREATE:
             self.title_var.set("")
             self.slug_var.set("")
+            self.existing_slug_var.set("")
+            self.edit_submode_var.set(EDIT_SUBMODE_APPEND)
+            self.status_var.set("Complete")
             self.cover_var.set("")
             self.blurb_var.set("")
             self.hidden_var.set(False)
@@ -1368,38 +2127,86 @@ class Wizard(tk.Tk):
             self.series_order_var.set("")
             self.relation_type_var.set("")
             self.related_to_var.set("")
-            self._refresh_relationship_choices()
             self.start_order = 1
-            self._show(self.lbl_title, self.title_entry,
-                       self.lbl_slug, self.slug_entry,
-                       self.lbl_status, self.status_combo,
-                       self.lbl_cover, self.cover_entry, self.btn_browse,
-                       self.rel_frame)
-            # Hide append-only controls
-            self._hide(self.lbl_existing, self.existing_combo)
-        else:  # Append mode — hide cover & create-only fields, show existing selector
-            # preload first existing slug if any
-            slugs = list_existing_slugs()
-            if slugs and not self.existing_slug_var.get():
-                self.existing_slug_var.set(slugs[0])
+            self.chapter_hint_var.set("Chapters start from 1.")
+            self.btn_bulk.configure(text="Bulk Import Files...")
+            self.spin_count.state(["!disabled"])
+            self.btn_bulk.state(["!disabled"])
+
+            self.lbl_existing.grid_remove()
+            self.existing_combo.grid_remove()
+            self.btn_reload.grid_remove()
+            self._hide_edit_submode_controls()
+
+            self.btn_commit.configure(text="Create & Commit")
+            self.btn_commit.grid_configure(column=0, columnspan=3, sticky="ew")
+            self.selected_preview_frame.grid_remove()
+        else:
+            self.lbl_existing.grid()
+            self.existing_combo.grid()
+            self.btn_reload.grid()
+            self._show_edit_submode_controls()
+
+            self.btn_commit.configure(text="Update & Commit")
+            self.btn_commit.grid_configure(column=2, columnspan=1, sticky="e")
+            self.selected_preview_frame.grid()
+            self._refresh_existing_choices(self.existing_slug_var.get())
+            if self._existing_slugs and not slugify(self.existing_slug_var.get()):
+                self.existing_slug_var.set(self._existing_slugs[0])
             self._on_existing_selected()
-            self._hide(self.lbl_title, self.title_entry,
-                       self.lbl_slug, self.slug_entry,
-                       self.lbl_cover, self.cover_entry, self.btn_browse,
-                       self.rel_frame)
-            self._show(self.lbl_existing, self.existing_combo,
-                       self.lbl_status, self.status_combo)
+
+        self.chapter_tabs = []
         self._build_chapter_tabs()
+        self._refresh_related_choices(self.related_to_var.get())
+        self._refresh_selected_cover_preview()
+        self._refresh_upload_cover_preview()
+        self._refresh_related_cover_preview()
+        self._update_status_chip()
+        self._set_auto_commit_message(force=True)
 
     def _on_existing_selected(self):
-        slug = self.existing_slug_var.get().strip()
-        if not slug:
+        if self.mode_var.get() != MODE_EDIT:
             return
-        info = get_existing_info(slug)
+
+        raw = self.existing_slug_var.get().strip()
+        slug = slugify(raw)
+        if not slug or slug not in self._existing_slugs:
+            matches = self._ranked_slugs(raw, self._existing_slugs)
+            if not matches:
+                return
+            slug = matches[0]
+
+        self.existing_slug_var.set(slug)
         self.slug_var.set(slug)
-        self.title_var.set(pretty(slug))
-        self.start_order = (info.get("max_order") or 0) + 1
-        self._build_chapter_tabs()
+        idx_meta = read_novel_index_metadata(slug)
+        card_meta = self.catalog.get(slug) or {}
+        if not card_meta.get("exists"):
+            card_meta = novel_card_details(slug)
+
+        card_title = _clean_novel_title_for_editor(str(card_meta.get("title") or ""))
+        idx_title = _clean_novel_title_for_editor(str(idx_meta.get("title") or ""))
+        loaded_title = card_title or idx_title or pretty(slug)
+        self.title_var.set(loaded_title.strip())
+        self.status_var.set(_normalize_status_choice(str(idx_meta.get("status") or card_meta.get("status") or "Incomplete")))
+        self.blurb_var.set(str(idx_meta.get("blurb") or ""))
+        self.hidden_var.set(bool(card_meta.get("hidden")))
+        self.cover_var.set("")
+
+        rel = relationship_entry_for_slug(slug)
+        self.series_label_var.set(str(rel.get("series_label") or ""))
+        ro = rel.get("reading_order")
+        self.series_order_var.set(str(ro) if isinstance(ro, int) and ro > 0 else "")
+        rel_key = _normalize_relation_type(str(rel.get("relation_type") or ""))
+        rel_label = RELATION_TYPE_LABELS.get(rel_key, "")
+        self.relation_type_var.set(rel_label if rel_label in RELATION_TYPE_CHOICES else "")
+        self.related_to_var.set(str(rel.get("related_to") or ""))
+
+        self._refresh_edit_submode_state(rebuild_tabs=True)
+        self._refresh_related_choices(self.related_to_var.get())
+        self._refresh_selected_cover_preview()
+        self._refresh_upload_cover_preview()
+        self._refresh_related_cover_preview()
+        self._set_auto_commit_message(force=True)
 
     def _build_chapter_tabs(self):
         # Preserve existing content by order before rebuild
@@ -1419,10 +2226,20 @@ class Wizard(tk.Tk):
         self.chapter_tabs = []
 
         MAX_TITLE_LEN = 100  # Prevent UI crashes from overly long titles
-        n = max(1, int(self.count_var.get() or 1))
-        start = self.start_order if self.mode_var.get() == "Append to existing" else 1
-        for i in range(n):
-            order = start + i
+        source_by_order = {}
+        if self._is_edit_chapter_mode():
+            entries = list(self._existing_chapter_entries or [])
+            if entries:
+                orders = [int(e["order"]) for e in entries]
+                source_by_order = {int(e["order"]): e for e in entries}
+            else:
+                orders = [1]
+        else:
+            n = max(1, int(self.count_var.get() or 1))
+            start = self.start_order if self.mode_var.get() == MODE_EDIT else 1
+            orders = [start + i for i in range(n)]
+
+        for order in orders:
             frame = ttk.Frame(self.nb, padding=10)
             self.nb.add(frame, text=f"{order}")
 
@@ -1474,11 +2291,29 @@ class Wizard(tk.Tk):
                     text.insert('1.0', preserved[order]['body'])
                 except Exception:
                     pass
+            elif order in source_by_order:
+                src = source_by_order[order]
+                src_title = str(src.get("title") or f"Chapter {order}")
+                src_body = str(src.get("body") or "")
+                title_var.set(src_title[:MAX_TITLE_LEN])
+                try:
+                    text.delete('1.0', 'end')
+                    text.insert('1.0', src_body)
+                except Exception:
+                    pass
 
             self.chapter_tabs.append({"order": order, "title_var": title_var, "text": text})
 
 
     def _bulk_import_docx(self):
+        if self._is_edit_chapter_mode():
+            messagebox.showinfo(
+                "Bulk append",
+                "Bulk import is available in 'Append Chapters' mode.\n"
+                "Switch edit mode to Append Chapters to use bulk append.",
+            )
+            return
+
         files = filedialog.askopenfilenames(
             title="Select chapter files (DOCX / Markdown; multiple)",
             filetypes=[
@@ -1491,31 +2326,31 @@ class Wizard(tk.Tk):
         if not files:
             return
 
-        # Extract chapter numbers from files and map them
-        file_map = {}       # chapter_number -> file_path
-        import_cache = {}   # file_path -> parsed/imported data
+        entries = []
         skipped_no_order = []
         failed_docx = []
+
         for path in files:
             p = Path(path)
             info = import_file_info(p)
-            import_cache[path] = info
 
             if info.get("kind") == "docx" and not (info.get("body") or "").strip():
                 failed_docx.append(p.name)
                 continue
 
-            ch_num = _extract_chapter_num_from_name(path)
-            if ch_num == 10**9 and info.get("order") is not None:
-                ch_num = int(info["order"])
-
-            if ch_num == 10**9:
+            slot = _extract_import_sequence(p.name, info.get("order"))
+            if not slot:
                 skipped_no_order.append(p.name)
                 continue
 
-            file_map[ch_num] = path
+            entries.append({
+                "path": p,
+                "info": info,
+                "kind": slot[0],
+                "num": int(slot[1]),
+            })
 
-        if not file_map:
+        if not entries:
             if failed_docx:
                 messagebox.showerror(
                     "Import failed",
@@ -1525,58 +2360,48 @@ class Wizard(tk.Tk):
                 return
             messagebox.showerror(
                 "No chapters",
-                "Could not extract chapter numbers from filenames.\n"
-                "Use names like 'Chapter1.md' / 'Chapter1.docx' or include 'order:' in Markdown front matter."
+                "Could not extract chapter/epilogue order from filenames.\n"
+                "Use names like 'Chapter1.md', 'Epilogue1.md', or include 'order:' in Markdown front matter."
             )
             return
 
-        min_ch = min(file_map.keys())
-        max_ch = max(file_map.keys())
+        entries.sort(key=lambda e: (0 if e["kind"] == "chapter" else 1, e["num"], e["path"].name.lower()))
 
-        # Check if imported chapters conflict with existing chapters (append mode)
-        if self.mode_var.get() == "Append to existing" and min_ch < self.start_order:
-            reply = messagebox.askyesno("Chapter conflict", 
-                f"Imported chapters include {min_ch}-{max_ch}, but existing chapters go up to {self.start_order - 1}.\n"
-                f"Only import chapters >= {self.start_order}?")
-            if reply:
-                file_map = {k: v for k, v in file_map.items() if k >= self.start_order}
-                if not file_map:
-                    messagebox.showerror("Cancelled", "No valid chapters after filtering.")
-                    return
-                min_ch = min(file_map.keys())
-                max_ch = max(file_map.keys())
-            # If user clicks 'No', continue with full range (allow all numbers)
+        if self.mode_var.get() == MODE_EDIT:
+            self.chapter_hint_var.set(f"Appending {len(entries)} file(s) from chapter {self.start_order}.")
+        else:
+            self.start_order = 1
+            self.chapter_hint_var.set("Imported files mapped in order (chapters first, then epilogues).")
 
-        # Create tabs for the full range from min_ch to max_ch (fills gaps automatically)
-        n = max_ch - min_ch + 1
-        self.count_var.set(n)
-        self.start_order = min_ch
+        self.count_var.set(len(entries))
         self._build_chapter_tabs()
 
-        # Populate tabs with files that exist, leave gaps empty
-        for rec in self.chapter_tabs:
-            order = rec['order']
-            if order in file_map:
-                path = file_map[order]
-                info = import_cache.get(path) or import_file_info(Path(path))
-                stem = Path(path).stem
-                stem_guess = re.sub(r"[_-]+", " ", stem).strip().title()
-                stem_after_chapter = re.sub(
-                    r"(?i)^.*?\bchapter\s*\d+\b\s*[:.\-–—]*\s*",
-                    "",
-                    stem_guess,
-                ).strip()
-                title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after_chapter or stem_guess)
-                md = info.get("body") or ""
-                rec["title_var"].set(title_guess or f"Chapter {order}")
-                rec["text"].delete("1.0", "end")
-                rec["text"].insert("1.0", md)
-            # else: leave empty (gap chapter)
+        for i, rec in enumerate(self.chapter_tabs):
+            if i >= len(entries):
+                break
+            ent = entries[i]
+            info = ent["info"] or {}
+            stem = ent["path"].stem
+            stem_guess = re.sub(r"[_-]+", " ", stem).strip().title()
+            if ent["kind"] == "epilogue":
+                stem_after = re.sub(r"(?i)^.*?\bepilogue\b\s*\d*\s*[:.\-–—]*\s*", "", stem_guess).strip()
+            else:
+                stem_after = re.sub(r"(?i)^.*?\bchapter\s*\d+\b\s*[:.\-–—]*\s*", "", stem_guess).strip()
+
+            title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after or stem_guess)
+            if not title_guess and ent["kind"] == "epilogue":
+                title_guess = f"Epilogue {ent['num']}"
+            if not title_guess:
+                title_guess = f"Chapter {rec['order']}"
+
+            rec["title_var"].set(title_guess)
+            rec["text"].delete("1.0", "end")
+            rec["text"].insert("1.0", info.get("body") or "")
 
         notices = []
         if skipped_no_order:
             notices.append(
-                f"Skipped {len(skipped_no_order)} file(s) without a chapter number/order (e.g. {skipped_no_order[0]})."
+                f"Skipped {len(skipped_no_order)} file(s) without chapter/epilogue order (e.g. {skipped_no_order[0]})."
             )
         if failed_docx:
             notices.append(
@@ -1665,104 +2490,281 @@ class Wizard(tk.Tk):
                 pass
         text_widget.insert("insert", md)
 
+    def _update_badges(self):
+        if self.mode_var.get() != MODE_EDIT:
+            return
+        slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
+        if not slug:
+            messagebox.showerror("Update badges", "Select a novel first.")
+            return
+
+        rel_entry, rel_err = self._build_relationship_entry_from_form(slug)
+        if rel_err:
+            messagebox.showerror("Relationship metadata", rel_err)
+            return
+
+        try:
+            upsert_relationship_registry_entry(slug, rel_entry)
+            update_novel_card_in_novels_index(
+                slug=slug,
+                novel_title=self.title_var.get().strip() or pretty(slug),
+                status_choice=self.status_var.get(),
+                hidden=self.hidden_var.get(),
+                cover_rel=None,
+            )
+            stats = sync_relationship_badges_in_novels_index()
+        except Exception as exc:
+            messagebox.showerror("Update badges", str(exc))
+            return
+
+        self._refresh_catalog()
+        self._refresh_selected_cover_preview()
+        self._refresh_related_cover_preview()
+        messagebox.showinfo(
+            "Update badges",
+            f"Relationship metadata updated and badges synced.\nCards updated: {stats.get('cards_updated', 0)}",
+        )
+
+    def _run_optimize_script(self) -> tuple[bool, str]:
+        script = REPO_ROOT / "tools" / "optimize_and_update_index.py"
+        if not script.exists():
+            return False, f"Missing script: {script}"
+        res = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=REPO_ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        output = (res.stdout or "").strip()
+        err = (res.stderr or "").strip()
+        msg = "\n".join([x for x in [output, err] if x]).strip()
+        return (res.returncode == 0), (msg or "No output.")
+
+    def _stage_and_commit(self, paths: set[Path], summary: str, description: str) -> tuple[bool, str]:
+        rel_paths = []
+        for p in sorted(paths, key=lambda x: str(x).lower()):
+            pp = p if p.is_absolute() else (REPO_ROOT / p)
+            try:
+                rp = pp.relative_to(REPO_ROOT)
+            except Exception:
+                continue
+            rel_paths.append(str(rp).replace("\\", "/"))
+        rel_paths = sorted(set(rel_paths))
+        if not rel_paths:
+            return False, "No repository paths to stage."
+
+        add_res = subprocess.run(
+            ["git", "add", "--"] + rel_paths,
+            cwd=REPO_ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        if add_res.returncode != 0:
+            raise RuntimeError((add_res.stderr or add_res.stdout or "git add failed").strip())
+
+        commit_cmd = ["git", "commit", "-m", summary]
+        if description:
+            commit_cmd += ["-m", description]
+        commit_res = subprocess.run(
+            commit_cmd,
+            cwd=REPO_ROOT,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+        out = "\n".join(
+            [x for x in [(commit_res.stdout or "").strip(), (commit_res.stderr or "").strip()] if x]
+        ).strip()
+        if commit_res.returncode != 0:
+            if "nothing to commit" in out.lower():
+                return False, "No changes were committed (nothing to commit)."
+            raise RuntimeError(out or "git commit failed")
+        return True, out
+
     def _commit(self):
-        # Preflight
         if not NOVEL_DIR.exists():
             messagebox.showerror("Error", f"Cannot find {NOVEL_DIR}. Run from your repo root.")
             return
 
+        summary = self.commit_summary_var.get().strip()
+        description = self._get_commit_description().strip()
+        if not summary:
+            messagebox.showerror("Commit message", "Commit summary is required.")
+            return
+        if not description:
+            messagebox.showerror("Commit message", "Commit description is required.")
+            return
+
         mode = self.mode_var.get()
-        if mode == "Create new":
+        if mode == MODE_CREATE:
             novel_title = self.title_var.get().strip()
             if not novel_title:
-                messagebox.showerror("Error", "Please enter a Novel Title.")
+                messagebox.showerror("Error", "Please enter a novel title.")
                 return
-            slug = self.slug_var.get().strip() or slugify(novel_title)
+            if not self.cover_var.get().strip():
+                messagebox.showerror("Error", "Please choose a cover image for Create New.")
+                return
+            if not self.blurb_var.get().strip():
+                messagebox.showerror("Error", "Please enter a blurb for Create New.")
+                return
+            slug = slugify(self.slug_var.get().strip() or novel_title)
         else:
-            # Append mode
-            slug = self.existing_slug_var.get().strip() or self.slug_var.get().strip()
+            slug = slugify(self.existing_slug_var.get().strip() or self.slug_var.get().strip())
             if not slug:
-                messagebox.showerror("Error", "Select an existing novel to append to.")
+                messagebox.showerror("Error", "Select an existing novel to edit.")
                 return
-            novel_title = pretty(slug)
-        slug = slugify(slug)
+            novel_title = self.title_var.get().strip() or pretty(slug)
+            catalog_entry = self.catalog.get(slug) or {}
+            card_exists = bool(catalog_entry.get("exists"))
+            if not card_exists:
+                card_exists = bool(novel_card_details(slug).get("exists"))
+            if not card_exists:
+                messagebox.showerror(
+                    "Edit Current",
+                    f"No existing novel card found for '{slug}' in {NOVELS_INDEX_HTML.name}.\n"
+                    "Edit mode will not create a new card.",
+                )
+                return
 
-        relationship_entry = None
-        if mode == "Create new":
-            relationship_entry, rel_err = self._build_relationship_entry_from_form(slug)
-            if rel_err:
-                messagebox.showerror("Relationship metadata", rel_err)
-                return
+        rel_entry, rel_err = self._build_relationship_entry_from_form(slug)
+        if rel_err:
+            messagebox.showerror("Relationship metadata", rel_err)
+            return
 
         dest = NOVEL_DIR / slug
         dest.mkdir(parents=True, exist_ok=True)
 
-        if mode == "Create new":
-            # Rename any index.html
-            old = dest / "index.html"
-            if old.exists():
-                bak = dest / "index_old.html"
-                if not bak.exists():
-                    old.rename(bak)
+        if mode == MODE_CREATE and any(dest.glob("Chapter*.md")):
+            if not messagebox.askyesno(
+                "Existing slug",
+                f"/novel/{slug}/ already has chapter files.\nContinue and write into this slug?",
+            ):
+                return
 
-            # Copy cover & add card to /novel/index.html
-            cover_rel = copy_cover_to_images(self.cover_var.get().strip(), slug)
-        else:
-            cover_rel = f"/images/{slug}-cover.png"  # unused in append, but harmless
-
-        # Write chapters
+        staged_paths = set()
         written = 0
         for rec in self.chapter_tabs:
-            order = rec["order"]
+            order = int(rec["order"])
             ch_title = rec["title_var"].get().strip() or f"Chapter {order}"
             body = rec["text"].get("1.0", "end").rstrip()
             if not body:
                 continue
-            md = build_chapter_md(slug, order, ch_title, body)
-            write_text(dest / f"Chapter{order}.md", md)
+            ch_path = dest / f"Chapter{order}.md"
+            write_text(ch_path, build_chapter_md(slug, order, ch_title, body))
+            staged_paths.add(ch_path)
             written += 1
 
-        if written == 0:
+        if mode == MODE_CREATE and written == 0:
             messagebox.showerror("No chapters", "Please enter at least one chapter body.")
             return
 
-        # index.md — create if missing (safe for append)
-        idx = dest / "index.md"
-        if not idx.exists():
-            write_text(idx, build_index_md(slug, self.status_var.get(), self.blurb_var.get()))
+        idx = write_novel_index_metadata(
+            slug=slug,
+            title=novel_title,
+            status=self.status_var.get(),
+            blurb=self.blurb_var.get(),
+        )
+        staged_paths.add(idx)
 
-        # Append card only for new novels
-        if mode == "Create new":
-            try:
-                upsert_relationship_registry_entry(slug, relationship_entry)
-            except Exception as exc:
-                messagebox.showwarning(
-                    "Relationship metadata",
-                    f"Could not save relationship metadata to {RELATIONSHIPS_JSON.name}.\n{exc}\n"
-                    "The novel will still be created, but relationship badges may be missing."
-                )
-            append_card_to_novels_index(novel_title, slug, cover_rel, self.status_var.get(), self.hidden_var.get())
-
-        # Update index.html + generate variants (best-effort)
         try:
-            script = REPO_ROOT / "tools" / "optimize_and_update_index.py"
-            if script.exists():
-                res = subprocess.run([sys.executable, str(script)], check=False)
-                if res.returncode != 0:
-                    messagebox.showwarning(
-                        "Optimize failed",
-                        "The optimize/update script returned a non-zero exit code.\n"
-                        "Index or image variants may not be fully updated."
-                    )
+            upsert_relationship_registry_entry(slug, rel_entry)
+            staged_paths.add(RELATIONSHIPS_JSON)
         except Exception as exc:
-            messagebox.showwarning(
-                "Optimize failed",
-                f"Could not run optimize/update script.\n{exc}"
-            )
+            messagebox.showerror("Relationship metadata", f"Could not save relationship metadata.\n{exc}")
+            return
 
-        action = "Created" if mode == "Create new" else "Appended"
-        messagebox.showinfo("Done", f"{action} /novel/{slug}/ with {written} chapter(s).\nRemember to commit & push.")
-        self.destroy()
+        cover_rel = ""
+        cover_base = ""
+        optimize_needed = False
+
+        if mode == MODE_CREATE:
+            cover_rel = copy_cover_to_images(self.cover_var.get().strip(), slug)
+            local_cover = _local_path_from_site_url(cover_rel)
+            if local_cover is not None:
+                staged_paths.add(local_cover)
+            append_card_to_novels_index(
+                novel_title=novel_title,
+                slug=slug,
+                cover_rel=cover_rel,
+                status_choice=self.status_var.get(),
+                hidden=self.hidden_var.get(),
+            )
+            staged_paths.add(NOVELS_INDEX_HTML)
+            cover_base = Path(cover_rel).stem
+            optimize_needed = True
+        else:
+            replacement = self.cover_var.get().strip()
+            if replacement:
+                cover_rel, removed = copy_cover_to_images_and_cleanup(replacement, slug)
+                local_cover = _local_path_from_site_url(cover_rel)
+                if local_cover is not None:
+                    staged_paths.add(local_cover)
+                for p in removed:
+                    staged_paths.add(p)
+                cover_base = Path(cover_rel).stem
+                optimize_needed = True
+
+            try:
+                update_novel_card_in_novels_index(
+                    slug=slug,
+                    novel_title=novel_title,
+                    status_choice=self.status_var.get(),
+                    hidden=self.hidden_var.get(),
+                    cover_rel=cover_rel or None,
+                )
+            except Exception as exc:
+                messagebox.showerror("Update card", str(exc))
+                return
+
+            staged_paths.add(NOVELS_INDEX_HTML)
+
+        try:
+            sync_relationship_badges_in_novels_index()
+            staged_paths.add(NOVELS_INDEX_HTML)
+        except Exception as exc:
+            messagebox.showwarning("Sync badges", f"Could not sync relationship badges.\n{exc}")
+
+        if optimize_needed:
+            ok, optimize_msg = self._run_optimize_script()
+            if not ok:
+                messagebox.showwarning(
+                    "Optimize failed",
+                    "The optimize/update script returned a non-zero exit code.\n"
+                    f"{optimize_msg}",
+                )
+            staged_paths.add(NOVELS_INDEX_HTML)
+            base = cover_base or f"{slug}-cover"
+            for ext in ("jpg", "webp"):
+                for p in IMAGES_DIR.glob(f"{base}-*.{ext}"):
+                    staged_paths.add(p)
+
+        try:
+            committed, git_msg = self._stage_and_commit(staged_paths, summary, description)
+        except Exception as exc:
+            messagebox.showerror("Git commit failed", str(exc))
+            return
+
+        self._refresh_catalog()
+        self._refresh_selected_cover_preview()
+        self._refresh_upload_cover_preview()
+        self._refresh_related_cover_preview()
+
+        action = "Created" if mode == MODE_CREATE else "Updated"
+        if committed:
+            messagebox.showinfo(
+                "Done",
+                f"{action} /novel/{slug}/ with {written} chapter(s).\n\n"
+                "Commit completed. Please run git push manually.\n\n"
+                f"{git_msg}",
+            )
+            self.destroy()
+        else:
+            messagebox.showinfo(
+                "No commit",
+                f"{action} /novel/{slug}/ with {written} chapter(s), but nothing was committed.\n\n{git_msg}",
+            )
 
 # ---------- entry ----------
 def main():

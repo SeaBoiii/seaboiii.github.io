@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Only a fan dream — Chapters
+Title: Only a Fan Dream
 novel: only-a-fan-dream
 status: Incomplete
 blurb: >-

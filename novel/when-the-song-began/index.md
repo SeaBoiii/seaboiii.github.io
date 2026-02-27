@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: When the song began — Chapters
+Title: When the Song Began
 novel: when-the-song-began
 status: Complete
 blurb: >-

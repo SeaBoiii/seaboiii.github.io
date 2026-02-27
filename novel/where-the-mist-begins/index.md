@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Where the mist begins — Chapters
+Title: Where the Mist Begins
 novel: where-the-mist-begins
 status: Complete
 blurb: >-

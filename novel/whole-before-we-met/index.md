@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Whole before we met — Chapters
+Title: Whole Before We Met
 novel: whole-before-we-met
 status: Complete
 blurb: >-

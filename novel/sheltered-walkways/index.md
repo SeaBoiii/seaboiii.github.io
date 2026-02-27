@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Sheltered walkways — Chapters
+Title: Sheltered Walkways
 novel: sheltered-walkways
 status: Complete
 blurb: >-

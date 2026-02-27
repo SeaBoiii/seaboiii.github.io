@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: As if you never left — Chapters
+Title: As If You Never Left
 novel: as-if-you-never-left
 status: Complete
 blurb: >-

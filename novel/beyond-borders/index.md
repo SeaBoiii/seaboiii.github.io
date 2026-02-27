@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Beyond borders — Chapters
+Title: Beyond Borders
 novel: beyond-borders
 status: Complete
 blurb: >-

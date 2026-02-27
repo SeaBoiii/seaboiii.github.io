@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Umrah of mercy — Chapters
+Title: Umrah of Mercy
 novel: umrah-of-mercy
 status: Complete
 blurb: >-

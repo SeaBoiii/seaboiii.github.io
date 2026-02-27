@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: When the time stops — Chapters
+Title: When the Time Stops
 novel: when-the-time-stops
 status: Complete
 blurb: >-

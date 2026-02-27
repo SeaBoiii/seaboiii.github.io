@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Echoes of us — Chapters
+Title: Echoes of Us
 novel: echoes-of-us
 status: Complete
 blurb: >-

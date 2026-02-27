@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: A name of my own — Chapters
+Title: A Name of My Own
 novel: a-name-of-my-own
 status: Complete
 blurb: >-

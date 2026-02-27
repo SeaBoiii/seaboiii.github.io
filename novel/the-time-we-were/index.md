@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: The time we were — Chapters
+Title: The Time We Were
 novel: the-time-we-were
 status: Complete
 blurb: >-

@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: Soulbound in seoul — Chapters
+Title: Soulbound in Seoul
 novel: soulbound-in-seoul
 status: Complete
 blurb: >-
