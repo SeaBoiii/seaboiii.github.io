@@ -46,5 +46,12 @@
     "relation_type": "sequel",
     "series_id": "two-seats",
     "series_label": "Two Seats"
+  },
+  "two-seats-reserved": {
+    "reading_order": 3,
+    "related_to": "two-seats-closer",
+    "relation_type": "sequel",
+    "series_id": "two-seats",
+    "series_label": "Two Seats"
   }
 }
