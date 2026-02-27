@@ -191,8 +191,58 @@
 
       @media (min-width: 720px) {
         .controls {
-          grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(130px, 1fr));
-          align-items: end;
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .controls-top {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .controls-top .search {
+        flex: 1 1 auto;
+      }
+
+      .filter-toggle {
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 0.6rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
+
+      .filter-toggle:hover {
+        background: color-mix(in oklab, var(--card), var(--text) 8%);
+      }
+
+      .filter-toggle:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 40%);
+        outline-offset: 2px;
+      }
+
+      .filter-panel {
+        border-top: 1px dashed var(--border);
+        padding-top: 0.75rem;
+      }
+
+      .filter-panel[hidden] {
+        display: none;
+      }
+
+      .filter-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 720px) {
+        .filter-grid {
+          grid-template-columns: repeat(4, minmax(130px, 1fr));
         }
       }
 
@@ -417,64 +467,76 @@
      </p>
     </div>
     <div class="controls">
-     <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
-     <div class="filter-block">
-      <label class="filter-label" for="statusFilter">
-       Status
-      </label>
-      <select class="filter-select" id="statusFilter">
-       <option value="all">
-        All
-       </option>
-       <option value="complete">
-        Complete
-       </option>
-       <option value="incomplete">
-        Incomplete
-       </option>
-      </select>
+     <div class="controls-top">
+      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
+      <button aria-controls="filterPanel" aria-expanded="false" class="filter-toggle" id="filterToggle" type="button">
+       Filters
+      </button>
      </div>
-     <div class="filter-block">
-      <label class="filter-label" for="categoryFilter">
-       Category
-      </label>
-      <select class="filter-select" id="categoryFilter">
-       <option value="all">
-        Any
-       </option>
-       <option value="series">
-        Series
-       </option>
-       <option value="standalone">
-        Standalone
-       </option>
-      </select>
-     </div>
-     <div class="filter-block">
-      <label class="filter-label" for="sortFilter">
-       Sort
-      </label>
-      <select class="filter-select" id="sortFilter">
-       <option value="recent">
-        Recent
-       </option>
-       <option value="alpha">
-        A-Z
-       </option>
-       <option value="series-order">
-        Series Order
-       </option>
-      </select>
-     </div>
-     <div class="filter-block">
-      <label class="filter-label" for="seriesFilter">
-       Series
-      </label>
-      <select class="filter-select" id="seriesFilter">
-       <option value="all">
-        All series
-       </option>
-      </select>
+     <div class="filter-panel" hidden="" id="filterPanel">
+      <div class="filter-grid">
+       <div class="filter-block">
+        <label class="filter-label" for="statusFilter">
+         Status
+        </label>
+        <select class="filter-select" id="statusFilter">
+         <option value="all">
+          All
+         </option>
+         <option value="complete">
+          Complete
+         </option>
+         <option value="incomplete">
+          Incomplete
+         </option>
+        </select>
+       </div>
+       <div class="filter-block">
+        <label class="filter-label" for="categoryFilter">
+         Category
+        </label>
+        <select class="filter-select" id="categoryFilter">
+         <option value="all">
+          Any
+         </option>
+         <option value="series">
+          Series
+         </option>
+         <option value="standalone">
+          Standalone
+         </option>
+        </select>
+       </div>
+       <div class="filter-block">
+        <label class="filter-label" for="sortFilter">
+         Sort
+        </label>
+        <select class="filter-select" id="sortFilter">
+         <option value="recent">
+          Recent
+         </option>
+         <option value="original">
+          Original
+         </option>
+         <option value="alpha">
+          A-Z
+         </option>
+         <option value="series-order">
+          Series Order
+         </option>
+        </select>
+       </div>
+       <div class="filter-block">
+        <label class="filter-label" for="seriesFilter">
+         Series
+        </label>
+        <select class="filter-select" id="seriesFilter">
+         <option value="all">
+          All series
+         </option>
+        </select>
+       </div>
+      </div>
      </div>
      <div aria-live="polite" class="muted" id="resultsCount">
      </div>
@@ -1076,6 +1138,8 @@
         var categorySelect = document.getElementById("categoryFilter");
         var sortSelect = document.getElementById("sortFilter");
         var seriesSelect = document.getElementById("seriesFilter");
+        var filterToggle = document.getElementById("filterToggle");
+        var filterPanel = document.getElementById("filterPanel");
         var secretBtn = document.getElementById("secretBtn");
         if (
           !search ||
@@ -1085,6 +1149,8 @@
           !categorySelect ||
           !sortSelect ||
           !seriesSelect ||
+          !filterToggle ||
+          !filterPanel ||
           !secretBtn
         ) return;
         var cards = Array.prototype.slice.call(grid.querySelectorAll(".novel-card"));
@@ -1092,6 +1158,7 @@
         var activeSeriesFilter = "all";
         var activeSeriesNameFilter = "all";
         var activeSortFilter = "recent";
+        var isFilterPanelOpen = false;
         var unlockedKey = "site:novels-unlocked";
         var uiStateKey = "site:novels-ui";
         var correctPassword = "seaboiii";
@@ -1117,7 +1184,8 @@
             seriesFilter: activeSeriesFilter,
             seriesNameFilter: activeSeriesNameFilter,
             sortFilter: activeSortFilter,
-            searchTerm: (search.value || "").trim()
+            searchTerm: (search.value || "").trim(),
+            filterPanelOpen: !!isFilterPanelOpen
           };
           try {
             localStorage.setItem(uiStateKey, JSON.stringify(payload));
@@ -1127,6 +1195,28 @@
         function normalizeChoice(value, allowed, fallback) {
           if (allowed.indexOf(value) >= 0) return value;
           return fallback;
+        }
+
+        function countActiveFilters() {
+          var n = 0;
+          if (activeStatusFilter !== "all") n += 1;
+          if (activeSeriesFilter !== "all") n += 1;
+          if (activeSortFilter !== "recent") n += 1;
+          if (activeSeriesNameFilter !== "all") n += 1;
+          if ((search.value || "").trim()) n += 1;
+          return n;
+        }
+
+        function updateFilterToggleLabel() {
+          var count = countActiveFilters();
+          filterToggle.textContent = count > 0 ? ("Filters (" + count + ")") : "Filters";
+        }
+
+        function setFilterPanelOpen(open) {
+          isFilterPanelOpen = !!open;
+          filterPanel.hidden = !isFilterPanelOpen;
+          filterToggle.setAttribute("aria-expanded", isFilterPanelOpen ? "true" : "false");
+          saveUiState();
         }
 
         function normalizeMetaRows() {
@@ -1246,6 +1336,11 @@
               return 0;
             }
 
+            if (activeSortFilter === "original") {
+              if (aIdx !== bIdx) return aIdx - bIdx;
+              return 0;
+            }
+
             if (activeSortFilter === "alpha") {
               var alphaCmp = cardTitle(a).localeCompare(cardTitle(b));
               if (alphaCmp !== 0) return alphaCmp;
@@ -1356,13 +1451,15 @@
             if (show) visible += 1;
           });
           count.textContent = visible + " novel" + (visible === 1 ? "" : "s") + " shown";
+          updateFilterToggleLabel();
           saveUiState();
         }
 
         var savedUi = loadUiState();
         activeStatusFilter = normalizeChoice(savedUi.statusFilter, ["all", "complete", "incomplete"], "all");
         activeSeriesFilter = normalizeChoice(savedUi.seriesFilter, ["all", "series", "standalone"], "all");
-        activeSortFilter = normalizeChoice(savedUi.sortFilter, ["recent", "alpha", "series-order"], "recent");
+        activeSortFilter = normalizeChoice(savedUi.sortFilter, ["recent", "original", "alpha", "series-order"], "recent");
+        isFilterPanelOpen = !!savedUi.filterPanelOpen;
         activeSeriesNameFilter = (typeof savedUi.seriesNameFilter === "string" && savedUi.seriesNameFilter.trim())
           ? savedUi.seriesNameFilter.trim()
           : "all";
@@ -1382,6 +1479,7 @@
           seriesSelect.value = "all";
           activeSeriesNameFilter = "all";
         }
+        setFilterPanelOpen(isFilterPanelOpen);
 
         statusSelect.addEventListener("change", function () {
           activeStatusFilter = normalizeChoice(statusSelect.value, ["all", "complete", "incomplete"], "all");
@@ -1394,13 +1492,18 @@
         });
 
         sortSelect.addEventListener("change", function () {
-          activeSortFilter = normalizeChoice(sortSelect.value, ["recent", "alpha", "series-order"], "recent");
+          activeSortFilter = normalizeChoice(sortSelect.value, ["recent", "original", "alpha", "series-order"], "recent");
           update();
         });
 
         seriesSelect.addEventListener("change", function () {
           activeSeriesNameFilter = seriesSelect.value || "all";
           update();
+        });
+
+        filterToggle.addEventListener("click", function () {
+          setFilterPanelOpen(!isFilterPanelOpen);
+          updateFilterToggleLabel();
         });
 
         search.addEventListener("input", update);
@@ -1432,3 +1535,4 @@
   </script>
  </body>
 </html>
+
