@@ -13,6 +13,7 @@ Tkinter Novel Wizard for GitHub Pages + Jekyll
 Run from your repo root: python3 tools/novel_wizard.py
 """
 
+import importlib
 import json, re, shutil, struct, sys, subprocess
 from collections import Counter
 from html import escape as html_escape
@@ -43,6 +44,10 @@ try:
 except Exception:
     _PILImage = None
     _PILImageTk = None
+try:
+    from wordfreq import zipf_frequency as _zipf_frequency  # pip install wordfreq
+except Exception:
+    _zipf_frequency = None
 
 REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
@@ -68,6 +73,15 @@ RELATION_TYPE_LABELS = {
 }
 RELATION_TYPE_CHOICES = ["", "Original", "Prequel", "Sequel", "Companion", "Spin-off"]
 
+OPTIONAL_DEPENDENCIES = [
+    {"key": "markdownify", "package": "markdownify", "label": "markdownify", "purpose": "formatted HTML paste conversion"},
+    {"key": "mammoth", "package": "mammoth", "label": "mammoth", "purpose": "DOCX chapter import"},
+    {"key": "striprtf", "package": "striprtf", "label": "striprtf", "purpose": "RTF paste conversion"},
+    {"key": "beautifulsoup4", "package": "beautifulsoup4", "label": "beautifulsoup4", "purpose": "novel card/relationship HTML parsing"},
+    {"key": "pillow", "package": "pillow", "label": "pillow", "purpose": "image previews and richer icon conversion"},
+    {"key": "wordfreq", "package": "wordfreq", "label": "wordfreq", "purpose": "stronger dictionary filtering for name extraction"},
+]
+
 # ---------- helpers ----------
 def slugify(title: str) -> str:
     s = title.strip().lower()
@@ -84,6 +98,85 @@ def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", encoding="utf-8", newline="\n") as f:
         f.write(text)
+
+def _refresh_optional_dependency_handles():
+    global _markdownify, _mammoth, _rtf_to_text, _BeautifulSoup, _PILImage, _PILImageTk, _zipf_frequency
+
+    try:
+        _markdownify = importlib.import_module("markdownify")
+    except Exception:
+        _markdownify = None
+
+    try:
+        _mammoth = importlib.import_module("mammoth")
+    except Exception:
+        _mammoth = None
+
+    try:
+        _rtf_mod = importlib.import_module("striprtf.striprtf")
+        _rtf_to_text = getattr(_rtf_mod, "rtf_to_text", None)
+    except Exception:
+        _rtf_to_text = None
+
+    try:
+        _bs4_mod = importlib.import_module("bs4")
+        _BeautifulSoup = getattr(_bs4_mod, "BeautifulSoup", None)
+    except Exception:
+        _BeautifulSoup = None
+
+    try:
+        _PILImage = importlib.import_module("PIL.Image")
+        _PILImageTk = importlib.import_module("PIL.ImageTk")
+    except Exception:
+        _PILImage = None
+        _PILImageTk = None
+
+    try:
+        _wf_mod = importlib.import_module("wordfreq")
+        _zipf_frequency = getattr(_wf_mod, "zipf_frequency", None)
+    except Exception:
+        _zipf_frequency = None
+
+def missing_optional_dependencies() -> list[dict]:
+    flags = {
+        "markdownify": _markdownify is not None,
+        "mammoth": _mammoth is not None,
+        "striprtf": _rtf_to_text is not None,
+        "beautifulsoup4": _BeautifulSoup is not None,
+        "pillow": (_PILImage is not None and _PILImageTk is not None),
+        "wordfreq": _zipf_frequency is not None,
+    }
+    out = []
+    for dep in OPTIONAL_DEPENDENCIES:
+        if not flags.get(dep["key"], False):
+            out.append(dep)
+    return out
+
+def optional_install_command(deps: list[dict]) -> str:
+    pkgs = [str(d.get("package") or "").strip() for d in (deps or []) if str(d.get("package") or "").strip()]
+    if not pkgs:
+        return ""
+    py = sys.executable
+    if " " in py:
+        py = f'"{py}"'
+    return f"{py} -m pip install " + " ".join(pkgs)
+
+def install_optional_dependencies(deps: list[dict]) -> tuple[bool, str]:
+    cmd = optional_install_command(deps)
+    if not cmd:
+        return False, "No packages to install."
+    res = subprocess.run(
+        cmd,
+        cwd=REPO_ROOT,
+        shell=True,
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+    out = "\n".join(
+        [x for x in [(res.stdout or "").strip(), (res.stderr or "").strip()] if x]
+    ).strip()
+    return (res.returncode == 0), (out or "No output.")
 
 def resolve_wizard_icon_path() -> Optional[Path]:
     for p in WIZARD_ICON_CANDIDATES:
@@ -1520,6 +1613,76 @@ class BulkReplaceDialog(tk.Toplevel):
                 pass
         return rules, errors
 
+    def _normalize_name_key(self, value: str) -> str:
+        s = re.sub(r"\s+", " ", str(value or "").strip())
+        s = s.strip(" \t\r\n,.;:!?\"“”()[]{}")
+        return s.casefold()
+
+    def _existing_rule_keys(self, raw: str) -> set[str]:
+        keys = set()
+        for line in (raw or "").splitlines():
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            if "=>" in line:
+                left = line.split("=>", 1)[0]
+            elif "->" in line:
+                left = line.split("->", 1)[0]
+            else:
+                continue
+            key = self._normalize_name_key(left)
+            if key:
+                keys.add(key)
+        return keys
+
+    def _is_likely_english_word(self, token: str, lowercase_hits: Counter) -> bool:
+        w = str(token or "").strip().lower()
+        if len(w) <= 2:
+            return False
+
+        # If it appears in lowercase in the source text, it's usually a normal word.
+        if lowercase_hits.get(w, 0) > 0:
+            return True
+
+        # Optional stronger dictionary check when wordfreq is available.
+        if _zipf_frequency is not None:
+            try:
+                # >= 3.2 roughly means "common enough in English".
+                if float(_zipf_frequency(w, "en")) >= 3.2:
+                    return True
+            except Exception:
+                pass
+
+        fallback_words = {
+            "about", "above", "after", "again", "against", "almost", "along", "already", "also", "although",
+            "always", "among", "another", "any", "anyone", "anything", "around", "away", "back", "before",
+            "being", "below", "between", "both", "came", "come", "comes", "coming", "could", "day", "days",
+            "did", "didn't", "does", "doesn't", "doing", "done", "down", "during", "each", "even", "ever",
+            "every", "everyone", "everything", "felt", "few", "first", "found", "gave", "get", "gets", "give",
+            "given", "go", "goes", "going", "gone", "good", "great", "had", "has", "have", "having", "home",
+            "just", "keep", "kept", "know", "known", "last", "later", "least", "left", "let", "like", "long",
+            "look", "looked", "looking", "made", "make", "many", "might", "more", "most", "much", "must",
+            "name", "named", "names", "never", "new", "next", "night", "none", "nothing", "now", "often",
+            "once", "only", "other", "our", "out", "over", "own", "place", "really", "right", "same", "say",
+            "says", "said", "seen", "seemed", "seems", "should", "since", "some", "someone", "something",
+            "still", "such", "sure", "take", "taken", "takes", "taking", "than", "then", "there", "these",
+            "thing", "things", "thought", "through", "time", "times", "today", "together", "told", "too",
+            "took", "tried", "under", "until", "upon", "used", "very", "want", "wanted", "was", "way", "well",
+            "went", "were", "what", "when", "where", "which", "while", "who", "whole", "why", "will", "with",
+            "within", "without", "won", "word", "words", "work", "worked", "working", "would", "year",
+            "years", "yesterday", "yet", "you", "your", "yours",
+        }
+        if w in fallback_words:
+            return True
+
+        for suffix in ("'s", "s", "es", "ed", "ing", "ly", "er", "est", "ness", "ment"):
+            if len(w) > (len(suffix) + 2) and w.endswith(suffix):
+                root = w[: -len(suffix)]
+                if root in fallback_words:
+                    return True
+
+        return False
+
     def _extract_candidate_names(self) -> list[tuple[str, int]]:
         if not self.records:
             return []
@@ -1541,10 +1704,12 @@ class BulkReplaceDialog(tk.Toplevel):
         single_mid = Counter()
         phrase_counts = Counter()
         phrase_word_counts = Counter()
+        lowercase_hits = Counter()
         token_rx = re.compile(r"\b[A-Z][a-z]+(?:[-'][A-Z][a-z]+)?\b")
         phrase_rx = re.compile(
             r"\b[A-Z][a-z]+(?:[-'][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)+\b"
         )
+        lower_rx = re.compile(r"\b[a-z][a-z]+(?:[-'][a-z]+)?\b")
         sentence_enders = set(".!?\n\r")
 
         def _is_sentence_start(text: str, start_idx: int) -> bool:
@@ -1575,12 +1740,17 @@ class BulkReplaceDialog(tk.Toplevel):
             source = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", source)
             source = re.sub(r"<[^>]+>", " ", source)
 
+            for m in lower_rx.finditer(source):
+                lowercase_hits[m.group(0)] += 1
+
             for match in phrase_rx.finditer(source):
                 phrase = (match.group(0) or "").strip()
                 words = [w for w in phrase.split() if w]
                 if len(words) < 2:
                     continue
                 if any((w in stop_words) or (len(w) <= 2) for w in words):
+                    continue
+                if all(self._is_likely_english_word(w, lowercase_hits) for w in words):
                     continue
                 phrase_counts[phrase] += 1
                 for w in words:
@@ -1591,6 +1761,8 @@ class BulkReplaceDialog(tk.Toplevel):
                 if token in stop_words:
                     continue
                 if len(token) <= 2:
+                    continue
+                if self._is_likely_english_word(token, lowercase_hits):
                     continue
                 single_total[token] += 1
                 if not _is_sentence_start(source, match.start()):
@@ -1604,7 +1776,7 @@ class BulkReplaceDialog(tk.Toplevel):
                 combined[phrase] += int(count)
 
         # Keep single names when they appear mid-sentence at least once, or are frequent.
-        # Skip singles that only appear as components of multi-word names.
+        # Skip singles that are entirely explained by multi-word name occurrences.
         for token, total in single_total.items():
             if phrase_word_counts.get(token, 0) >= total:
                 continue
@@ -1623,16 +1795,21 @@ class BulkReplaceDialog(tk.Toplevel):
             messagebox.showinfo("Extract Names", "No likely names found in the selected chapter files.", parent=self)
             return
 
-        lines = [
-            "# Extracted names (self-map).",
-            "# Keep only what you want to rename, then edit the right side.",
-            "# Format: find => replace",
-            "",
-        ]
-        lines.extend([f"{name} => {name}" for name, _count in names])
-        extracted = "\n".join(lines) + "\n"
+        # Hard de-dup extracted names (defensive against punctuation/spacing variants).
+        deduped = []
+        seen = set()
+        for name, count in names:
+            key = self._normalize_name_key(name)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            deduped.append((name, count))
+        names = deduped
 
-        existing = self.rules_text.get("1.0", "end-1c").strip()
+        existing_raw = self.rules_text.get("1.0", "end-1c")
+        existing = existing_raw.strip()
+        append_mode = False
+        existing_keys = self._existing_rule_keys(existing_raw)
         if existing:
             choice = messagebox.askyesnocancel(
                 "Extract Names",
@@ -1642,19 +1819,48 @@ class BulkReplaceDialog(tk.Toplevel):
             )
             if choice is None:
                 return
-            if choice:
-                self.rules_text.delete("1.0", "end")
-                self.rules_text.insert("1.0", extracted)
-            else:
-                text = self.rules_text.get("1.0", "end-1c")
-                if text and not text.endswith("\n"):
-                    self.rules_text.insert("end", "\n")
-                self.rules_text.insert("end", extracted)
+            append_mode = not bool(choice)
+
+        skipped_existing = 0
+        if append_mode and existing_keys:
+            filtered = []
+            for name, count in names:
+                if self._normalize_name_key(name) in existing_keys:
+                    skipped_existing += 1
+                    continue
+                filtered.append((name, count))
+            names = filtered
+
+        if not names:
+            messagebox.showinfo(
+                "Extract Names",
+                "No new names to add (all extracted names already exist in your current rules).",
+                parent=self,
+            )
+            return
+
+        lines = [
+            "# Extracted names (self-map).",
+            "# Keep only what you want to rename, then edit the right side.",
+            "# Format: find => replace",
+            "",
+        ]
+        lines.extend([f"{name} => {name}" for name, _count in names])
+        extracted = "\n".join(lines) + "\n"
+
+        if append_mode:
+            text = self.rules_text.get("1.0", "end-1c")
+            if text and not text.endswith("\n"):
+                self.rules_text.insert("end", "\n")
+            self.rules_text.insert("end", extracted)
         else:
             self.rules_text.delete("1.0", "end")
             self.rules_text.insert("1.0", extracted)
 
-        self.status_var.set(f"Extracted {len(names)} likely name(s). Edit or remove lines, then apply.")
+        note = ""
+        if skipped_existing > 0:
+            note = f" Skipped {skipped_existing} duplicate existing rule(s)."
+        self.status_var.set(f"Extracted {len(names)} likely name(s). Edit or remove lines, then apply.{note}")
         self._queue_preview_refresh()
 
     def _split_front_matter_head(self, text: str) -> tuple[str, str]:
@@ -2235,6 +2441,7 @@ class Wizard(tk.Tk):
     def __init__(self):
         super().__init__()
         self._app_icon_image = None
+        self._deps_prompt_shown = False
         set_windows_app_user_model_id("seaboiii.novelwizard")
         self.title("Novel Wizard")
         self._configure_window()
@@ -2275,6 +2482,7 @@ class Wizard(tk.Tk):
         self._build_ui()
         self._refresh_catalog()
         self._on_mode_change()
+        self.after(120, self._prompt_optional_dependency_install)
 
     def _configure_window(self):
         sw = int(self.winfo_screenwidth())
@@ -2331,6 +2539,89 @@ class Wizard(tk.Tk):
             style.theme_use("clam")
         style.configure("Primary.TButton", padding=(18, 10))
         style.configure("Hint.TLabel", foreground="#475569")
+
+    def _show_manual_dependency_instructions(self, deps: list[dict]):
+        if not deps:
+            return
+        lines = "\n".join([f"- {d.get('label')}: {d.get('purpose')}" for d in deps])
+        cmd = optional_install_command(deps)
+        messagebox.showinfo(
+            "Optional Libraries",
+            "You can continue without these features.\n\n"
+            "Missing optional libraries:\n"
+            f"{lines}\n\n"
+            "Manual install command:\n"
+            f"{cmd}",
+            parent=self,
+        )
+
+    def _prompt_optional_dependency_install(self):
+        if self._deps_prompt_shown:
+            return
+        self._deps_prompt_shown = True
+
+        missing = missing_optional_dependencies()
+        if not missing:
+            return
+
+        lines = "\n".join([f"- {d.get('label')}: {d.get('purpose')}" for d in missing])
+        choice = messagebox.askyesnocancel(
+            "Optional Libraries Missing",
+            "Some optional libraries are missing.\n\n"
+            f"{lines}\n\n"
+            "Yes: auto install now\n"
+            "No: show manual install command\n"
+            "Cancel: continue without installing",
+            parent=self,
+        )
+        if choice is None:
+            messagebox.showwarning(
+                "Continuing With Missing Libraries",
+                "Continuing without optional libraries. The following features may not work properly:\n\n"
+                f"{lines}\n\n"
+                "You can install later with:\n"
+                f"{optional_install_command(missing)}",
+                parent=self,
+            )
+            return
+        if choice is False:
+            self._show_manual_dependency_instructions(missing)
+            return
+
+        ok, output = install_optional_dependencies(missing)
+        if not ok:
+            messagebox.showerror(
+                "Auto Install Failed",
+                "Could not auto-install one or more optional libraries.\n\n"
+                f"{output}\n\n"
+                "Manual install command:\n"
+                f"{optional_install_command(missing)}",
+                parent=self,
+            )
+            return
+
+        _refresh_optional_dependency_handles()
+        # Re-run icon setup in case pillow is now available.
+        self._configure_app_icon()
+
+        remaining = missing_optional_dependencies()
+        if remaining:
+            rem = "\n".join([f"- {d.get('label')}: {d.get('purpose')}" for d in remaining])
+            messagebox.showwarning(
+                "Install Incomplete",
+                "Some optional libraries are still missing:\n\n"
+                f"{rem}\n\n"
+                "You can continue, or install manually with:\n"
+                f"{optional_install_command(remaining)}",
+                parent=self,
+            )
+            return
+
+        messagebox.showinfo(
+            "Install Complete",
+            "Optional libraries installed successfully.",
+            parent=self,
+        )
 
     # UI layout
     def _build_ui(self):
