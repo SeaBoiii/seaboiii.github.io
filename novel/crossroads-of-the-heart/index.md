@@ -2,7 +2,7 @@
 layout: novel
 Title: Crossroads of the Heart
 novel: crossroads-of-the-heart
-status: Incomplete
+status: Complete
 blurb: >-
   A romantic tale of 2 colleagues — exploring faith, heartbreak, and love.
 order: 0
