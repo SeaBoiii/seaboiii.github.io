@@ -354,6 +354,7 @@ a:hover{text-decoration:underline}
   var section = document.getElementById('relatedNovelsSection');
   var summary = document.getElementById('relatedNovelsSummary');
   var list = document.getElementById('relatedNovelsList');
+  var heroMeta = document.querySelector('.novel-hero .novel-meta');
   var unlockedKey = 'site:novels-unlocked';
   var indexUrl = "{{ '/novel/index.html' | relative_url }}";
 
@@ -564,6 +565,62 @@ a:hover{text-decoration:underline}
     return el;
   }
 
+  function createHeroRelationshipBadge(text, titleText) {
+    var badge = document.createElement('span');
+    badge.className = 'badge js-relationship-badge';
+    badge.textContent = text;
+    if (titleText) badge.title = titleText;
+    return badge;
+  }
+
+  function mountHeroRelationshipBadges(current, bySlug) {
+    if (!heroMeta || !current) return;
+
+    Array.prototype.slice.call(heroMeta.querySelectorAll('.js-relationship-badge')).forEach(function(node) {
+      node.remove();
+    });
+
+    var badges = [];
+    if (current.seriesLabel) {
+      badges.push(createHeroRelationshipBadge(current.seriesLabel, 'Series: ' + current.seriesLabel));
+    }
+    if (Number.isFinite(current.order) && current.order < Number.MAX_SAFE_INTEGER) {
+      badges.push(createHeroRelationshipBadge('Book ' + current.order, 'Recommended reading order'));
+    }
+    if (current.relationType) {
+      var label = relationLabel(current.relationType);
+      if (label) {
+        var relationTitle = label;
+        if (current.relatedTo) {
+          var relatedNovel = bySlug[current.relatedTo];
+          var relatedLabel = relatedNovel && relatedNovel.title
+            ? relatedNovel.title
+            : titleCase(String(current.relatedTo).replace(/-/g, ' '));
+          relationTitle = label + ' to ' + relatedLabel;
+        }
+        badges.push(createHeroRelationshipBadge(label, relationTitle));
+      }
+    }
+
+    if (!badges.length) return;
+
+    var chapterBadge = null;
+    Array.prototype.slice.call(heroMeta.querySelectorAll('.badge')).forEach(function(node) {
+      if (!chapterBadge && /chapters\s*:/i.test(String(node.textContent || ''))) {
+        chapterBadge = node;
+      }
+    });
+
+    var insertBeforeNode = chapterBadge ? chapterBadge.nextSibling : null;
+    badges.forEach(function(node) {
+      if (insertBeforeNode) {
+        heroMeta.insertBefore(node, insertBeforeNode);
+      } else {
+        heroMeta.appendChild(node);
+      }
+    });
+  }
+
   fetch(indexUrl, { credentials: 'same-origin' })
     .then(function(resp) {
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -582,6 +639,7 @@ a:hover{text-decoration:underline}
 
       var current = bySlug[normalizeSlug(slug)];
       if (!current) return;
+      mountHeroRelationshipBadges(current, bySlug);
 
       var unlocked = localStorage.getItem(unlockedKey) === 'true';
       var related = Object.keys(bySlug)
