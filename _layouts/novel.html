@@ -79,16 +79,16 @@ a:hover{text-decoration:underline}
 .container{max-width:1100px;margin:0 auto;padding:0 1.25rem}
 
 .novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
-.novel-hero-cover{position:relative;width:120px}
+.novel-hero-cover{position:relative;width:120px;z-index:1}
 .novel-hero-cover>img{display:block;width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12);cursor:zoom-in}
 .novel-hero-cover:focus{outline:2px solid color-mix(in oklab, var(--btn-brd), transparent 38%);outline-offset:4px;border-radius:10px}
-.cover-popover{position:absolute;left:calc(100% + 14px);top:50%;width:min(320px,36vw);padding:.45rem;border:1px solid var(--border);border-radius:12px;background:var(--card);box-shadow:0 18px 42px rgba(0,0,0,.26);opacity:0;transform:translateY(-50%) scale(.96);pointer-events:none;z-index:20;transition:opacity .16s ease,transform .16s ease}
-.cover-popover img{display:block;width:100%;height:auto;object-fit:cover;border-radius:8px}
+.cover-popover{position:fixed;left:50%;top:50%;width:min(560px,86vw);max-height:88vh;padding:.55rem;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:0 28px 72px rgba(0,0,0,.42);opacity:0;transform:translate(-50%,-50%) scale(.92);pointer-events:none;z-index:999;transition:opacity .18s ease,transform .18s ease}
+.cover-popover img{display:block;width:100%;max-height:calc(88vh - 1.1rem);height:auto;object-fit:contain;border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 25%)}
 .novel-hero-cover:hover .cover-popover,
 .novel-hero-cover:focus .cover-popover,
-.novel-hero-cover:focus-within .cover-popover{opacity:1;transform:translateY(-50%) scale(1)}
+.novel-hero-cover:focus-within .cover-popover{opacity:1;transform:translate(-50%,-50%) scale(1)}
 @media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero-cover{width:180px}.novel-hero-cover>img{width:180px;height:270px}}
-@media (max-width:980px){.cover-popover{display:none}}
+@media (max-width:640px){.cover-popover{width:min(430px,92vw)}}
 .novel-title{margin:0;font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.15}
 .novel-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin:.25rem 0 .5rem}
 .badge{font-size:.8rem;padding:.1rem .35rem;border-radius:999px;background:var(--pill);border:1px solid var(--pill-brd);white-space:nowrap}
@@ -110,6 +110,18 @@ a:hover{text-decoration:underline}
 .chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
 .chapter-title{flex:1;min-width:0}
 .small-note{font-size:.85rem;color:var(--muted)}
+.related-novels{margin:0 0 1.1rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.related-novels[hidden]{display:none}
+.related-novels h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
+.related-novels .small-note{margin:.25rem 0 0}
+.related-list{list-style:none;padding:0;margin:.65rem 0 0;display:grid;gap:.45rem}
+.related-list li a{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.55rem .65rem;border:1px solid var(--border);border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 20%);text-decoration:none;color:inherit}
+.related-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%);text-decoration:none}
+.related-title{font-weight:600;min-width:0}
+.related-meta{display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end}
+.related-badge{font-size:.72rem;padding:.15rem .45rem;border-radius:999px;border:1px solid var(--pill-brd);background:var(--pill);color:inherit;white-space:nowrap}
+.related-badge.relation{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%)}
+@media (max-width:640px){.related-list li a{flex-direction:column;align-items:flex-start}.related-meta{justify-content:flex-start}}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
 .theme-toggle:hover{filter:brightness(1.05)}
@@ -140,7 +152,7 @@ a:hover{text-decoration:underline}
 
 <div class="container">
 <div class="novel-hero">
-  <div class="novel-hero-cover" tabindex="0" title="Hover to preview larger cover art">
+  <div class="novel-hero-cover" tabindex="0">
     <img src="{{ cover_url | relative_url }}" alt="{{ novel_display_title }}">
     <div class="cover-popover" aria-hidden="true">
       <img src="{{ cover_url | relative_url }}" alt="">
@@ -169,6 +181,12 @@ a:hover{text-decoration:underline}
   <input id="chapterSearch" type="search" placeholder="Search chapters… (title or number)">
   <span class="small-note">Tip: we’ll remember your last chapter.</span>
 </div>
+
+<section id="relatedNovelsSection" class="related-novels" hidden>
+  <h2>Related novels</h2>
+  <p id="relatedNovelsSummary" class="small-note"></p>
+  <ul id="relatedNovelsList" class="related-list"></ul>
+</section>
 
 <ul id="chapterList" class="chapter-list">
   {% for ch in items %}
@@ -301,6 +319,212 @@ a:hover{text-decoration:underline}
       li.style.display = hit ? '' : 'none';
     });
   });
+})();
+
+// Related novels list from /novel/index.html
+(function() {
+  var slug = (document.body && document.body.dataset && document.body.dataset.novelSlug) || '';
+  var section = document.getElementById('relatedNovelsSection');
+  var summary = document.getElementById('relatedNovelsSummary');
+  var list = document.getElementById('relatedNovelsList');
+  var unlockedKey = 'site:novels-unlocked';
+  var indexUrl = "{{ '/novel/index.html' | relative_url }}";
+
+  if (!slug || !section || !summary || !list || !window.fetch || !window.DOMParser) return;
+
+  function clean(value) {
+    return String(value || '').trim();
+  }
+
+  function normalizeSlug(value) {
+    return clean(value).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function slugFromUrl(url) {
+    var s = clean(url);
+    if (!s) return '';
+    var m = s.match(/\/novel\/([^\/?#]+)(?:\/|\/index\.html)?(?:[?#].*)?$/i);
+    return m ? normalizeSlug(m[1]) : '';
+  }
+
+  function titleCase(value) {
+    return clean(value)
+      .split(/[\s_-]+/)
+      .filter(Boolean)
+      .map(function(word) { return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); })
+      .join(' ');
+  }
+
+  function normalizeRelation(value) {
+    var token = clean(value).toLowerCase().replace(/[^a-z]+/g, '');
+    if (!token) return '';
+    if (token === 'spinoff') return 'spin-off';
+    if (token === 'prequel' || token === 'sequel' || token === 'companion' || token === 'original') return token;
+    return '';
+  }
+
+  function relationLabel(value) {
+    var key = normalizeRelation(value);
+    if (!key) return '';
+    if (key === 'spin-off') return 'Spin-off';
+    return key.charAt(0).toUpperCase() + key.slice(1);
+  }
+
+  function inverseRelation(value) {
+    var key = normalizeRelation(value);
+    if (key === 'prequel') return 'sequel';
+    if (key === 'sequel') return 'prequel';
+    if (key === 'spin-off') return 'spin-off';
+    if (key === 'companion') return 'companion';
+    if (key === 'original') return 'original';
+    return '';
+  }
+
+  function parseSeriesLabel(card, fallbackSeriesId) {
+    var badge = card.querySelector('.novel-meta .badge[title^="Series:"]');
+    if (badge) {
+      var text = clean(badge.textContent);
+      if (text) return text;
+      var title = clean(badge.getAttribute('title'));
+      var m = title.match(/^Series:\s*(.+)$/i);
+      if (m && m[1]) return clean(m[1]);
+    }
+    return fallbackSeriesId ? titleCase(fallbackSeriesId) : '';
+  }
+
+  function parseOrder(raw) {
+    var n = parseInt(clean(raw), 10);
+    return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+  }
+
+  function cardTitle(card) {
+    var titleNode = card.querySelector('.novel-title');
+    var titleText = clean(titleNode ? titleNode.textContent : '');
+    if (titleText) return titleText;
+    var raw = clean(card.getAttribute('data-title'));
+    return raw ? titleCase(raw) : '';
+  }
+
+  function parseCard(card) {
+    var anchor = card.querySelector('a[href]');
+    var href = anchor ? clean(anchor.getAttribute('href')) : '';
+    var cardSlug = slugFromUrl(href);
+    var seriesId = clean(card.getAttribute('data-series'));
+
+    return {
+      slug: cardSlug,
+      url: href,
+      title: cardTitle(card),
+      seriesId: seriesId,
+      seriesLabel: parseSeriesLabel(card, seriesId),
+      order: parseOrder(card.getAttribute('data-order')),
+      relationType: normalizeRelation(card.getAttribute('data-relation')),
+      relatedTo: normalizeSlug(card.getAttribute('data-related-to')),
+      hidden: clean(card.getAttribute('data-hidden')).toLowerCase() === 'true'
+    };
+  }
+
+  function isDirectRelation(current, candidate) {
+    if (!current || !candidate) return false;
+    return (candidate.relatedTo && candidate.relatedTo === current.slug) ||
+      (current.relatedTo && current.relatedTo === candidate.slug);
+  }
+
+  function relationToCurrent(current, candidate) {
+    if (!current || !candidate) return '';
+    if (candidate.relatedTo && candidate.relatedTo === current.slug && candidate.relationType) {
+      return candidate.relationType;
+    }
+    if (current.relatedTo && current.relatedTo === candidate.slug && current.relationType) {
+      return inverseRelation(current.relationType);
+    }
+    if (current.seriesId && candidate.seriesId && current.seriesId === candidate.seriesId) {
+      return 'same-series';
+    }
+    return '';
+  }
+
+  function createBadge(text, className) {
+    var el = document.createElement('span');
+    el.className = 'related-badge' + (className ? (' ' + className) : '');
+    el.textContent = text;
+    return el;
+  }
+
+  fetch(indexUrl, { credentials: 'same-origin' })
+    .then(function(resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.text();
+    })
+    .then(function(html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var cards = Array.prototype.slice.call(doc.querySelectorAll('.novel-card'));
+      if (!cards.length) return;
+
+      var bySlug = {};
+      cards.forEach(function(card) {
+        var data = parseCard(card);
+        if (data.slug) bySlug[data.slug] = data;
+      });
+
+      var current = bySlug[normalizeSlug(slug)];
+      if (!current) return;
+
+      var unlocked = localStorage.getItem(unlockedKey) === 'true';
+      var related = Object.keys(bySlug)
+        .map(function(key) { return bySlug[key]; })
+        .filter(function(item) {
+          if (!item || item.slug === current.slug) return false;
+          if (item.hidden && !unlocked) return false;
+          var sameSeries = current.seriesId && item.seriesId && current.seriesId === item.seriesId;
+          return sameSeries || isDirectRelation(current, item);
+        });
+
+      if (!related.length) return;
+
+      related.sort(function(a, b) {
+        var aSameSeries = !!(current.seriesId && a.seriesId === current.seriesId);
+        var bSameSeries = !!(current.seriesId && b.seriesId === current.seriesId);
+        if (aSameSeries !== bSameSeries) return aSameSeries ? -1 : 1;
+        if (a.order !== b.order) return a.order - b.order;
+        return a.title.localeCompare(b.title);
+      });
+
+      summary.textContent = related.length + ' related novel' + (related.length === 1 ? '' : 's') + ' found.';
+
+      related.forEach(function(item) {
+        var li = document.createElement('li');
+        var link = document.createElement('a');
+        link.href = item.url;
+
+        var title = document.createElement('span');
+        title.className = 'related-title';
+        title.textContent = item.title;
+        link.appendChild(title);
+
+        var meta = document.createElement('span');
+        meta.className = 'related-meta';
+
+        var relation = relationToCurrent(current, item);
+        if (relation) {
+          var relationText = relation === 'same-series' ? 'Same series' : relationLabel(relation);
+          if (relationText) meta.appendChild(createBadge(relationText, 'relation'));
+        }
+        if (item.seriesLabel) meta.appendChild(createBadge(item.seriesLabel, 'series'));
+        if (Number.isFinite(item.order) && item.order < Number.MAX_SAFE_INTEGER) {
+          meta.appendChild(createBadge('Book ' + item.order, 'order'));
+        }
+
+        if (meta.childNodes.length) link.appendChild(meta);
+        li.appendChild(link);
+        list.appendChild(li);
+      });
+
+      section.hidden = false;
+    })
+    .catch(function() {
+      section.hidden = true;
+    });
 })();
 
 // Theme toggle (light/dark), remembers choice and updates theme-color

@@ -354,6 +354,40 @@
         text-align: center;
       }
 
+      .novel-card[data-series] {
+        border-color: color-mix(
+          in oklab,
+          var(--series-border, var(--border)) 62%,
+          var(--border)
+        );
+        background:
+          linear-gradient(
+            165deg,
+            color-mix(in oklab, var(--series-soft, var(--card)) 78%, var(--card)) 0%,
+            var(--card) 66%
+          );
+      }
+
+      :root[data-theme="dark"] .novel-card[data-series] {
+        background:
+          linear-gradient(
+            165deg,
+            color-mix(in oklab, var(--series-soft-dark, var(--card)) 66%, var(--card)) 0%,
+            var(--card) 68%
+          );
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .novel-card[data-series] {
+          background:
+            linear-gradient(
+              165deg,
+              color-mix(in oklab, var(--series-soft-dark, var(--card)) 66%, var(--card)) 0%,
+              var(--card) 68%
+            );
+        }
+      }
+
       .novel-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
@@ -390,6 +424,25 @@
 
       .meta-row-extra .badge {
         font-size: 0.72rem;
+      }
+
+      .novel-card[data-series] .meta-row-extra .badge {
+        background: color-mix(in oklab, var(--series-tag, var(--pill)) 72%, var(--pill));
+        border-color: color-mix(
+          in oklab,
+          var(--series-border, var(--pill-brd)) 54%,
+          var(--pill-brd)
+        );
+      }
+
+      :root[data-theme="dark"] .novel-card[data-series] .meta-row-extra .badge {
+        background: color-mix(in oklab, var(--series-tag-dark, var(--pill)) 72%, var(--pill));
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .novel-card[data-series] .meta-row-extra .badge {
+          background: color-mix(in oklab, var(--series-tag-dark, var(--pill)) 72%, var(--pill));
+        }
       }
 
       .badge {
@@ -1241,6 +1294,41 @@
           card.dataset.initialIndex = String(idx);
         });
 
+        function hashSeriesHue(seriesId) {
+          var hash = 17;
+          var text = String(seriesId || "");
+          for (var i = 0; i < text.length; i += 1) {
+            hash = (hash * 31 + text.charCodeAt(i)) % 360;
+          }
+          return (hash + 21) % 360;
+        }
+
+        function applySeriesColorSchemes() {
+          var paletteBySeries = Object.create(null);
+          cards.forEach(function (card) {
+            var seriesId = (card.dataset.series || "").trim();
+            if (!seriesId) return;
+
+            if (!paletteBySeries[seriesId]) {
+              var hue = hashSeriesHue(seriesId);
+              paletteBySeries[seriesId] = {
+                border: "hsl(" + hue + " 62% 50%)",
+                soft: "hsl(" + hue + " 92% 95%)",
+                softDark: "hsl(" + hue + " 46% 18%)",
+                tag: "hsl(" + hue + " 88% 92%)",
+                tagDark: "hsl(" + hue + " 52% 25%)"
+              };
+            }
+
+            var palette = paletteBySeries[seriesId];
+            card.style.setProperty("--series-border", palette.border);
+            card.style.setProperty("--series-soft", palette.soft);
+            card.style.setProperty("--series-soft-dark", palette.softDark);
+            card.style.setProperty("--series-tag", palette.tag);
+            card.style.setProperty("--series-tag-dark", palette.tagDark);
+          });
+        }
+
         function loadUiState() {
           try {
             var raw = localStorage.getItem(uiStateKey);
@@ -1541,6 +1629,7 @@
           search.value = savedUi.searchTerm;
         }
 
+        applySeriesColorSchemes();
         normalizeMetaRows();
         buildSeriesSelectOptions();
 
