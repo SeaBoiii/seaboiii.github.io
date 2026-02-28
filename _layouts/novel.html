@@ -114,7 +114,12 @@ a:hover{text-decoration:underline}
 .related-novels[hidden]{display:none}
 .related-novels h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
 .related-novels .small-note{margin:.25rem 0 0}
-.related-list{list-style:none;padding:0;margin:.75rem 0 0;display:grid;gap:.72rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.related-novels{--related-card-width:150px}
+.related-list{list-style:none;padding:0 0 .35rem;margin:.75rem 0 0;display:flex;gap:.62rem;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.related-list li{flex:0 0 var(--related-card-width);scroll-snap-align:start}
+.related-list::-webkit-scrollbar{height:10px}
+.related-list::-webkit-scrollbar-thumb{background:color-mix(in oklab, var(--muted), transparent 40%);border-radius:999px}
+.related-list::-webkit-scrollbar-track{background:color-mix(in oklab, var(--card), var(--bg) 28%);border-radius:999px}
 .related-card{display:grid;grid-template-rows:auto 1fr;height:100%;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 20%);text-decoration:none;color:inherit;transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease}
 .related-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.17);background:color-mix(in oklab, var(--card), var(--text) 5%);text-decoration:none}
 .related-cover-wrap{display:block;aspect-ratio:2/3;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 35%)}
@@ -127,8 +132,7 @@ a:hover{text-decoration:underline}
 .related-badge.relation{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%)}
 .related-badge.complete{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
 .related-badge.incomplete{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
-@media (max-width:560px){.related-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:420px){.related-list{grid-template-columns:1fr}}
+@media (max-width:640px){.related-novels{--related-card-width:132px}}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
 .theme-toggle:hover{filter:brightness(1.05)}
@@ -627,6 +631,18 @@ a:hover{text-decoration:underline}
     .catch(function() {
       section.hidden = true;
     });
+})();
+
+// Horizontal wheel support for related novel cards
+(function() {
+  var strip = document.getElementById('relatedNovelsList');
+  if (!strip) return;
+  strip.addEventListener('wheel', function(event) {
+    if (strip.scrollWidth <= strip.clientWidth) return;
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    strip.scrollLeft += event.deltaY;
+    event.preventDefault();
+  }, { passive: false });
 })();
 
 // Theme toggle (light/dark), remembers choice and updates theme-color
