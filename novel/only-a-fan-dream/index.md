@@ -2,7 +2,7 @@
 layout: novel
 Title: Only a Fan's Dream
 novel: only-a-fan-dream
-status: Incomplete
+status: Complete
 blurb: >-
   A fan met an idol, and it turns into a relationship?
 order: 0
