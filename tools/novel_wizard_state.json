@@ -1,0 +1,9 @@
+{
+  "wizard_ui": {
+    "chapter_count": 4,
+    "edit_submode": "Append Chapters",
+    "existing_slug": "untitled",
+    "geometry": "1380x1040+590+176",
+    "mode": "Create New"
+  }
+}

@@ -15,6 +15,7 @@ Run from your repo root: python3 tools/novel_wizard.py
 
 import importlib
 import json, re, shutil, struct, sys, subprocess
+import difflib
 from collections import Counter
 from html import escape as html_escape
 from pathlib import Path
@@ -54,6 +55,7 @@ NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
 NOVELS_INDEX_HTML = NOVEL_DIR / "index.html"
 RELATIONSHIPS_JSON = REPO_ROOT / "tools" / "novel_relationships.json"
+WIZARD_STATE_JSON = REPO_ROOT / "tools" / "novel_wizard_state.json"
 WIZARD_ICON_CANDIDATES = [
     REPO_ROOT / "tools" / "novel_wizard_icon.ico",
     REPO_ROOT / "tools" / "novel_wizard_icon.png",
@@ -98,6 +100,24 @@ def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", encoding="utf-8", newline="\n") as f:
         f.write(text)
+
+def load_wizard_state() -> dict:
+    if not WIZARD_STATE_JSON.exists():
+        return {}
+    try:
+        raw = json.loads(WIZARD_STATE_JSON.read_text(encoding="utf-8"))
+        return raw if isinstance(raw, dict) else {}
+    except Exception:
+        return {}
+
+def save_wizard_state(state: dict):
+    if not isinstance(state, dict):
+        return
+    WIZARD_STATE_JSON.parent.mkdir(parents=True, exist_ok=True)
+    write_text(
+        WIZARD_STATE_JSON,
+        json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+    )
 
 def _refresh_optional_dependency_handles():
     global _markdownify, _mammoth, _rtf_to_text, _BeautifulSoup, _PILImage, _PILImageTk, _zipf_frequency
@@ -1416,13 +1436,25 @@ class BulkReplaceDialog(tk.Toplevel):
         self.novel_title = (novel_title or pretty(self.slug)).strip() or pretty(self.slug)
         self.on_applied = on_applied
 
-        self.case_sensitive_var = tk.BooleanVar(value=False)
-        self.whole_word_var = tk.BooleanVar(value=True)
-        self.include_front_matter_var = tk.BooleanVar(value=False)
+        saved_all = load_wizard_state()
+        saved = saved_all.get("bulk_replace") if isinstance(saved_all, dict) else {}
+        if not isinstance(saved, dict):
+            saved = {}
+
+        self.case_sensitive_var = tk.BooleanVar(value=bool(saved.get("case_sensitive", False)))
+        self.whole_word_var = tk.BooleanVar(value=bool(saved.get("whole_word", True)))
+        self.include_front_matter_var = tk.BooleanVar(value=bool(saved.get("include_front_matter", False)))
+        self.scope_mode_var = tk.StringVar(value=str(saved.get("scope_mode", "all")))
+        self.range_start_var = tk.StringVar(value=str(saved.get("range_start", "1")))
+        self.range_end_var = tk.StringVar(value=str(saved.get("range_end", "")))
         self.status_var = tk.StringVar(value="")
 
         self._refresh_job = None
+        self._state_save_job = None
         self.records = []
+
+        if self.scope_mode_var.get() not in {"all", "selected", "range"}:
+            self.scope_mode_var.set("all")
 
         self.title("Bulk Replace Characters")
         self.geometry("1380x860")
@@ -1432,13 +1464,13 @@ class BulkReplaceDialog(tk.Toplevel):
 
         self.transient(master)
         self.grab_set()
-        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _build_ui(self):
         root = ttk.Frame(self, padding=12)
         root.pack(fill="both", expand=True)
         root.columnconfigure(0, weight=1)
-        root.rowconfigure(4, weight=1)
+        root.rowconfigure(5, weight=1)
 
         ttk.Label(
             root,
@@ -1483,10 +1515,43 @@ class BulkReplaceDialog(tk.Toplevel):
         ttk.Button(opts, text="Extract Names", command=self._extract_names_to_rules).pack(side="right", padx=(8, 0))
         ttk.Button(opts, text="Reload Files", command=self._load_files).pack(side="right")
 
-        ttk.Label(root, textvariable=self.status_var).grid(row=3, column=0, sticky="w", pady=(8, 0))
+        scope = ttk.Frame(root)
+        scope.grid(row=3, column=0, sticky="we", pady=(6, 0))
+        ttk.Label(scope, text="Scope").pack(side="left")
+        ttk.Radiobutton(
+            scope,
+            text="All chapters",
+            value="all",
+            variable=self.scope_mode_var,
+            command=self._queue_preview_refresh,
+        ).pack(side="left", padx=(8, 0))
+        ttk.Radiobutton(
+            scope,
+            text="Selected",
+            value="selected",
+            variable=self.scope_mode_var,
+            command=self._queue_preview_refresh,
+        ).pack(side="left", padx=(10, 0))
+        ttk.Radiobutton(
+            scope,
+            text="Range",
+            value="range",
+            variable=self.scope_mode_var,
+            command=self._queue_preview_refresh,
+        ).pack(side="left", padx=(10, 0))
+        ttk.Label(scope, text="From").pack(side="left", padx=(10, 2))
+        self.range_start_entry = ttk.Entry(scope, textvariable=self.range_start_var, width=5)
+        self.range_start_entry.pack(side="left")
+        ttk.Label(scope, text="To").pack(side="left", padx=(6, 2))
+        self.range_end_entry = ttk.Entry(scope, textvariable=self.range_end_var, width=5)
+        self.range_end_entry.pack(side="left")
+        self.range_start_entry.bind("<KeyRelease>", lambda _e: self._queue_preview_refresh())
+        self.range_end_entry.bind("<KeyRelease>", lambda _e: self._queue_preview_refresh())
+
+        ttk.Label(root, textvariable=self.status_var).grid(row=4, column=0, sticky="w", pady=(8, 0))
 
         split = ttk.Panedwindow(root, orient="horizontal")
-        split.grid(row=4, column=0, sticky="nsew", pady=(8, 0))
+        split.grid(row=5, column=0, sticky="nsew", pady=(8, 0))
 
         left = ttk.Frame(split)
         left.columnconfigure(0, weight=1)
@@ -1498,14 +1563,15 @@ class BulkReplaceDialog(tk.Toplevel):
         tree_wrap.grid(row=1, column=0, sticky="nsew")
         tree_wrap.columnconfigure(0, weight=1)
         tree_wrap.rowconfigure(0, weight=1)
-        self.files_tree = ttk.Treeview(tree_wrap, columns=("changes",), show="tree headings", selectmode="browse")
+        self.files_tree = ttk.Treeview(tree_wrap, columns=("changes",), show="tree headings", selectmode="extended")
         self.files_tree.heading("#0", text="Chapter file")
         self.files_tree.heading("changes", text="Changes")
         self.files_tree.column("#0", width=320, anchor="w")
         self.files_tree.column("changes", width=80, anchor="center", stretch=False)
         self.files_tree.grid(row=0, column=0, sticky="nsew")
         self.files_tree.tag_configure("changed", foreground="#0f766e")
-        self.files_tree.bind("<<TreeviewSelect>>", lambda _e: self._render_selected_preview())
+        self.files_tree.tag_configure("out_scope", foreground="#64748b")
+        self.files_tree.bind("<<TreeviewSelect>>", lambda _e: self._on_tree_selection_changed())
         tree_scroll = ttk.Scrollbar(tree_wrap, orient="vertical", command=self.files_tree.yview)
         tree_scroll.grid(row=0, column=1, sticky="ns")
         self.files_tree.configure(yscrollcommand=tree_scroll.set)
@@ -1520,6 +1586,7 @@ class BulkReplaceDialog(tk.Toplevel):
         self.original_text = tk.Text(original_frame, wrap="word")
         self.original_text.grid(row=0, column=0, sticky="nsew")
         self.original_text.configure(state="disabled")
+        self.original_text.tag_configure("diff_old", background="#ffe5e5")
         original_scroll = ttk.Scrollbar(original_frame, orient="vertical", command=self.original_text.yview)
         original_scroll.grid(row=0, column=1, sticky="ns")
         self.original_text.configure(yscrollcommand=original_scroll.set)
@@ -1531,34 +1598,49 @@ class BulkReplaceDialog(tk.Toplevel):
         self.preview_text = tk.Text(updated_frame, wrap="word")
         self.preview_text.grid(row=0, column=0, sticky="nsew")
         self.preview_text.configure(state="disabled")
+        self.preview_text.tag_configure("diff_new", background="#e7ffe7")
         preview_scroll = ttk.Scrollbar(updated_frame, orient="vertical", command=self.preview_text.yview)
         preview_scroll.grid(row=0, column=1, sticky="ns")
         self.preview_text.configure(yscrollcommand=preview_scroll.set)
 
         btns = ttk.Frame(root)
-        btns.grid(row=5, column=0, sticky="e", pady=(10, 0))
+        btns.grid(row=6, column=0, sticky="e", pady=(10, 0))
         self.btn_apply = ttk.Button(btns, text="Apply Replacements", command=self._apply_changes)
         self.btn_apply.pack(side="left")
-        ttk.Button(btns, text="Close", command=self.destroy).pack(side="left", padx=(8, 0))
+        ttk.Button(btns, text="Close", command=self._on_close).pack(side="left", padx=(8, 0))
+
+        self.scope_mode_var.trace_add("write", lambda *_: self._queue_bulk_state_save())
+        self.case_sensitive_var.trace_add("write", lambda *_: self._queue_bulk_state_save())
+        self.whole_word_var.trace_add("write", lambda *_: self._queue_bulk_state_save())
+        self.include_front_matter_var.trace_add("write", lambda *_: self._queue_bulk_state_save())
+        self.range_start_var.trace_add("write", lambda *_: self._queue_bulk_state_save())
+        self.range_end_var.trace_add("write", lambda *_: self._queue_bulk_state_save())
 
     def _load_files(self):
         self.records = []
         for item in self.files_tree.get_children():
             self.files_tree.delete(item)
 
-        for p in list_existing_chapter_paths(self.slug, include_index=False):
+        paths = list_existing_chapter_paths(self.slug, include_index=False)
+        for idx, p in enumerate(paths):
             original = read_text_with_fallback(p)
             try:
                 rel = str(p.relative_to(REPO_ROOT)).replace("\\", "/")
             except Exception:
                 rel = str(p)
+            order = read_order_from_file(p)
+            if order <= 0:
+                order = idx + 1
             self.records.append(
                 {
                     "path": p,
                     "display": rel,
+                    "order": int(order),
                     "original_text": original,
                     "preview_text": original,
                     "change_count": 0,
+                    "old_spans": [],
+                    "new_spans": [],
                 }
             )
 
@@ -1581,6 +1663,116 @@ class BulkReplaceDialog(tk.Toplevel):
             except Exception:
                 pass
         self._refresh_job = self.after(120, self._refresh_preview)
+
+    def _queue_bulk_state_save(self):
+        if self._state_save_job is not None:
+            try:
+                self.after_cancel(self._state_save_job)
+            except Exception:
+                pass
+        self._state_save_job = self.after(180, self._save_bulk_state)
+
+    def _save_bulk_state(self):
+        self._state_save_job = None
+        state = load_wizard_state()
+        if not isinstance(state, dict):
+            state = {}
+        state["bulk_replace"] = {
+            "case_sensitive": bool(self.case_sensitive_var.get()),
+            "whole_word": bool(self.whole_word_var.get()),
+            "include_front_matter": bool(self.include_front_matter_var.get()),
+            "scope_mode": str(self.scope_mode_var.get()),
+            "range_start": str(self.range_start_var.get() or "").strip(),
+            "range_end": str(self.range_end_var.get() or "").strip(),
+        }
+        save_wizard_state(state)
+
+    def _on_close(self):
+        self._save_bulk_state()
+        self.destroy()
+
+    def _on_tree_selection_changed(self):
+        # Selected-scope preview depends on current file selection.
+        self._render_selected_preview()
+        if str(self.scope_mode_var.get() or "").strip().lower() == "selected":
+            self._queue_preview_refresh()
+            return
+
+    def _get_scope_indices(self) -> tuple[set[int], Optional[str]]:
+        total = len(self.records)
+        if total == 0:
+            return set(), None
+
+        mode = str(self.scope_mode_var.get() or "all").strip().lower()
+        if mode not in {"all", "selected", "range"}:
+            mode = "all"
+
+        if mode == "all":
+            return set(range(total)), None
+
+        if mode == "selected":
+            idxs = set()
+            for iid in self.files_tree.selection():
+                try:
+                    i = int(iid)
+                except Exception:
+                    continue
+                if 0 <= i < total:
+                    idxs.add(i)
+            if not idxs:
+                return set(), "Scope is set to Selected, but no chapters are selected."
+            return idxs, None
+
+        # Range mode
+        start_raw = str(self.range_start_var.get() or "").strip()
+        end_raw = str(self.range_end_var.get() or "").strip()
+        if not start_raw or not end_raw:
+            return set(), "Enter both From and To chapter numbers for range scope."
+        try:
+            start = int(start_raw)
+            end = int(end_raw)
+        except Exception:
+            return set(), "Range values must be integers."
+        if start <= 0 or end <= 0:
+            return set(), "Range values must be positive."
+        if start > end:
+            start, end = end, start
+
+        idxs = set()
+        for i, rec in enumerate(self.records):
+            order = int(rec.get("order") or 0)
+            if start <= order <= end:
+                idxs.add(i)
+        if not idxs:
+            return set(), f"No chapters found in range {start}-{end}."
+        return idxs, None
+
+    def _diff_spans(self, before: str, after: str) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+        old_spans = []
+        new_spans = []
+        a = before or ""
+        b = after or ""
+        if a == b:
+            return old_spans, new_spans
+
+        matcher = difflib.SequenceMatcher(a=a, b=b, autojunk=False)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag in {"replace", "delete"} and i2 > i1:
+                old_spans.append((i1, i2))
+            if tag in {"replace", "insert"} and j2 > j1:
+                new_spans.append((j1, j2))
+        return old_spans, new_spans
+
+    def _apply_spans(self, widget: tk.Text, spans: list[tuple[int, int]], tag: str):
+        widget.configure(state="normal")
+        widget.tag_remove(tag, "1.0", "end")
+        for start, end in spans or []:
+            if end <= start:
+                continue
+            s_idx = f"1.0+{int(start)}c"
+            e_idx = f"1.0+{int(end)}c"
+            widget.tag_add(tag, s_idx, e_idx)
+        widget.configure(state="disabled")
 
     def _parse_rules(self) -> tuple[list[tuple[str, str]], list[str]]:
         raw = self.rules_text.get("1.0", "end-1c")
@@ -1933,6 +2125,8 @@ class BulkReplaceDialog(tk.Toplevel):
         rec = self.records[idx]
         self._set_text_widget(self.original_text, rec.get("original_text") or "")
         self._set_text_widget(self.preview_text, rec.get("preview_text") or "")
+        self._apply_spans(self.original_text, rec.get("old_spans") or [], "diff_old")
+        self._apply_spans(self.preview_text, rec.get("new_spans") or [], "diff_new")
 
     def _refresh_preview(self):
         self._refresh_job = None
@@ -1941,10 +2135,10 @@ class BulkReplaceDialog(tk.Toplevel):
             self.btn_apply.state(["disabled"])
             return
 
-        selected = self.files_tree.selection()
-        selected_iid = selected[0] if selected else None
+        selected_iids = tuple(self.files_tree.selection())
 
         rules, errors = self._parse_rules()
+        scope_idxs, scope_err = self._get_scope_indices()
         changed_files = 0
         total_replacements = 0
 
@@ -1952,22 +2146,48 @@ class BulkReplaceDialog(tk.Toplevel):
             for idx, rec in enumerate(self.records):
                 rec["preview_text"] = rec["original_text"]
                 rec["change_count"] = 0
+                rec["old_spans"] = []
+                rec["new_spans"] = []
                 self.files_tree.set(str(idx), "changes", "0")
                 self.files_tree.item(str(idx), tags=())
             first = errors[0]
             more = f" (+{len(errors)-1} more)" if len(errors) > 1 else ""
             self.status_var.set(f"Rule error: {first}{more}")
             self.btn_apply.state(["disabled"])
+        elif scope_err:
+            for idx, rec in enumerate(self.records):
+                rec["preview_text"] = rec["original_text"]
+                rec["change_count"] = 0
+                rec["old_spans"] = []
+                rec["new_spans"] = []
+                self.files_tree.set(str(idx), "changes", "0")
+                self.files_tree.item(str(idx), tags=("out_scope",))
+            self.status_var.set(scope_err)
+            self.btn_apply.state(["disabled"])
         else:
             for idx, rec in enumerate(self.records):
-                preview_text, count = self._apply_rules_to_text(rec["original_text"], rules)
-                rec["preview_text"] = preview_text
-                rec["change_count"] = int(count)
-                total_replacements += int(count)
-                if count > 0:
-                    changed_files += 1
-                self.files_tree.set(str(idx), "changes", str(count))
-                self.files_tree.item(str(idx), tags=("changed",) if count > 0 else ())
+                in_scope = idx in scope_idxs
+                if in_scope:
+                    preview_text, count = self._apply_rules_to_text(rec["original_text"], rules)
+                    rec["preview_text"] = preview_text
+                    rec["change_count"] = int(count)
+                    rec["old_spans"], rec["new_spans"] = self._diff_spans(rec["original_text"], preview_text)
+                    total_replacements += int(count)
+                    if count > 0:
+                        changed_files += 1
+                else:
+                    rec["preview_text"] = rec["original_text"]
+                    rec["change_count"] = 0
+                    rec["old_spans"] = []
+                    rec["new_spans"] = []
+
+                if not in_scope:
+                    self.files_tree.set(str(idx), "changes", "—")
+                    self.files_tree.item(str(idx), tags=("out_scope",))
+                else:
+                    count = int(rec.get("change_count") or 0)
+                    self.files_tree.set(str(idx), "changes", str(count))
+                    self.files_tree.item(str(idx), tags=("changed",) if count > 0 else ())
 
             if not rules:
                 self.status_var.set(
@@ -1975,24 +2195,38 @@ class BulkReplaceDialog(tk.Toplevel):
                 )
                 self.btn_apply.state(["disabled"])
             elif total_replacements == 0:
-                self.status_var.set(f"No matches found across {len(self.records)} file(s).")
+                self.status_var.set(
+                    f"No matches found in current scope ({len(scope_idxs)} file(s))."
+                )
                 self.btn_apply.state(["disabled"])
             else:
                 self.status_var.set(
-                    f"Live preview: {total_replacements} replacement(s) across {changed_files} file(s)."
+                    f"Live preview: {total_replacements} replacement(s) across {changed_files} "
+                    f"file(s) in scope ({len(scope_idxs)} selected)."
                 )
                 self.btn_apply.state(["!disabled"])
 
-        if selected_iid and selected_iid in self.files_tree.get_children():
-            self.files_tree.selection_set(selected_iid)
-        elif self.files_tree.get_children():
-            self.files_tree.selection_set(self.files_tree.get_children()[0])
+        children = tuple(self.files_tree.get_children())
+        child_set = set(children)
+        retained = [iid for iid in selected_iids if iid in child_set]
+        scope_mode = str(self.scope_mode_var.get() or "").strip().lower()
+        if retained:
+            try:
+                self.files_tree.selection_set(retained)
+            except Exception:
+                pass
+        elif children and scope_mode != "selected":
+            self.files_tree.selection_set(children[0])
         self._render_selected_preview()
 
     def _apply_changes(self):
         rules, errors = self._parse_rules()
         if errors:
             messagebox.showerror("Bulk Replace", "Fix rule errors before applying.", parent=self)
+            return
+        _scope_idxs, scope_err = self._get_scope_indices()
+        if scope_err:
+            messagebox.showerror("Bulk Replace", scope_err, parent=self)
             return
         if not rules:
             messagebox.showinfo("Bulk Replace", "Add at least one replacement rule.", parent=self)
@@ -2440,8 +2674,28 @@ def _extract_chapter_num_from_name(name: str) -> int:
 class Wizard(tk.Tk):
     def __init__(self):
         super().__init__()
+        saved_all = load_wizard_state()
+        saved_ui = saved_all.get("wizard_ui") if isinstance(saved_all, dict) else {}
+        if not isinstance(saved_ui, dict):
+            saved_ui = {}
+
+        mode_default = str(saved_ui.get("mode") or MODE_CREATE)
+        if mode_default not in {MODE_CREATE, MODE_EDIT}:
+            mode_default = MODE_CREATE
+        edit_submode_default = str(saved_ui.get("edit_submode") or EDIT_SUBMODE_APPEND)
+        if edit_submode_default not in {EDIT_SUBMODE_APPEND, EDIT_SUBMODE_EDIT}:
+            edit_submode_default = EDIT_SUBMODE_APPEND
+        existing_default = slugify(str(saved_ui.get("existing_slug") or ""))
+        try:
+            count_default = int(saved_ui.get("chapter_count", 3))
+        except Exception:
+            count_default = 3
+        count_default = max(1, min(200, count_default))
+
         self._app_icon_image = None
         self._deps_prompt_shown = False
+        self._state_save_job = None
+        self._saved_geometry = str(saved_ui.get("geometry") or "").strip()
         set_windows_app_user_model_id("seaboiii.novelwizard")
         self.title("Novel Wizard")
         self._configure_window()
@@ -2449,7 +2703,7 @@ class Wizard(tk.Tk):
         self._configure_styles()
 
         # Vars
-        self.mode_var = tk.StringVar(value=MODE_CREATE)
+        self.mode_var = tk.StringVar(value=mode_default)
         self.title_var = tk.StringVar()
         self.slug_var = tk.StringVar()
         self.status_var = tk.StringVar(value="Complete")
@@ -2460,9 +2714,9 @@ class Wizard(tk.Tk):
         self.series_order_var = tk.StringVar()
         self.relation_type_var = tk.StringVar(value="")
         self.related_to_var = tk.StringVar()
-        self.count_var = tk.IntVar(value=3)
-        self.existing_slug_var = tk.StringVar()
-        self.edit_submode_var = tk.StringVar(value=EDIT_SUBMODE_APPEND)
+        self.count_var = tk.IntVar(value=count_default)
+        self.existing_slug_var = tk.StringVar(value=existing_default)
+        self.edit_submode_var = tk.StringVar(value=edit_submode_default)
         self.commit_summary_var = tk.StringVar()
         self.start_order = 1
 
@@ -2482,6 +2736,15 @@ class Wizard(tk.Tk):
         self._build_ui()
         self._refresh_catalog()
         self._on_mode_change()
+        if self._saved_geometry:
+            try:
+                self.geometry(self._saved_geometry)
+            except Exception:
+                pass
+        if mode_default == MODE_EDIT and existing_default and existing_default in self._existing_slugs:
+            self.existing_slug_var.set(existing_default)
+            self._on_existing_selected()
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.after(120, self._prompt_optional_dependency_install)
 
     def _configure_window(self):
@@ -2539,6 +2802,32 @@ class Wizard(tk.Tk):
             style.theme_use("clam")
         style.configure("Primary.TButton", padding=(18, 10))
         style.configure("Hint.TLabel", foreground="#475569")
+
+    def _queue_ui_state_save(self):
+        if self._state_save_job is not None:
+            try:
+                self.after_cancel(self._state_save_job)
+            except Exception:
+                pass
+        self._state_save_job = self.after(220, self._save_ui_state)
+
+    def _save_ui_state(self):
+        self._state_save_job = None
+        state = load_wizard_state()
+        if not isinstance(state, dict):
+            state = {}
+        state["wizard_ui"] = {
+            "mode": str(self.mode_var.get() or MODE_CREATE),
+            "edit_submode": str(self.edit_submode_var.get() or EDIT_SUBMODE_APPEND),
+            "existing_slug": slugify(self.existing_slug_var.get() or ""),
+            "chapter_count": int(self.count_var.get() or 1),
+            "geometry": str(self.geometry() or ""),
+        }
+        save_wizard_state(state)
+
+    def _on_close(self):
+        self._save_ui_state()
+        self.destroy()
 
     def _show_manual_dependency_instructions(self, deps: list[dict]):
         if not deps:
@@ -2854,6 +3143,10 @@ class Wizard(tk.Tk):
         self.status_var.trace_add("write", lambda *_: self._update_status_chip())
         self.cover_var.trace_add("write", lambda *_: self._refresh_upload_cover_preview())
         self.count_var.trace_add("write", lambda *_: self._build_chapter_tabs())
+        self.mode_var.trace_add("write", lambda *_: self._queue_ui_state_save())
+        self.edit_submode_var.trace_add("write", lambda *_: self._queue_ui_state_save())
+        self.existing_slug_var.trace_add("write", lambda *_: self._queue_ui_state_save())
+        self.count_var.trace_add("write", lambda *_: self._queue_ui_state_save())
 
     def _get_commit_description(self) -> str:
         return self.commit_desc_text.get("1.0", "end").strip()
@@ -3227,6 +3520,7 @@ class Wizard(tk.Tk):
         self._refresh_related_cover_preview()
         self._update_status_chip()
         self._set_auto_commit_message(force=True)
+        self._queue_ui_state_save()
 
     def _on_existing_selected(self):
         if self.mode_var.get() != MODE_EDIT:
@@ -3271,6 +3565,7 @@ class Wizard(tk.Tk):
         self._refresh_upload_cover_preview()
         self._refresh_related_cover_preview()
         self._set_auto_commit_message(force=True)
+        self._queue_ui_state_save()
 
     def _build_chapter_tabs(self):
         # Preserve existing content by order before rebuild
