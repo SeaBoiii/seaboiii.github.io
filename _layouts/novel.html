@@ -323,6 +323,22 @@ a:hover{text-decoration:underline}
   var q = document.getElementById('chapterSearch');
   var list = document.getElementById('chapterList');
   if (!q || !list) return;
+
+  function cleanChapterTitle(text) {
+    var value = String(text || '').trim();
+    // Strip duplicated leading chapter labels like:
+    // "Chapter 12", "Chapter 12: Title", "Chapter 12 - Title"
+    return value.replace(/^\s*chapter\s+\d+\s*[:.\-–—]*\s*/i, '').trim();
+  }
+
+  list.querySelectorAll('li').forEach(function(li) {
+    var titleNode = li.querySelector('.chapter-title');
+    if (!titleNode) return;
+    var cleaned = cleanChapterTitle(titleNode.textContent);
+    if (cleaned) titleNode.textContent = cleaned;
+    li.dataset.title = cleaned.toLowerCase();
+  });
+
   q.addEventListener('input', function() {
     var v = q.value.trim().toLowerCase();
     list.querySelectorAll('li').forEach(function(li) {
