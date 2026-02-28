@@ -114,14 +114,21 @@ a:hover{text-decoration:underline}
 .related-novels[hidden]{display:none}
 .related-novels h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
 .related-novels .small-note{margin:.25rem 0 0}
-.related-list{list-style:none;padding:0;margin:.65rem 0 0;display:grid;gap:.45rem}
-.related-list li a{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.55rem .65rem;border:1px solid var(--border);border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 20%);text-decoration:none;color:inherit}
-.related-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%);text-decoration:none}
-.related-title{font-weight:600;min-width:0}
-.related-meta{display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end}
-.related-badge{font-size:.72rem;padding:.15rem .45rem;border-radius:999px;border:1px solid var(--pill-brd);background:var(--pill);color:inherit;white-space:nowrap}
+.related-list{list-style:none;padding:0;margin:.75rem 0 0;display:grid;gap:.72rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.related-card{display:grid;grid-template-rows:auto 1fr;height:100%;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 20%);text-decoration:none;color:inherit;transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.17);background:color-mix(in oklab, var(--card), var(--text) 5%);text-decoration:none}
+.related-cover-wrap{display:block;aspect-ratio:2/3;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 35%)}
+.related-cover-wrap picture,
+.related-cover-wrap img{display:block;width:100%;height:100%;object-fit:cover}
+.related-body{display:grid;gap:.5rem;align-content:start;padding:.6rem .65rem .7rem}
+.related-title{font-weight:600;line-height:1.24;min-width:0}
+.related-meta{display:flex;gap:.33rem;flex-wrap:wrap}
+.related-badge{font-size:.7rem;padding:.14rem .42rem;border-radius:999px;border:1px solid var(--pill-brd);background:var(--pill);color:inherit;white-space:nowrap}
 .related-badge.relation{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%)}
-@media (max-width:640px){.related-list li a{flex-direction:column;align-items:flex-start}.related-meta{justify-content:flex-start}}
+.related-badge.complete{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
+.related-badge.incomplete{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
+@media (max-width:560px){.related-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.related-list{grid-template-columns:1fr}}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
 .theme-toggle:hover{filter:brightness(1.05)}
@@ -405,6 +412,90 @@ a:hover{text-decoration:underline}
     return raw ? titleCase(raw) : '';
   }
 
+  function captureAttrs(node, keys) {
+    var attrs = {};
+    if (!node) return attrs;
+    keys.forEach(function(key) {
+      var value = clean(node.getAttribute(key));
+      if (value) attrs[key] = value;
+    });
+    return attrs;
+  }
+
+  function parseCover(card) {
+    var picture = card.querySelector('picture');
+    if (picture) {
+      var sources = [];
+      picture.querySelectorAll('source').forEach(function(sourceNode) {
+        var sourceAttrs = captureAttrs(sourceNode, ['type', 'srcset', 'sizes', 'media']);
+        if (Object.keys(sourceAttrs).length) sources.push(sourceAttrs);
+      });
+      var imgAttrs = captureAttrs(picture.querySelector('img'), ['src', 'srcset', 'sizes']);
+      if (imgAttrs.src || imgAttrs.srcset || sources.length) {
+        return { kind: 'picture', sources: sources, img: imgAttrs };
+      }
+    }
+    var imgAttrsFallback = captureAttrs(card.querySelector('img'), ['src', 'srcset', 'sizes']);
+    if (imgAttrsFallback.src || imgAttrsFallback.srcset) {
+      return { kind: 'img', img: imgAttrsFallback };
+    }
+    return null;
+  }
+
+  function fallbackSrcFromSrcset(srcset) {
+    var raw = clean(srcset);
+    if (!raw) return '';
+    var first = raw.split(',')[0] || '';
+    var token = clean(first.split(' ')[0]);
+    return token;
+  }
+
+  function buildCoverElement(cover, title) {
+    var wrap = document.createElement('span');
+    wrap.className = 'related-cover-wrap';
+    var altText = title ? (title + ' cover art') : 'Novel cover art';
+    if (!cover) return wrap;
+
+    if (cover.kind === 'picture') {
+      var picture = document.createElement('picture');
+      (cover.sources || []).forEach(function(sourceInfo) {
+        var source = document.createElement('source');
+        Object.keys(sourceInfo).forEach(function(key) {
+          source.setAttribute(key, sourceInfo[key]);
+        });
+        picture.appendChild(source);
+      });
+      var pictureImg = document.createElement('img');
+      if (cover.img && cover.img.src) pictureImg.src = cover.img.src;
+      if (cover.img && cover.img.srcset) pictureImg.srcset = cover.img.srcset;
+      if (cover.img && cover.img.sizes) pictureImg.sizes = cover.img.sizes;
+      if (!pictureImg.src && pictureImg.srcset) {
+        var derivedSrc = fallbackSrcFromSrcset(pictureImg.srcset);
+        if (derivedSrc) pictureImg.src = derivedSrc;
+      }
+      pictureImg.alt = altText;
+      pictureImg.decoding = 'async';
+      pictureImg.loading = 'lazy';
+      picture.appendChild(pictureImg);
+      wrap.appendChild(picture);
+      return wrap;
+    }
+
+    var img = document.createElement('img');
+    if (cover.img && cover.img.src) img.src = cover.img.src;
+    if (cover.img && cover.img.srcset) img.srcset = cover.img.srcset;
+    if (cover.img && cover.img.sizes) img.sizes = cover.img.sizes;
+    if (!img.src && img.srcset) {
+      var fallbackSrc = fallbackSrcFromSrcset(img.srcset);
+      if (fallbackSrc) img.src = fallbackSrc;
+    }
+    img.alt = altText;
+    img.decoding = 'async';
+    img.loading = 'lazy';
+    wrap.appendChild(img);
+    return wrap;
+  }
+
   function parseCard(card) {
     var anchor = card.querySelector('a[href]');
     var href = anchor ? clean(anchor.getAttribute('href')) : '';
@@ -417,6 +508,8 @@ a:hover{text-decoration:underline}
       title: cardTitle(card),
       seriesId: seriesId,
       seriesLabel: parseSeriesLabel(card, seriesId),
+      cover: parseCover(card),
+      status: clean(card.getAttribute('data-status')).toLowerCase(),
       order: parseOrder(card.getAttribute('data-order')),
       relationType: normalizeRelation(card.getAttribute('data-relation')),
       relatedTo: normalizeSlug(card.getAttribute('data-related-to')),
@@ -496,11 +589,17 @@ a:hover{text-decoration:underline}
         var li = document.createElement('li');
         var link = document.createElement('a');
         link.href = item.url;
+        link.className = 'related-card';
+        link.setAttribute('aria-label', item.title);
+        link.appendChild(buildCoverElement(item.cover, item.title));
+
+        var body = document.createElement('div');
+        body.className = 'related-body';
 
         var title = document.createElement('span');
         title.className = 'related-title';
         title.textContent = item.title;
-        link.appendChild(title);
+        body.appendChild(title);
 
         var meta = document.createElement('span');
         meta.className = 'related-meta';
@@ -514,8 +613,11 @@ a:hover{text-decoration:underline}
         if (Number.isFinite(item.order) && item.order < Number.MAX_SAFE_INTEGER) {
           meta.appendChild(createBadge('Book ' + item.order, 'order'));
         }
+        if (item.status === 'complete') meta.appendChild(createBadge('Complete', 'complete'));
+        if (item.status === 'incomplete') meta.appendChild(createBadge('Incomplete', 'incomplete'));
 
-        if (meta.childNodes.length) link.appendChild(meta);
+        if (meta.childNodes.length) body.appendChild(meta);
+        link.appendChild(body);
         li.appendChild(link);
         list.appendChild(li);
       });
