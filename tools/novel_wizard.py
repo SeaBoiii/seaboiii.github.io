@@ -6,12 +6,15 @@ Tkinter Novel Wizard for GitHub Pages + Jekyll
 - Mode 2: Edit Current (edit metadata/relationships, append chapters, replace cover)
 - Formatted paste (HTML/RTF -> Markdown) + single DOCX/Markdown import
 - Bulk DOCX/Markdown import with chapter + epilogue ordering support
+- Bulk character replacement with live preview across chapter files
+- Optional app icon loaded from tools/novel_wizard_icon.png or .ico
 - Built-in git commit (summary + description); user handles git push
 
 Run from your repo root: python3 tools/novel_wizard.py
 """
 
-import json, re, shutil, sys, subprocess
+import json, re, shutil, struct, sys, subprocess
+from collections import Counter
 from html import escape as html_escape
 from pathlib import Path
 from typing import Optional, Tuple
@@ -46,6 +49,14 @@ NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
 NOVELS_INDEX_HTML = NOVEL_DIR / "index.html"
 RELATIONSHIPS_JSON = REPO_ROOT / "tools" / "novel_relationships.json"
+WIZARD_ICON_CANDIDATES = [
+    REPO_ROOT / "tools" / "novel_wizard_icon.ico",
+    REPO_ROOT / "tools" / "novel_wizard_icon.png",
+    REPO_ROOT / "tools" / "assets" / "novel_wizard_icon.ico",
+    REPO_ROOT / "tools" / "assets" / "novel_wizard_icon.png",
+    REPO_ROOT / "favicon.ico",
+    REPO_ROOT / "favicon-32x32.png",
+]
 MARKDOWN_EXTS = {".md", ".markdown", ".mdown", ".mkd"}
 
 RELATION_TYPE_LABELS = {
@@ -73,6 +84,89 @@ def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", encoding="utf-8", newline="\n") as f:
         f.write(text)
+
+def resolve_wizard_icon_path() -> Optional[Path]:
+    for p in WIZARD_ICON_CANDIDATES:
+        if p.exists() and p.is_file():
+            return p
+    return None
+
+def ensure_windows_ico_from_image(src: Path) -> Optional[Path]:
+    """
+    Best-effort: ensure an .ico exists for Windows taskbar/iconbitmap usage.
+    Returns .ico path when available.
+    """
+    if not src or not src.exists() or not src.is_file():
+        return None
+    if src.suffix.lower() == ".ico":
+        return src
+    is_png = src.suffix.lower() == ".png"
+
+    dst = REPO_ROOT / "tools" / "novel_wizard_icon.ico"
+    try:
+        needs_write = (not dst.exists()) or (dst.stat().st_mtime < src.stat().st_mtime)
+    except Exception:
+        needs_write = True
+
+    if needs_write:
+        # Fast path for PNG without Pillow: ICO can embed PNG bytes directly.
+        if is_png:
+            try:
+                raw = src.read_bytes()
+                if len(raw) < 24 or raw[:8] != b"\x89PNG\r\n\x1a\n":
+                    raise ValueError("Not a valid PNG stream")
+                width, height = struct.unpack(">II", raw[16:24])
+                w_b = width if 1 <= width <= 255 else 0
+                h_b = height if 1 <= height <= 255 else 0
+
+                icon_dir = struct.pack("<HHH", 0, 1, 1)
+                entry = struct.pack(
+                    "<BBBBHHII",
+                    w_b,
+                    h_b,
+                    0,   # color count
+                    0,   # reserved
+                    1,   # planes
+                    32,  # bit depth hint
+                    len(raw),
+                    6 + 16,  # image offset
+                )
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                dst.write_bytes(icon_dir + entry + raw)
+            except Exception:
+                # Fallback to Pillow conversion if available.
+                if _PILImage is None:
+                    return None
+                try:
+                    with _PILImage.open(src) as im0:
+                        im = im0.convert("RGBA")
+                        sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
+                        dst.parent.mkdir(parents=True, exist_ok=True)
+                        im.save(dst, format="ICO", sizes=sizes)
+                except Exception:
+                    return None
+        else:
+            if _PILImage is None:
+                return None
+            try:
+                with _PILImage.open(src) as im0:
+                    im = im0.convert("RGBA")
+                    sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    im.save(dst, format="ICO", sizes=sizes)
+            except Exception:
+                return None
+
+    return dst if dst.exists() else None
+
+def set_windows_app_user_model_id(app_id: str = "seaboiii.novelwizard") -> None:
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except Exception:
+        pass
 
 def _normalize_relation_type(value: str) -> str:
     s = (value or "").strip().lower()
@@ -794,6 +888,26 @@ def list_existing_slugs() -> list[str]:
         return []
     return sorted([p.name for p in NOVEL_DIR.iterdir() if p.is_dir()])
 
+def list_existing_chapter_paths(slug: str, include_index: bool = False) -> list[Path]:
+    folder = NOVEL_DIR / slugify(slug)
+    if not folder.exists():
+        return []
+
+    md_files = []
+    for p in folder.glob("*.md"):
+        if not include_index and p.name.lower() == "index.md":
+            continue
+        md_files.append(p)
+
+    def _sort_key(path: Path) -> tuple[int, int, str]:
+        order = read_order_from_file(path)
+        if order < 0:
+            order = 10**9
+        inferred = _extract_chapter_num_from_name(path.name)
+        return (order, inferred, path.name.lower())
+
+    return sorted(md_files, key=_sort_key)
+
 # ---- Assets helpers ----
 
 def copy_cover_to_images(src_path: str, slug: str) -> str:
@@ -1200,6 +1314,532 @@ class RelationshipEditorDialog(tk.Toplevel):
             except Exception:
                 pass
 
+class BulkReplaceDialog(tk.Toplevel):
+    """Bulk replace chapter text with live preview before writing to disk."""
+
+    def __init__(self, master, slug: str, novel_title: str = "", on_applied=None):
+        super().__init__(master)
+        self.slug = slugify(slug)
+        self.novel_title = (novel_title or pretty(self.slug)).strip() or pretty(self.slug)
+        self.on_applied = on_applied
+
+        self.case_sensitive_var = tk.BooleanVar(value=False)
+        self.whole_word_var = tk.BooleanVar(value=True)
+        self.include_front_matter_var = tk.BooleanVar(value=False)
+        self.status_var = tk.StringVar(value="")
+
+        self._refresh_job = None
+        self.records = []
+
+        self.title("Bulk Replace Characters")
+        self.geometry("1380x860")
+        self.minsize(1040, 680)
+        self._build_ui()
+        self._load_files()
+
+        self.transient(master)
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self.destroy)
+
+    def _build_ui(self):
+        root = ttk.Frame(self, padding=12)
+        root.pack(fill="both", expand=True)
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(4, weight=1)
+
+        ttk.Label(
+            root,
+            text=f"{self.novel_title} ({self.slug})",
+        ).grid(row=0, column=0, sticky="w")
+
+        rules_frame = ttk.LabelFrame(root, text="Replacement Rules", padding=(10, 8))
+        rules_frame.grid(row=1, column=0, sticky="we", pady=(10, 0))
+        rules_frame.columnconfigure(0, weight=1)
+        ttk.Label(
+            rules_frame,
+            text="One rule per line using: find => replace   (blank lines and # comments are ignored)",
+            style="Hint.TLabel",
+        ).grid(row=0, column=0, sticky="w")
+
+        self.rules_text = tk.Text(rules_frame, height=6, wrap="none", undo=True)
+        self.rules_text.grid(row=1, column=0, sticky="we", pady=(6, 0))
+        self.rules_text.bind("<KeyRelease>", lambda _e: self._queue_preview_refresh())
+        self.rules_text.bind("<FocusOut>", lambda _e: self._queue_preview_refresh())
+        self.rules_text.insert("1.0", "# Example:\n# Aleem => Yusuf\n")
+
+        opts = ttk.Frame(root)
+        opts.grid(row=2, column=0, sticky="we", pady=(8, 0))
+        ttk.Checkbutton(
+            opts,
+            text="Case-sensitive",
+            variable=self.case_sensitive_var,
+            command=self._queue_preview_refresh,
+        ).pack(side="left")
+        ttk.Checkbutton(
+            opts,
+            text="Whole words only",
+            variable=self.whole_word_var,
+            command=self._queue_preview_refresh,
+        ).pack(side="left", padx=(12, 0))
+        ttk.Checkbutton(
+            opts,
+            text="Include front matter",
+            variable=self.include_front_matter_var,
+            command=self._queue_preview_refresh,
+        ).pack(side="left", padx=(12, 0))
+        ttk.Button(opts, text="Extract Names", command=self._extract_names_to_rules).pack(side="right", padx=(8, 0))
+        ttk.Button(opts, text="Reload Files", command=self._load_files).pack(side="right")
+
+        ttk.Label(root, textvariable=self.status_var).grid(row=3, column=0, sticky="w", pady=(8, 0))
+
+        split = ttk.Panedwindow(root, orient="horizontal")
+        split.grid(row=4, column=0, sticky="nsew", pady=(8, 0))
+
+        left = ttk.Frame(split)
+        left.columnconfigure(0, weight=1)
+        left.rowconfigure(1, weight=1)
+        split.add(left, weight=1)
+        ttk.Label(left, text="Files").grid(row=0, column=0, sticky="w")
+
+        tree_wrap = ttk.Frame(left)
+        tree_wrap.grid(row=1, column=0, sticky="nsew")
+        tree_wrap.columnconfigure(0, weight=1)
+        tree_wrap.rowconfigure(0, weight=1)
+        self.files_tree = ttk.Treeview(tree_wrap, columns=("changes",), show="tree headings", selectmode="browse")
+        self.files_tree.heading("#0", text="Chapter file")
+        self.files_tree.heading("changes", text="Changes")
+        self.files_tree.column("#0", width=320, anchor="w")
+        self.files_tree.column("changes", width=80, anchor="center", stretch=False)
+        self.files_tree.grid(row=0, column=0, sticky="nsew")
+        self.files_tree.tag_configure("changed", foreground="#0f766e")
+        self.files_tree.bind("<<TreeviewSelect>>", lambda _e: self._render_selected_preview())
+        tree_scroll = ttk.Scrollbar(tree_wrap, orient="vertical", command=self.files_tree.yview)
+        tree_scroll.grid(row=0, column=1, sticky="ns")
+        self.files_tree.configure(yscrollcommand=tree_scroll.set)
+
+        right = ttk.Panedwindow(split, orient="horizontal")
+        split.add(right, weight=3)
+
+        original_frame = ttk.LabelFrame(right, text="Original", padding=(8, 6))
+        original_frame.columnconfigure(0, weight=1)
+        original_frame.rowconfigure(0, weight=1)
+        right.add(original_frame, weight=1)
+        self.original_text = tk.Text(original_frame, wrap="word")
+        self.original_text.grid(row=0, column=0, sticky="nsew")
+        self.original_text.configure(state="disabled")
+        original_scroll = ttk.Scrollbar(original_frame, orient="vertical", command=self.original_text.yview)
+        original_scroll.grid(row=0, column=1, sticky="ns")
+        self.original_text.configure(yscrollcommand=original_scroll.set)
+
+        updated_frame = ttk.LabelFrame(right, text="Live Preview", padding=(8, 6))
+        updated_frame.columnconfigure(0, weight=1)
+        updated_frame.rowconfigure(0, weight=1)
+        right.add(updated_frame, weight=1)
+        self.preview_text = tk.Text(updated_frame, wrap="word")
+        self.preview_text.grid(row=0, column=0, sticky="nsew")
+        self.preview_text.configure(state="disabled")
+        preview_scroll = ttk.Scrollbar(updated_frame, orient="vertical", command=self.preview_text.yview)
+        preview_scroll.grid(row=0, column=1, sticky="ns")
+        self.preview_text.configure(yscrollcommand=preview_scroll.set)
+
+        btns = ttk.Frame(root)
+        btns.grid(row=5, column=0, sticky="e", pady=(10, 0))
+        self.btn_apply = ttk.Button(btns, text="Apply Replacements", command=self._apply_changes)
+        self.btn_apply.pack(side="left")
+        ttk.Button(btns, text="Close", command=self.destroy).pack(side="left", padx=(8, 0))
+
+    def _load_files(self):
+        self.records = []
+        for item in self.files_tree.get_children():
+            self.files_tree.delete(item)
+
+        for p in list_existing_chapter_paths(self.slug, include_index=False):
+            original = read_text_with_fallback(p)
+            try:
+                rel = str(p.relative_to(REPO_ROOT)).replace("\\", "/")
+            except Exception:
+                rel = str(p)
+            self.records.append(
+                {
+                    "path": p,
+                    "display": rel,
+                    "original_text": original,
+                    "preview_text": original,
+                    "change_count": 0,
+                }
+            )
+
+        for idx, rec in enumerate(self.records):
+            self.files_tree.insert("", "end", iid=str(idx), text=rec["display"], values=("0",))
+
+        if self.records:
+            self.files_tree.selection_set("0")
+        else:
+            self._set_text_widget(self.original_text, "")
+            self._set_text_widget(self.preview_text, "")
+            self.status_var.set("No chapter markdown files found for this novel.")
+            self.btn_apply.state(["disabled"])
+        self._queue_preview_refresh()
+
+    def _queue_preview_refresh(self):
+        if self._refresh_job is not None:
+            try:
+                self.after_cancel(self._refresh_job)
+            except Exception:
+                pass
+        self._refresh_job = self.after(120, self._refresh_preview)
+
+    def _parse_rules(self) -> tuple[list[tuple[str, str]], list[str]]:
+        raw = self.rules_text.get("1.0", "end-1c")
+        rules = []
+        errors = []
+        for idx, line in enumerate((raw or "").splitlines(), start=1):
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+
+            delim = "=>"
+            if "=>" in line:
+                left, right = line.split("=>", 1)
+            elif "->" in line:
+                delim = "->"
+                left, right = line.split("->", 1)
+            else:
+                errors.append(f"Line {idx}: expected 'find => replace'.")
+                continue
+
+            find = left.strip()
+            replacement = right.strip()
+            if not find:
+                errors.append(f"Line {idx}: find text is empty.")
+                continue
+            rules.append((find, replacement))
+
+            if delim == "->":
+                # accepted for convenience, but keep guidance consistent
+                pass
+        return rules, errors
+
+    def _extract_candidate_names(self) -> list[tuple[str, int]]:
+        if not self.records:
+            return []
+
+        # Common capitalized non-name tokens in prose/markdown.
+        stop_words = {
+            "A", "An", "And", "Are", "As", "At", "Be", "Because", "But", "By", "For", "From", "Had", "Has",
+            "Have", "He", "Her", "Here", "His", "How", "I", "If", "In", "Into", "Is", "It", "Its", "Me", "My",
+            "No", "Not", "Of", "On", "Or", "Our", "She", "So", "That", "The", "Their", "Them", "There", "They",
+            "This", "To", "Too", "We", "What", "When", "Where", "Who", "Why", "You", "Your",
+            "Chapter", "Prologue", "Epilogue", "Part", "Scene",
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+            "January", "February", "March", "April", "May", "June", "July", "August",
+            "September", "October", "November", "December",
+            "Without", "Would", "Year", "Yesterday", "Yours",
+        }
+
+        single_total = Counter()
+        single_mid = Counter()
+        phrase_counts = Counter()
+        phrase_word_counts = Counter()
+        token_rx = re.compile(r"\b[A-Z][a-z]+(?:[-'][A-Z][a-z]+)?\b")
+        phrase_rx = re.compile(
+            r"\b[A-Z][a-z]+(?:[-'][A-Z][a-z]+)?(?:\s+[A-Z][a-z]+(?:[-'][A-Z][a-z]+)?)+\b"
+        )
+        sentence_enders = set(".!?\n\r")
+
+        def _is_sentence_start(text: str, start_idx: int) -> bool:
+            i = start_idx - 1
+            while i >= 0 and text[i].isspace():
+                i -= 1
+            if i < 0:
+                return True
+
+            # If the token follows an opening quote/bracket, inspect one char further back.
+            if text[i] in {'"', "'", "”", "’", ")", "]", "}"}:
+                i -= 1
+                while i >= 0 and text[i].isspace():
+                    i -= 1
+                if i < 0:
+                    return True
+
+            return text[i] in sentence_enders
+
+        for rec in self.records:
+            source = rec.get("original_text") or ""
+            if not self.include_front_matter_var.get():
+                _head, source = self._split_front_matter_head(source)
+
+            # Remove common markdown structures so extraction focuses on prose.
+            source = re.sub(r"```.*?```", " ", source, flags=re.S)
+            source = re.sub(r"`[^`]*`", " ", source)
+            source = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", source)
+            source = re.sub(r"<[^>]+>", " ", source)
+
+            for match in phrase_rx.finditer(source):
+                phrase = (match.group(0) or "").strip()
+                words = [w for w in phrase.split() if w]
+                if len(words) < 2:
+                    continue
+                if any((w in stop_words) or (len(w) <= 2) for w in words):
+                    continue
+                phrase_counts[phrase] += 1
+                for w in words:
+                    phrase_word_counts[w] += 1
+
+            for match in token_rx.finditer(source):
+                token = match.group(0)
+                if token in stop_words:
+                    continue
+                if len(token) <= 2:
+                    continue
+                single_total[token] += 1
+                if not _is_sentence_start(source, match.start()):
+                    single_mid[token] += 1
+
+        combined = Counter()
+
+        # Keep multi-word names as-is. They help with names like "Shei Er".
+        for phrase, count in phrase_counts.items():
+            if count > 0:
+                combined[phrase] += int(count)
+
+        # Keep single names when they appear mid-sentence at least once, or are frequent.
+        # Skip singles that only appear as components of multi-word names.
+        for token, total in single_total.items():
+            if phrase_word_counts.get(token, 0) >= total:
+                continue
+            if single_mid.get(token, 0) > 0 or total >= 3:
+                combined[token] += int(total)
+
+        if not combined:
+            return []
+
+        # Prefer frequent names first, then alphabetical for stable output.
+        return sorted(combined.items(), key=lambda kv: (-kv[1], kv[0].lower()))
+
+    def _extract_names_to_rules(self):
+        names = self._extract_candidate_names()
+        if not names:
+            messagebox.showinfo("Extract Names", "No likely names found in the selected chapter files.", parent=self)
+            return
+
+        lines = [
+            "# Extracted names (self-map).",
+            "# Keep only what you want to rename, then edit the right side.",
+            "# Format: find => replace",
+            "",
+        ]
+        lines.extend([f"{name} => {name}" for name, _count in names])
+        extracted = "\n".join(lines) + "\n"
+
+        existing = self.rules_text.get("1.0", "end-1c").strip()
+        if existing:
+            choice = messagebox.askyesnocancel(
+                "Extract Names",
+                "Replace current rules with extracted names?\n"
+                "Yes = replace, No = append, Cancel = abort.",
+                parent=self,
+            )
+            if choice is None:
+                return
+            if choice:
+                self.rules_text.delete("1.0", "end")
+                self.rules_text.insert("1.0", extracted)
+            else:
+                text = self.rules_text.get("1.0", "end-1c")
+                if text and not text.endswith("\n"):
+                    self.rules_text.insert("end", "\n")
+                self.rules_text.insert("end", extracted)
+        else:
+            self.rules_text.delete("1.0", "end")
+            self.rules_text.insert("1.0", extracted)
+
+        self.status_var.set(f"Extracted {len(names)} likely name(s). Edit or remove lines, then apply.")
+        self._queue_preview_refresh()
+
+    def _split_front_matter_head(self, text: str) -> tuple[str, str]:
+        m = re.match(
+            r"^(?P<head>\ufeff?---\s*\r?\n.*?\r?\n---\s*(?:\r?\n)?)(?P<body>.*)$",
+            text or "",
+            flags=re.S,
+        )
+        if not m:
+            return "", text or ""
+        return m.group("head"), m.group("body")
+
+    def _apply_rule_set(self, text: str, rules: list[tuple[str, str]]) -> tuple[str, int]:
+        if not text or not rules:
+            return text or "", 0
+
+        flags = 0 if self.case_sensitive_var.get() else re.IGNORECASE
+        whole_word = self.whole_word_var.get()
+        out = text
+        total = 0
+
+        for find, replacement in rules:
+            pat = re.escape(find)
+            if whole_word:
+                pat = rf"(?<!\w){pat}(?!\w)"
+            rx = re.compile(pat, flags)
+            out, n = rx.subn(replacement, out)
+            total += n
+
+        return out, total
+
+    def _apply_rules_to_text(self, text: str, rules: list[tuple[str, str]]) -> tuple[str, int]:
+        source = text or ""
+        if self.include_front_matter_var.get():
+            return self._apply_rule_set(source, rules)
+
+        head, body = self._split_front_matter_head(source)
+        if not head:
+            return self._apply_rule_set(source, rules)
+
+        new_body, count = self._apply_rule_set(body, rules)
+        return head + new_body, count
+
+    def _set_text_widget(self, widget: tk.Text, value: str):
+        widget.configure(state="normal")
+        widget.delete("1.0", "end")
+        if value:
+            widget.insert("1.0", value)
+        widget.configure(state="disabled")
+
+    def _render_selected_preview(self):
+        sel = self.files_tree.selection()
+        if not sel:
+            self._set_text_widget(self.original_text, "")
+            self._set_text_widget(self.preview_text, "")
+            return
+
+        try:
+            idx = int(sel[0])
+        except Exception:
+            self._set_text_widget(self.original_text, "")
+            self._set_text_widget(self.preview_text, "")
+            return
+
+        if idx < 0 or idx >= len(self.records):
+            self._set_text_widget(self.original_text, "")
+            self._set_text_widget(self.preview_text, "")
+            return
+
+        rec = self.records[idx]
+        self._set_text_widget(self.original_text, rec.get("original_text") or "")
+        self._set_text_widget(self.preview_text, rec.get("preview_text") or "")
+
+    def _refresh_preview(self):
+        self._refresh_job = None
+
+        if not self.records:
+            self.btn_apply.state(["disabled"])
+            return
+
+        selected = self.files_tree.selection()
+        selected_iid = selected[0] if selected else None
+
+        rules, errors = self._parse_rules()
+        changed_files = 0
+        total_replacements = 0
+
+        if errors:
+            for idx, rec in enumerate(self.records):
+                rec["preview_text"] = rec["original_text"]
+                rec["change_count"] = 0
+                self.files_tree.set(str(idx), "changes", "0")
+                self.files_tree.item(str(idx), tags=())
+            first = errors[0]
+            more = f" (+{len(errors)-1} more)" if len(errors) > 1 else ""
+            self.status_var.set(f"Rule error: {first}{more}")
+            self.btn_apply.state(["disabled"])
+        else:
+            for idx, rec in enumerate(self.records):
+                preview_text, count = self._apply_rules_to_text(rec["original_text"], rules)
+                rec["preview_text"] = preview_text
+                rec["change_count"] = int(count)
+                total_replacements += int(count)
+                if count > 0:
+                    changed_files += 1
+                self.files_tree.set(str(idx), "changes", str(count))
+                self.files_tree.item(str(idx), tags=("changed",) if count > 0 else ())
+
+            if not rules:
+                self.status_var.set(
+                    f"Loaded {len(self.records)} file(s). Add rules to preview replacements in real time."
+                )
+                self.btn_apply.state(["disabled"])
+            elif total_replacements == 0:
+                self.status_var.set(f"No matches found across {len(self.records)} file(s).")
+                self.btn_apply.state(["disabled"])
+            else:
+                self.status_var.set(
+                    f"Live preview: {total_replacements} replacement(s) across {changed_files} file(s)."
+                )
+                self.btn_apply.state(["!disabled"])
+
+        if selected_iid and selected_iid in self.files_tree.get_children():
+            self.files_tree.selection_set(selected_iid)
+        elif self.files_tree.get_children():
+            self.files_tree.selection_set(self.files_tree.get_children()[0])
+        self._render_selected_preview()
+
+    def _apply_changes(self):
+        rules, errors = self._parse_rules()
+        if errors:
+            messagebox.showerror("Bulk Replace", "Fix rule errors before applying.", parent=self)
+            return
+        if not rules:
+            messagebox.showinfo("Bulk Replace", "Add at least one replacement rule.", parent=self)
+            return
+
+        changed = [rec for rec in self.records if int(rec.get("change_count") or 0) > 0]
+        if not changed:
+            messagebox.showinfo("Bulk Replace", "No matching text to replace.", parent=self)
+            return
+
+        changed_files = len(changed)
+        total_replacements = sum(int(rec.get("change_count") or 0) for rec in changed)
+        if not messagebox.askyesno(
+            "Apply replacements",
+            f"Apply {total_replacements} replacement(s) across {changed_files} file(s)?",
+            parent=self,
+        ):
+            return
+
+        failures = []
+        written_files = 0
+        written_replacements = 0
+        for rec in changed:
+            p = rec["path"]
+            try:
+                write_text(p, rec["preview_text"])
+                rec["original_text"] = rec["preview_text"]
+                written_files += 1
+                written_replacements += int(rec.get("change_count") or 0)
+            except Exception as exc:
+                failures.append(f"{p.name}: {exc}")
+
+        self._refresh_preview()
+
+        if failures:
+            messagebox.showwarning(
+                "Bulk Replace",
+                "Some files could not be written:\n" + "\n".join(failures[:8]),
+                parent=self,
+            )
+        else:
+            messagebox.showinfo(
+                "Bulk Replace",
+                f"Applied {written_replacements} replacement(s) across {written_files} file(s).",
+                parent=self,
+            )
+
+        if written_files > 0 and callable(self.on_applied):
+            try:
+                self.on_applied(self.slug, written_files, written_replacements)
+            except Exception:
+                pass
+
 # ---------- GUI ----------
 
 MODE_CREATE = "Create New"
@@ -1594,8 +2234,11 @@ def _extract_chapter_num_from_name(name: str) -> int:
 class Wizard(tk.Tk):
     def __init__(self):
         super().__init__()
+        self._app_icon_image = None
+        set_windows_app_user_model_id("seaboiii.novelwizard")
         self.title("Novel Wizard")
         self._configure_window()
+        self._configure_app_icon()
         self._configure_styles()
 
         # Vars
@@ -1642,6 +2285,45 @@ class Wizard(tk.Tk):
         y = max(0, (sh - h) // 2 - 24)
         self.geometry(f"{w}x{h}+{x}+{y}")
         self.minsize(1060, 760)
+
+    def _configure_app_icon(self):
+        icon_path = resolve_wizard_icon_path()
+        if not icon_path:
+            return
+
+        ext = icon_path.suffix.lower()
+
+        # On Windows, taskbar icons are most reliable via iconbitmap + .ico.
+        win_ico = None
+        if sys.platform == "win32":
+            win_ico = ensure_windows_ico_from_image(icon_path)
+        if win_ico is not None:
+            try:
+                self.iconbitmap(default=str(win_ico))
+            except Exception:
+                pass
+
+        photo = None
+        if ext in {".png", ".gif", ".ppm", ".pgm"}:
+            try:
+                photo = tk.PhotoImage(file=str(icon_path))
+            except Exception:
+                photo = None
+        elif _PILImage is not None and _PILImageTk is not None:
+            try:
+                with _PILImage.open(icon_path) as im0:
+                    im = im0.convert("RGBA")
+                    im.thumbnail((256, 256))
+                    photo = _PILImageTk.PhotoImage(im)
+            except Exception:
+                photo = None
+
+        if photo is not None:
+            self._app_icon_image = photo
+            try:
+                self.iconphoto(True, photo)
+            except Exception:
+                pass
 
     def _configure_styles(self):
         style = ttk.Style(self)
@@ -1838,6 +2520,12 @@ class Wizard(tk.Tk):
         ttk.Label(chapter_bar, textvariable=self.chapter_hint_var, style="Hint.TLabel").pack(side="left")
         self.btn_bulk = ttk.Button(chapter_bar, text="Bulk Import Files...", command=self._bulk_import_docx)
         self.btn_bulk.pack(side="right")
+        self.btn_bulk_replace = ttk.Button(
+            chapter_bar,
+            text="Bulk Replace Characters...",
+            command=self._open_bulk_replace_dialog,
+        )
+        self.btn_bulk_replace.pack(side="right", padx=(0, 8))
 
         self.nb = ttk.Notebook(self.main)
         self.nb.grid(row=3, column=0, sticky="nsew", pady=(8, 0))
@@ -1982,6 +2670,43 @@ class Wizard(tk.Tk):
         self._refresh_related_choices(self.related_to_var.get())
         self._refresh_related_cover_preview()
 
+    def _open_bulk_replace_dialog(self):
+        if self.mode_var.get() != MODE_EDIT:
+            messagebox.showinfo(
+                "Bulk Replace",
+                "Bulk replace is available in Edit Current mode.",
+            )
+            return
+
+        slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
+        if not slug:
+            messagebox.showerror("Bulk Replace", "Select a novel first.")
+            return
+
+        paths = list_existing_chapter_paths(slug, include_index=False)
+        if not paths:
+            messagebox.showerror("Bulk Replace", f"No chapter markdown files found in /novel/{slug}/.")
+            return
+
+        BulkReplaceDialog(
+            self,
+            slug=slug,
+            novel_title=self.title_var.get().strip() or pretty(slug),
+            on_applied=self._on_bulk_replace_applied,
+        )
+
+    def _on_bulk_replace_applied(self, slug: str, changed_files: int, total_replacements: int):
+        if changed_files <= 0:
+            return
+        active_slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
+        if active_slug != slug:
+            return
+        if self._is_edit_chapter_mode():
+            self.chapter_hint_var.set(
+                f"Applied {total_replacements} replacements in {changed_files} files. "
+                "Re-select the novel to reload tabs."
+            )
+
     def _is_edit_chapter_mode(self) -> bool:
         return self.mode_var.get() == MODE_EDIT and self.edit_submode_var.get() == EDIT_SUBMODE_EDIT
 
@@ -2006,9 +2731,14 @@ class Wizard(tk.Tk):
             self._existing_chapter_entries = []
             self.spin_count.state(["!disabled"])
             self.btn_bulk.state(["!disabled"])
+            self.btn_bulk_replace.state(["disabled"])
             return
 
         slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
+        if slug:
+            self.btn_bulk_replace.state(["!disabled"])
+        else:
+            self.btn_bulk_replace.state(["disabled"])
         info = get_existing_info(slug) if slug else {"max_order": 0, "count": 0}
         self.start_order = (info.get("max_order") or 0) + 1
         self._existing_chapter_entries = load_existing_chapter_entries(slug) if slug else []
@@ -2173,6 +2903,7 @@ class Wizard(tk.Tk):
             self.btn_bulk.configure(text="Bulk Import Files...")
             self.spin_count.state(["!disabled"])
             self.btn_bulk.state(["!disabled"])
+            self.btn_bulk_replace.state(["disabled"])
 
             self.lbl_existing.grid_remove()
             self.existing_combo.grid_remove()
@@ -2194,6 +2925,7 @@ class Wizard(tk.Tk):
             self._refresh_existing_choices(self.existing_slug_var.get())
             if self._existing_slugs and not slugify(self.existing_slug_var.get()):
                 self.existing_slug_var.set(self._existing_slugs[0])
+            self.btn_bulk_replace.state(["!disabled"])
             self._on_existing_selected()
 
         self.chapter_tabs = []
