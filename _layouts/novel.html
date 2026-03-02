@@ -107,6 +107,8 @@ a:hover{text-decoration:underline}
 .chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
 .chapter-list li.completed a{opacity:.58;filter:saturate(.15)}
 .chapter-list li.completed a:hover{opacity:.78}
+.chapter-empty{margin:.5rem 0 0;padding:.65rem .75rem;border:1px dashed var(--border);border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 20%);color:var(--muted);font-size:.92rem}
+.chapter-empty[hidden]{display:none}
 .chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
 .chapter-title{flex:1;min-width:0}
 .small-note{font-size:.85rem;color:var(--muted)}
@@ -209,6 +211,7 @@ a:hover{text-decoration:underline}
     </li>
   {% endfor %}
 </ul>
+<p id="chapterSearchEmpty" class="chapter-empty" role="status" aria-live="polite" hidden>No chapters match your search.</p>
 
 </div>
 <script>
@@ -219,7 +222,6 @@ a:hover{text-decoration:underline}
   var stateKey = 'novel:'+slug+':state';
   var chaptersKey = 'novel:'+slug+':chapters';
   var continueBtn = document.getElementById('continueReading');
-  var startBtn = document.getElementById('startReading');
   var list = document.getElementById('chapterList');
   var state = {};
   var chapters = {};
@@ -239,6 +241,11 @@ a:hover{text-decoration:underline}
     s = s.replace(/\/index\.html$/i, '/');
     if (s.length > 1) s = s.replace(/\/+$/, '');
     return s;
+  }
+
+  function toFiniteNumber(value) {
+    var n = parseFloat(value);
+    return Number.isFinite(n) ? n : null;
   }
 
   function getListItemByUrl(url) {
@@ -270,6 +277,36 @@ a:hover{text-decoration:underline}
     continueBtn.style.display = 'inline-block';
   }
 
+  function hasMeaningfulProgress(url) {
+    var path = normalizePath(url);
+    if (!path) return false;
+
+    var entry = chapters[path];
+    if (entry && entry.completed) return true;
+    if (entry) {
+      var entryRatio = toFiniteNumber(entry.ratio);
+      var entryScroll = toFiniteNumber(entry.scrollY);
+      if (entryRatio != null && entryRatio >= 0.02) return true;
+      if (entryScroll != null && entryScroll >= 120) return true;
+    }
+
+    if (state && normalizePath(state.lastUrl) === path) {
+      if (state.completed) return true;
+      var stateRatio = toFiniteNumber(state.ratio);
+      var stateScroll = toFiniteNumber(state.scrollY);
+      if (stateRatio != null && stateRatio >= 0.02) return true;
+      if (stateScroll != null && stateScroll >= 120) return true;
+      var lastOrder = parseInt(state.lastOrder, 10);
+      var firstLi = list ? list.querySelector('li[data-url]') : null;
+      var firstOrder = firstLi ? parseInt(firstLi.dataset.no, 10) : NaN;
+      if (Number.isFinite(lastOrder) && (!Number.isFinite(firstOrder) || lastOrder > firstOrder)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   try {
     state = safeParse(localStorage.getItem(stateKey), {}) || {};
     var rawChapters = safeParse(localStorage.getItem(chaptersKey), {}) || {};
@@ -298,13 +335,9 @@ a:hover{text-decoration:underline}
         resumeUrl = nextLi.dataset.url || (nextLi.querySelector('a') && nextLi.querySelector('a').getAttribute('href')) || saved;
       }
     }
-    renderContinue(resumeUrl);
-  }
-
-  if (!saved && startBtn && continueBtn) {
-    continueBtn.href = startBtn.getAttribute('href');
-    continueBtn.textContent = 'Continue';
-    continueBtn.style.display = 'inline-block';
+    if (hasMeaningfulProgress(saved)) {
+      renderContinue(resumeUrl);
+    }
   }
 
   if (!list) return;
@@ -322,7 +355,10 @@ a:hover{text-decoration:underline}
 (function() {
   var q = document.getElementById('chapterSearch');
   var list = document.getElementById('chapterList');
+  var empty = document.getElementById('chapterSearchEmpty');
   if (!q || !list) return;
+
+  var chapterItems = Array.prototype.slice.call(list.querySelectorAll('li[data-url]'));
 
   function cleanChapterTitle(text) {
     var value = String(text || '').trim();
@@ -331,7 +367,7 @@ a:hover{text-decoration:underline}
     return value.replace(/^\s*chapter\s+\d+\s*[:.\-–—]*\s*/i, '').trim();
   }
 
-  list.querySelectorAll('li').forEach(function(li) {
+  chapterItems.forEach(function(li) {
     var titleNode = li.querySelector('.chapter-title');
     if (!titleNode) return;
     var cleaned = cleanChapterTitle(titleNode.textContent);
@@ -339,13 +375,19 @@ a:hover{text-decoration:underline}
     li.dataset.title = cleaned.toLowerCase();
   });
 
-  q.addEventListener('input', function() {
+  function applyChapterFilter() {
     var v = q.value.trim().toLowerCase();
-    list.querySelectorAll('li').forEach(function(li) {
+    var visible = 0;
+    chapterItems.forEach(function(li) {
       var hit = !v || li.dataset.title.includes(v) || ('chapter '+li.dataset.no).includes(v);
       li.style.display = hit ? '' : 'none';
+      if (hit) visible += 1;
     });
-  });
+    if (empty) empty.hidden = visible !== 0;
+  }
+
+  q.addEventListener('input', applyChapterFilter);
+  applyChapterFilter();
 })();
 
 // Related novels list from /novel/index.html
@@ -780,4 +822,3 @@ a:hover{text-decoration:underline}
 </script>
 </body>
 </html>
-

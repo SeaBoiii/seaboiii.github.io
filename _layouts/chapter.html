@@ -603,27 +603,27 @@
           </div>
         </div>
       </div>
-      <section id="readerSettingsPanel" class="reader-settings" role="dialog" aria-label="Reader settings" hidden>
+      <section id="readerSettingsPanel" class="reader-settings" role="dialog" aria-label="Reader settings" aria-modal="true" tabindex="-1" hidden>
         <p class="reader-settings-title">Reader settings</p>
         <div class="reader-settings-grid">
           <div class="reader-setting">
             <label for="readerFontSize">
               <strong>Font size</strong>
-              <span id="readerFontSizeValue" class="reader-setting-value"></span>
+              <span id="readerFontSizeValue" class="reader-setting-value" role="status" aria-live="polite" aria-atomic="true"></span>
             </label>
             <input id="readerFontSize" type="range" min="0.85" max="1.35" step="0.05" value="1" />
           </div>
           <div class="reader-setting">
             <label for="readerLineHeight">
               <strong>Line height</strong>
-              <span id="readerLineHeightValue" class="reader-setting-value"></span>
+              <span id="readerLineHeightValue" class="reader-setting-value" role="status" aria-live="polite" aria-atomic="true"></span>
             </label>
             <input id="readerLineHeight" type="range" min="1.45" max="2.1" step="0.05" value="1.75" />
           </div>
           <div class="reader-setting">
             <label for="readerContentWidth">
               <strong>Content width</strong>
-              <span id="readerContentWidthValue" class="reader-setting-value"></span>
+              <span id="readerContentWidthValue" class="reader-setting-value" role="status" aria-live="polite" aria-atomic="true"></span>
             </label>
             <input id="readerContentWidth" type="range" min="620" max="980" step="20" value="800" />
           </div>
@@ -678,14 +678,12 @@
 {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
 
 
-<!--
 <section id="chapterCompletionPanel" class="chapter-complete" hidden aria-live="polite">
   <div class="chapter-complete-copy">
     <strong id="chapterCompletionTitle">Chapter completed</strong>
     <span id="chapterCompletionText">Nice. Ready for the next chapter?</span>
   </div>
 </section>
--->
 
 <nav class="pager">
   {% if prev_index >= 0 %}
@@ -838,6 +836,7 @@
           maxWidth: defaults.maxWidth,
           fontFamily: defaults.fontFamily
         };
+        var panelFocusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
         function clamp(n, min, max) {
           return Math.min(max, Math.max(min, n));
@@ -894,14 +893,33 @@
           updateValueLabels();
         }
 
+        function panelFocusableElements() {
+          return Array.prototype.slice.call(panel.querySelectorAll(panelFocusableSelector)).filter(function (node) {
+            return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
+          });
+        }
+
         function openPanel() {
+          if (!panel.hidden) return;
           panel.hidden = false;
           toggle.setAttribute("aria-expanded", "true");
+          var firstField = fontSizeInput;
+          if (!firstField || firstField.disabled) {
+            var focusable = panelFocusableElements();
+            firstField = focusable.length ? focusable[0] : panel;
+          }
+          if (firstField && typeof firstField.focus === "function") {
+            firstField.focus();
+          }
         }
 
         function closePanel() {
+          if (panel.hidden) return;
           panel.hidden = true;
           toggle.setAttribute("aria-expanded", "false");
+          if (typeof toggle.focus === "function") {
+            toggle.focus();
+          }
         }
 
         function togglePanel() {
@@ -963,8 +981,35 @@
         });
 
         document.addEventListener("keydown", function (event) {
-          if (event.key === "Escape" && !panel.hidden) {
+          if (panel.hidden) return;
+          if (event.key === "Escape") {
+            event.preventDefault();
             closePanel();
+            return;
+          }
+
+          if (event.key !== "Tab") return;
+          var focusable = panelFocusableElements();
+          if (!focusable.length) {
+            event.preventDefault();
+            panel.focus();
+            return;
+          }
+
+          var first = focusable[0];
+          var last = focusable[focusable.length - 1];
+          var active = document.activeElement;
+          if (event.shiftKey) {
+            if (active === first || !panel.contains(active)) {
+              event.preventDefault();
+              last.focus();
+            }
+            return;
+          }
+
+          if (active === last || !panel.contains(active)) {
+            event.preventDefault();
+            first.focus();
           }
         });
       })();

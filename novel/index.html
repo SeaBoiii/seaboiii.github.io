@@ -116,6 +116,7 @@
         z-index: 10;
         background: color-mix(in oklab, var(--bg), var(--card) 40%);
         border-bottom: 1px solid var(--border);
+        -webkit-backdrop-filter: blur(6px);
         backdrop-filter: blur(6px);
       }
 
@@ -483,6 +484,30 @@
         }
       }
 
+      .novel-empty-state {
+        grid-column: 1 / -1;
+      }
+
+      .novel-empty-state[hidden] {
+        display: none;
+      }
+
+      .novel-empty-state-card {
+        display: grid;
+        gap: 0.7rem;
+        justify-items: center;
+        text-align: center;
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        padding: 1.4rem 1rem;
+        background: color-mix(in oklab, var(--card), var(--bg) 24%);
+      }
+
+      .novel-empty-state-card strong {
+        font-family: "Merriweather", serif;
+        font-size: 1rem;
+      }
+
       .footer {
         border-top: 1px solid var(--border);
         padding: 1.2rem 0 2rem;
@@ -504,7 +529,7 @@
       Profile
      </a>
      <button aria-label="Toggle theme" class="theme-toggle" id="themeToggle" type="button">
-      🌙
+      &#127769;
      </button>
     </div>
    </div>
@@ -521,12 +546,12 @@
     </div>
     <div class="controls">
      <div class="controls-top">
-      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
+      <input class="search" id="novelSearch" placeholder="Search by title&hellip;" type="search"/>
       <button aria-controls="filterPanel" aria-expanded="false" class="filter-toggle" id="filterToggle" type="button">
        Filters
       </button>
      </div>
-     <div class="filter-panel" hidden="" id="filterPanel">
+     <div aria-hidden="true" aria-label="Novel filters" aria-modal="true" class="filter-panel" hidden="" id="filterPanel" role="dialog" tabindex="-1">
       <div class="filter-grid">
        <div class="filter-block">
         <label class="filter-label" for="statusFilter">
@@ -1228,20 +1253,33 @@
       </div>
      </a>
     </li>
-   </ul>
+     <li class="novel-empty-state" hidden="" id="novelEmptyState">
+      <div class="novel-empty-state-card">
+       <strong>
+        No matches found
+       </strong>
+       <span class="muted">
+        No novels match your current filters.
+       </span>
+       <button class="pill-button" id="clearFiltersBtn" type="button">
+        Clear filters
+       </button>
+      </div>
+     </li>
+    </ul>
   </main>
   <footer class="footer">
    <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-     <div>
-      ©
-      <span id="year">
-      </span>
-      SeaBoiii
-     </div>
-     <button aria-label="Secret button" id="secretBtn" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" title="🔐" type="button">
-      🔐
-     </button>
+      <div>
+       &copy;
+       <span id="year">
+       </span>
+       SeaBoiii
+      </div>
+      <button aria-label="Secret button" id="secretBtn" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" title="&#128274;" type="button">
+       &#128274;
+      </button>
     </div>
    </div>
   </footer>
@@ -1259,8 +1297,11 @@
           return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
         }
 
+        var moonIcon = String.fromCodePoint(127769);
+        var sunIcon = "\u2600\uFE0F";
+
         function icon() {
-          btn.textContent = isDarkNow() ? "☀️" : "🌙";
+          btn.textContent = isDarkNow() ? sunIcon : moonIcon;
           btn.setAttribute(
             "aria-label",
             isDarkNow() ? "Switch to light theme" : "Switch to dark theme"
@@ -1316,6 +1357,8 @@
         var seriesSelect = document.getElementById("seriesFilter");
         var filterToggle = document.getElementById("filterToggle");
         var filterPanel = document.getElementById("filterPanel");
+        var emptyStateCard = document.getElementById("novelEmptyState");
+        var clearFiltersBtn = document.getElementById("clearFiltersBtn");
         var secretBtn = document.getElementById("secretBtn");
         if (
           !search ||
@@ -1338,6 +1381,9 @@
         var unlockedKey = "site:novels-unlocked";
         var uiStateKey = "site:novels-ui";
         var correctPassword = "seaboiii";
+        var focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        var lockIcon = String.fromCodePoint(128274);
+        var unlockIcon = String.fromCodePoint(128275);
 
         cards.forEach(function (card, idx) {
           card.dataset.initialIndex = String(idx);
@@ -1423,11 +1469,48 @@
           filterToggle.textContent = count > 0 ? ("Filters (" + count + ")") : "Filters";
         }
 
-        function setFilterPanelOpen(open) {
+        function getPanelFocusableElements() {
+          return Array.prototype.slice.call(filterPanel.querySelectorAll(focusableSelector)).filter(function (node) {
+            return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
+          });
+        }
+
+        function focusFirstFilterField() {
+          var first = filterPanel.querySelector("select:not([disabled]), input:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])");
+          if (first && typeof first.focus === "function") {
+            first.focus();
+            return;
+          }
+          filterPanel.focus();
+        }
+
+        function setFilterPanelOpen(open, options) {
+          options = options || {};
+          var shouldMoveFocus = !!options.moveFocus;
+          var shouldRestoreFocus = !!options.restoreFocus;
           isFilterPanelOpen = !!open;
           filterPanel.hidden = !isFilterPanelOpen;
+          filterPanel.setAttribute("aria-hidden", isFilterPanelOpen ? "false" : "true");
           filterToggle.setAttribute("aria-expanded", isFilterPanelOpen ? "true" : "false");
+          if (isFilterPanelOpen && shouldMoveFocus) {
+            focusFirstFilterField();
+          } else if (!isFilterPanelOpen && shouldRestoreFocus && typeof filterToggle.focus === "function") {
+            filterToggle.focus();
+          }
           saveUiState();
+        }
+
+        function clearAllFilters() {
+          activeStatusFilter = "all";
+          activeSeriesFilter = "all";
+          activeSortFilter = "recent";
+          activeSeriesNameFilter = "all";
+          search.value = "";
+          statusSelect.value = activeStatusFilter;
+          categorySelect.value = activeSeriesFilter;
+          sortSelect.value = activeSortFilter;
+          seriesSelect.value = optionExists(seriesSelect, "all") ? "all" : seriesSelect.value;
+          update();
         }
 
         function normalizeMetaRows() {
@@ -1661,6 +1744,9 @@
             card.style.display = show ? "flex" : "none";
             if (show) visible += 1;
           });
+          if (emptyStateCard) {
+            emptyStateCard.hidden = visible !== 0;
+          }
           count.textContent = visible + " novel" + (visible === 1 ? "" : "s") + " shown";
           updateFilterToggleLabel();
           saveUiState();
@@ -1691,7 +1777,7 @@
           seriesSelect.value = "all";
           activeSeriesNameFilter = "all";
         }
-        setFilterPanelOpen(isFilterPanelOpen);
+        setFilterPanelOpen(isFilterPanelOpen, { moveFocus: false, restoreFocus: false });
 
         statusSelect.addEventListener("change", function () {
           activeStatusFilter = normalizeChoice(statusSelect.value, ["all", "complete", "incomplete"], "all");
@@ -1714,8 +1800,57 @@
         });
 
         filterToggle.addEventListener("click", function () {
-          setFilterPanelOpen(!isFilterPanelOpen);
+          var willOpen = !isFilterPanelOpen;
+          setFilterPanelOpen(willOpen, { moveFocus: willOpen, restoreFocus: !willOpen });
           updateFilterToggleLabel();
+        });
+
+        if (clearFiltersBtn) {
+          clearFiltersBtn.addEventListener("click", function () {
+            clearAllFilters();
+            search.focus();
+          });
+        }
+
+        document.addEventListener("click", function (event) {
+          if (!isFilterPanelOpen) return;
+          if (filterPanel.contains(event.target) || filterToggle.contains(event.target)) return;
+          setFilterPanelOpen(false, { restoreFocus: true });
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (!isFilterPanelOpen) return;
+
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setFilterPanelOpen(false, { restoreFocus: true });
+            return;
+          }
+
+          if (event.key !== "Tab") return;
+          var focusable = getPanelFocusableElements();
+          if (!focusable.length) {
+            event.preventDefault();
+            filterPanel.focus();
+            return;
+          }
+
+          var first = focusable[0];
+          var last = focusable[focusable.length - 1];
+          var active = document.activeElement;
+
+          if (event.shiftKey) {
+            if (active === first || !filterPanel.contains(active)) {
+              event.preventDefault();
+              last.focus();
+            }
+            return;
+          }
+
+          if (active === last || !filterPanel.contains(active)) {
+            event.preventDefault();
+            first.focus();
+          }
         });
 
         search.addEventListener("input", update);
@@ -1724,13 +1859,15 @@
           var isUnlocked = localStorage.getItem(unlockedKey) === "true";
           if (isUnlocked) {
             localStorage.removeItem(unlockedKey);
-            secretBtn.textContent = "🔐";
+            secretBtn.textContent = lockIcon;
+            secretBtn.title = lockIcon;
             update();
           } else {
             var pwd = prompt("Enter password to unlock hidden novels:");
             if (pwd === correctPassword) {
               localStorage.setItem(unlockedKey, "true");
-              secretBtn.textContent = "🔓";
+              secretBtn.textContent = unlockIcon;
+              secretBtn.title = unlockIcon;
               update();
             } else if (pwd) {
               alert("Incorrect password.");
@@ -1739,7 +1876,11 @@
         });
 
         if (localStorage.getItem(unlockedKey) === "true") {
-          secretBtn.textContent = "🔓";
+          secretBtn.textContent = unlockIcon;
+          secretBtn.title = unlockIcon;
+        } else {
+          secretBtn.textContent = lockIcon;
+          secretBtn.title = lockIcon;
         }
 
         update();
