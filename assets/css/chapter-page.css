@@ -1,0 +1,561 @@
+
+      :root {
+        --bg: #ffffff;
+        --text: #111111;
+        --muted: #666666;
+        --card: #ffffff;
+        --border: #e6e6e6;
+        --link: #111111;
+        --btn-bg: #111111;
+        --btn-text: #ffffff;
+        --btn-brd: #111111;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        --quote-bar: #b9c0cb;
+        --quote-bg: #f4f6f8;
+        --quote-text: #111111;
+        --quote-strong: #0b0d10;
+        --reader-font-scale: 1;
+        --reader-line-height: 1.75;
+        --reader-max-width: 800px;
+        --reader-font-family: "Georgia", "Times New Roman", serif;
+        color-scheme: light dark;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b0e13;
+          --text: #e7eaf0;
+          --muted: #a8b2c1;
+          --card: #11151d;
+          --border: #253043;
+          --link: #e7eaf0;
+          --btn-bg: #e7eaf0;
+          --btn-text: #0b0e13;
+          --btn-brd: #e7eaf0;
+          --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          --quote-bar: #5a6474;
+          --quote-bg: #0f141c;
+          --quote-text: #eef2f8;
+          --quote-strong: #ffffff;
+        }
+      }
+
+      :root[data-theme="light"] {
+        --bg: #ffffff;
+        --text: #111111;
+        --muted: #666666;
+        --card: #ffffff;
+        --border: #e6e6e6;
+        --link: #111111;
+        --btn-bg: #111111;
+        --btn-text: #ffffff;
+        --btn-brd: #111111;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        --quote-bar: #b9c0cb;
+        --quote-bg: #f4f6f8;
+        --quote-text: #111111;
+        --quote-strong: #0b0d10;
+      }
+
+      :root[data-theme="dark"] {
+        --bg: #0b0e13;
+        --text: #e7eaf0;
+        --muted: #a8b2c1;
+        --card: #11151d;
+        --border: #253043;
+        --link: #e7eaf0;
+        --btn-bg: #e7eaf0;
+        --btn-text: #0b0e13;
+        --btn-brd: #e7eaf0;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        --quote-bar: #5a6474;
+        --quote-bg: #0f141c;
+        --quote-text: #eef2f8;
+        --quote-strong: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Georgia", "Times New Roman", serif;
+        background: var(--bg);
+        color: var(--text);
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      a {
+        color: var(--link);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: color-mix(in oklab, var(--bg), var(--card) 40%);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(8px);
+        padding: 0.85rem 1.25rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+      }
+
+      .read-progress {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 3px;
+        background: color-mix(in oklab, var(--border), transparent 45%);
+        overflow: hidden;
+      }
+
+      .read-progress-fill {
+        height: 100%;
+        width: 100%;
+        transform-origin: left center;
+        transform: scaleX(0);
+        background: var(--btn-bg);
+        transition: transform 0.08s linear;
+      }
+
+      .header-content {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        font-weight: 600;
+        font-size: 1.05rem;
+        font-family: "Merriweather", serif;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .reader-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .crumbs {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .crumbs a {
+        color: var(--muted);
+      }
+
+      .crumbs a:hover {
+        color: var(--text);
+      }
+
+      .theme-toggle {
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 0.4rem 0.5rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+      }
+
+      .theme-toggle:hover {
+        filter: brightness(1.05);
+      }
+
+      .reader-settings-toggle {
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      .reader-settings {
+        position: fixed;
+        top: 4.3rem;
+        right: 1rem;
+        z-index: 40;
+        width: min(320px, calc(100vw - 1rem));
+        padding: 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+      }
+
+      .reader-settings[hidden] {
+        display: none;
+      }
+
+      .reader-settings-title {
+        margin: 0 0 0.5rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .reader-settings-grid {
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .reader-setting {
+        display: grid;
+        gap: 0.32rem;
+      }
+
+      .reader-setting label {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+        font-size: 0.8rem;
+      }
+
+      .reader-setting label strong {
+        font-weight: 600;
+      }
+
+      .reader-setting-value {
+        color: var(--muted);
+      }
+
+      .reader-setting input[type="range"] {
+        width: 100%;
+      }
+
+      .reader-setting select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--text);
+        padding: 0.5rem 0.55rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+        font-size: 0.85rem;
+      }
+
+      .reader-settings-actions {
+        margin-top: 0.2rem;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .reader-settings-reset {
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 0.42rem 0.6rem;
+        cursor: pointer;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+        font-size: 0.8rem;
+      }
+
+      .reader-settings-reset:hover {
+        background: color-mix(in oklab, var(--card), var(--text) 6%);
+      }
+
+      .reader {
+        max-width: var(--reader-max-width);
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+
+      article {
+        font-family: var(--reader-font-family);
+        font-size: clamp(
+          calc(1.05rem * var(--reader-font-scale)),
+          calc(2.2vw * var(--reader-font-scale)),
+          calc(1.15rem * var(--reader-font-scale))
+        );
+        line-height: var(--reader-line-height);
+      }
+
+      article h1 {
+        font-family: var(--reader-font-family);
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        line-height: 1.2;
+        margin: 0 0 0.5rem;
+        font-weight: 600;
+      }
+
+      .chapter-meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+
+      article p {
+        margin: 0 0 1.25rem;
+      }
+
+      article p.journal-box {
+        margin: 1.3rem 0 1.45rem;
+        padding: 0.7rem 0.85rem;
+        white-space: pre;
+        overflow-x: auto;
+        line-height: 1.22;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+        word-spacing: 0;
+        tab-size: 2;
+        font-kerning: none;
+        font-variant-ligatures: none;
+        font-feature-settings: "liga" 0, "calt" 0;
+        font-family: "Cascadia Mono", "Consolas", "Courier New", "MS Gothic", monospace;
+        color: var(--text);
+        background: color-mix(in oklab, var(--card), var(--bg) 25%);
+        border: 1px solid color-mix(in oklab, var(--border), transparent 15%);
+        border-radius: 10px;
+      }
+
+      article p.journal-box em,
+      article p.journal-box strong,
+      article p.journal-box code {
+        font-family: inherit;
+      }
+
+      article hr {
+        border: 0;
+        border-top: 1px solid color-mix(in oklab, var(--border), transparent 35%);
+        width: min(34ch, 58%);
+        margin: 2rem auto;
+        opacity: 0.75;
+      }
+
+      article blockquote {
+        margin: 1.1rem 0 1.35rem;
+        padding: 0.35rem 0 0.35rem 0.95rem;
+        border-left: 4px solid var(--quote-bar);
+        color: var(--quote-text);
+        background: var(--quote-bg);
+        border-radius: 0 8px 8px 0;
+      }
+
+      article blockquote p {
+        margin: 0 0 0.7rem;
+      }
+
+      article blockquote strong {
+        color: var(--quote-strong);
+      }
+
+      article blockquote p:last-child {
+        margin-bottom: 0;
+      }
+
+      article h2,
+      article h3 {
+        line-height: 1.3;
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .pager {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.75rem;
+        margin-top: 2.25rem;
+        padding: 0.85rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        box-shadow: var(--shadow);
+        align-items: center;
+      }
+
+      .pager .btn {
+        display: inline-block;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--text);
+        text-decoration: none;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+      }
+
+      .pager .btn:hover {
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border-color: var(--btn-brd);
+        text-decoration: none;
+      }
+
+      .pager .prev {
+        justify-self: start;
+      }
+
+      .pager .next {
+        justify-self: end;
+      }
+
+      .pager .toc {
+        justify-self: center;
+        font-weight: 600;
+      }
+
+      .pager .next {
+        font-weight: 700;
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border-color: var(--btn-brd);
+      }
+
+      .pager .next:hover {
+        filter: brightness(1.06);
+        text-decoration: none;
+      }
+
+      .pager .btn.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .pager span:empty {
+        visibility: hidden;
+      }
+
+      .chapter-complete {
+        margin-top: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        padding: 0.8rem 0.9rem;
+        border: 1px solid color-mix(in oklab, var(--btn-brd), var(--border) 50%);
+        border-radius: 12px;
+        background: color-mix(in oklab, var(--card), var(--btn-bg) 4%);
+        box-shadow: var(--shadow);
+      }
+
+      .chapter-complete-copy {
+        display: grid;
+        gap: 0.12rem;
+        min-width: 0;
+      }
+
+      .chapter-complete-copy strong {
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+        font-size: 0.95rem;
+      }
+
+      .chapter-complete-copy span {
+        color: var(--muted);
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.87rem;
+      }
+
+      .mobile-chapter-nav {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 25;
+        border-top: 1px solid var(--border);
+        background: color-mix(in oklab, var(--bg), var(--card) 35%);
+        backdrop-filter: blur(8px);
+      }
+
+      .mobile-chapter-nav .inner {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0.5rem 0.9rem calc(0.5rem + env(safe-area-inset-bottom));
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .mobile-chapter-nav .m-btn {
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--text);
+        padding: 0.65rem 0.7rem;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.15;
+      }
+
+      .mobile-chapter-nav .m-btn.prev {
+        justify-self: start;
+      }
+
+      .mobile-chapter-nav .m-btn.toc {
+        justify-self: center;
+        font-weight: 600;
+      }
+
+      .mobile-chapter-nav .m-btn.next {
+        justify-self: end;
+        border-color: var(--btn-brd);
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        font-weight: 700;
+      }
+
+      .mobile-chapter-nav .m-btn.disabled {
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
+      @media (max-width: 640px) {
+        .reader {
+          padding-bottom: 6.75rem;
+        }
+
+        .reader-settings {
+          top: 4.9rem;
+          right: 0.5rem;
+          width: min(330px, calc(100vw - 1rem));
+        }
+
+        .chapter-complete {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .pager {
+          grid-template-columns: 1fr;
+        }
+
+        .pager .prev,
+        .pager .next,
+        .pager .toc {
+          justify-self: stretch;
+          text-align: center;
+        }
+
+        .mobile-chapter-nav {
+          display: block;
+        }
+      }
+    

@@ -1,0 +1,122 @@
+
+:root{
+  /* light default */
+  --bg:#ffffff;
+  --text:#111111;
+  --muted:#444444;
+  --card:#ffffff;
+  --border:#e6e6e6;
+  --link:#111111;
+  --btn-bg:#111111; --btn-text:#ffffff; --btn-brd:#111111;
+
+  --pill:#eef; --pill-brd:#dbe;
+  --pill-ok:#e8f7ec; --pill-ok-brd:#c9ebd5;
+  --pill-wip:#fff5e6; --pill-wip-brd:#ffe0b3;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0e13;
+    --text:#e7eaf0;
+    --muted:#a8b2c1;
+    --card:#11151d;
+    --border:#253043;
+    --link:#e7eaf0;
+    --btn-bg:#e7eaf0; --btn-text:#0b0e13; --btn-brd:#e7eaf0;
+
+    --pill:#253043; --pill-brd:#32405a;
+    --pill-ok:#15351f; --pill-ok-brd:#275d3b;
+    --pill-wip:#3b2d17; --pill-wip-brd:#5c4321;
+  }
+}
+
+/* Manual override has priority over system */
+:root[data-theme="light"]{
+  --bg:#ffffff; --text:#111111; --muted:#444444; --card:#ffffff; --border:#e6e6e6; --link:#111111;
+  --btn-bg:#111111; --btn-text:#ffffff; --btn-brd:#111111;
+  --pill:#eef; --pill-brd:#dbe; --pill-ok:#e8f7ec; --pill-ok-brd:#c9ebd5; --pill-wip:#fff5e6; --pill-wip-brd:#ffe0b3;
+}
+:root[data-theme="dark"]{
+  --bg:#0b0e13; --text:#e7eaf0; --muted:#a8b2c1; --card:#11151d; --border:#253043; --link:#e7eaf0;
+  --btn-bg:#e7eaf0; --btn-text:#0b0e13; --btn-brd:#e7eaf0;
+  --pill:#253043; --pill-brd:#32405a; --pill-ok:#15351f; --pill-ok-brd:#275d3b; --pill-wip:#3b2d17; --pill-wip-brd:#5c4321;
+}
+
+body{background:var(--bg); color:var(--text); margin:0; font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--link); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Header styles */
+.site-header{position:sticky;top:0;z-index:10;background:color-mix(in oklab, var(--bg), var(--card) 40%);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);padding:.85rem 1.25rem;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
+.header-content{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.brand{font-weight:600;font-size:1.05rem;font-family:"Merriweather",serif}
+.header-right{display:flex;align-items:center;gap:1rem}
+.crumbs{display:flex;align-items:center;gap:.35rem;font-size:.9rem;color:var(--muted)}
+.crumbs a{color:var(--muted)}
+.crumbs a:hover{color:var(--text);text-decoration:none}
+
+/* Main container */
+.container{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+
+.novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
+.novel-hero-cover{position:relative;width:120px;z-index:1}
+.novel-hero-cover>img{display:block;width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12);cursor:zoom-in}
+.novel-hero-cover:focus{outline:2px solid color-mix(in oklab, var(--btn-brd), transparent 38%);outline-offset:4px;border-radius:10px}
+.cover-popover{position:fixed;left:50%;top:50%;width:min(560px,86vw);max-height:88vh;padding:.55rem;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:0 28px 72px rgba(0,0,0,.42);opacity:0;transform:translate(-50%,-50%) scale(.92);pointer-events:none;z-index:999;transition:opacity .18s ease,transform .18s ease}
+.cover-popover img{display:block;width:100%;max-height:calc(88vh - 1.1rem);height:auto;object-fit:contain;border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 25%)}
+.novel-hero-cover:hover .cover-popover,
+.novel-hero-cover:focus .cover-popover,
+.novel-hero-cover:focus-within .cover-popover{opacity:1;transform:translate(-50%,-50%) scale(1)}
+@media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero-cover{width:180px}.novel-hero-cover>img{width:180px;height:270px}}
+@media (max-width:640px){.cover-popover{width:min(430px,92vw)}}
+.novel-title{margin:0;font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.15}
+.novel-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin:.25rem 0 .5rem}
+.badge{font-size:.8rem;padding:.1rem .35rem;border-radius:999px;background:var(--pill);border:1px solid var(--pill-brd);white-space:nowrap}
+.badge.complete{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
+.badge.incomplete{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
+.novel-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0 0}
+.novel-actions a{display:inline-block;padding:.6rem .9rem;border-radius:8px;text-decoration:none;border:1px solid var(--border);background:var(--card);color:var(--link)}
+.novel-actions a.primary{background:var(--btn-bg);color:var(--btn-text);border-color:var(--btn-brd)}
+.novel-actions a:hover{filter:brightness(1.05)}
+.novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
+.chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
+.chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
+.chapter-list{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
+.chapter-list li a{display:flex;gap:.6rem;align-items:center;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
+.chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
+.chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
+.chapter-list li.completed a{opacity:.58;filter:saturate(.15)}
+.chapter-list li.completed a:hover{opacity:.78}
+.chapter-empty{margin:.5rem 0 0;padding:.65rem .75rem;border:1px dashed var(--border);border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 20%);color:var(--muted);font-size:.92rem}
+.chapter-empty[hidden]{display:none}
+.chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
+.chapter-title{flex:1;min-width:0}
+.small-note{font-size:.85rem;color:var(--muted)}
+.related-novels{margin:0 0 1.1rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.related-novels[hidden]{display:none}
+.related-novels h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
+.related-novels .small-note{margin:.25rem 0 0}
+.related-novels{--related-card-width:150px}
+.related-list{list-style:none;padding:0 0 .35rem;margin:.75rem 0 0;display:flex;gap:.62rem;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.related-list li{flex:0 0 var(--related-card-width);scroll-snap-align:start}
+.related-list::-webkit-scrollbar{height:10px}
+.related-list::-webkit-scrollbar-thumb{background:color-mix(in oklab, var(--muted), transparent 40%);border-radius:999px}
+.related-list::-webkit-scrollbar-track{background:color-mix(in oklab, var(--card), var(--bg) 28%);border-radius:999px}
+.related-card{display:grid;grid-template-rows:auto 1fr;height:100%;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 20%);text-decoration:none;color:inherit;transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease}
+.related-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.17);background:color-mix(in oklab, var(--card), var(--text) 5%);text-decoration:none}
+.related-cover-wrap{display:block;aspect-ratio:2/3;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 35%)}
+.related-cover-wrap picture,
+.related-cover-wrap img{display:block;width:100%;height:100%;object-fit:cover}
+.related-body{display:grid;gap:.5rem;align-content:start;padding:.6rem .65rem .7rem}
+.related-title{font-weight:600;line-height:1.24;min-width:0}
+.related-meta{display:flex;gap:.33rem;flex-wrap:wrap}
+.related-badge{font-size:.7rem;padding:.14rem .42rem;border-radius:999px;border:1px solid var(--pill-brd);background:var(--pill);color:inherit;white-space:nowrap}
+.related-badge.relation{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%)}
+.related-badge.complete{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
+.related-badge.incomplete{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
+@media (max-width:640px){.related-novels{--related-card-width:132px}}
+/* theme toggle */
+.theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
+.theme-toggle:hover{filter:brightness(1.05)}

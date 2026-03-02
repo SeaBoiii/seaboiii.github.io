@@ -833,7 +833,7 @@ footer a {
 	}
 	.staff-team > div {
 		display: table-cell;
-		vertical-alight: middle;
+		vertical-align: middle;
 		padding: 13px;
 		font-size: 18px;
 	}
