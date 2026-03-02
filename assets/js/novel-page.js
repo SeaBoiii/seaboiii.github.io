@@ -135,6 +135,31 @@
   });
 })();
 
+// Defer loading of high-resolution cover preview until intent (hover/focus/touch)
+(function() {
+  var cover = document.querySelector('.novel-hero-cover');
+  var popoverImage = document.querySelector('.cover-popover img[data-src]');
+  if (!cover || !popoverImage) return;
+
+  function ensurePopoverImageLoaded() {
+    if (popoverImage.dataset.loaded === 'true') return;
+    var src = popoverImage.getAttribute('data-src');
+    if (!src) return;
+    popoverImage.onerror = function() {
+      var fallback = popoverImage.getAttribute('data-fallback');
+      if (!fallback) return;
+      popoverImage.onerror = null;
+      popoverImage.src = fallback;
+    };
+    popoverImage.src = src;
+    popoverImage.dataset.loaded = 'true';
+  }
+
+  cover.addEventListener('mouseenter', ensurePopoverImageLoaded, { once: true });
+  cover.addEventListener('focusin', ensurePopoverImageLoaded, { once: true });
+  cover.addEventListener('touchstart', ensurePopoverImageLoaded, { once: true, passive: true });
+})();
+
 // Filter chapters
 (function() {
   var q = document.getElementById('chapterSearch');
@@ -183,6 +208,7 @@
   var heroMeta = document.querySelector('.novel-hero .novel-meta');
   var unlockedKey = 'site:novels-unlocked';
   var indexUrl = (document.body && document.body.dataset && document.body.dataset.indexUrl) || '/novel/index.html';
+  var relatedFetchStarted = false;
 
   if (!slug || !section || !summary || !list || !window.fetch || !window.DOMParser) return;
 
@@ -447,90 +473,112 @@
     });
   }
 
-  fetch(indexUrl, { credentials: 'same-origin' })
-    .then(function(resp) {
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      return resp.text();
-    })
-    .then(function(html) {
-      var doc = new DOMParser().parseFromString(html, 'text/html');
-      var cards = Array.prototype.slice.call(doc.querySelectorAll('.novel-card'));
-      if (!cards.length) return;
+  function loadRelatedNovels() {
+    if (relatedFetchStarted) return;
+    relatedFetchStarted = true;
 
-      var bySlug = {};
-      cards.forEach(function(card) {
-        var data = parseCard(card);
-        if (data.slug) bySlug[data.slug] = data;
-      });
+    fetch(indexUrl, { credentials: 'same-origin' })
+      .then(function(resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.text();
+      })
+      .then(function(html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var cards = Array.prototype.slice.call(doc.querySelectorAll('.novel-card'));
+        if (!cards.length) return;
 
-      var current = bySlug[normalizeSlug(slug)];
-      if (!current) return;
-      mountHeroRelationshipBadges(current, bySlug);
-
-      var unlocked = localStorage.getItem(unlockedKey) === 'true';
-      var related = Object.keys(bySlug)
-        .map(function(key) { return bySlug[key]; })
-        .filter(function(item) {
-          if (!item || item.slug === current.slug) return false;
-          if (item.hidden && !unlocked) return false;
-          var sameSeries = current.seriesId && item.seriesId && current.seriesId === item.seriesId;
-          return sameSeries || isDirectRelation(current, item);
+        var bySlug = {};
+        cards.forEach(function(card) {
+          var data = parseCard(card);
+          if (data.slug) bySlug[data.slug] = data;
         });
 
-      if (!related.length) return;
+        var current = bySlug[normalizeSlug(slug)];
+        if (!current) return;
+        mountHeroRelationshipBadges(current, bySlug);
 
-      related.sort(function(a, b) {
-        var aSameSeries = !!(current.seriesId && a.seriesId === current.seriesId);
-        var bSameSeries = !!(current.seriesId && b.seriesId === current.seriesId);
-        if (aSameSeries !== bSameSeries) return aSameSeries ? -1 : 1;
-        if (a.order !== b.order) return a.order - b.order;
-        return a.title.localeCompare(b.title);
+        var unlocked = localStorage.getItem(unlockedKey) === 'true';
+        var related = Object.keys(bySlug)
+          .map(function(key) { return bySlug[key]; })
+          .filter(function(item) {
+            if (!item || item.slug === current.slug) return false;
+            if (item.hidden && !unlocked) return false;
+            var sameSeries = current.seriesId && item.seriesId && current.seriesId === item.seriesId;
+            return sameSeries || isDirectRelation(current, item);
+          });
+
+        if (!related.length) return;
+
+        related.sort(function(a, b) {
+          var aSameSeries = !!(current.seriesId && a.seriesId === current.seriesId);
+          var bSameSeries = !!(current.seriesId && b.seriesId === current.seriesId);
+          if (aSameSeries !== bSameSeries) return aSameSeries ? -1 : 1;
+          if (a.order !== b.order) return a.order - b.order;
+          return a.title.localeCompare(b.title);
+        });
+
+        summary.textContent = related.length + ' related novel' + (related.length === 1 ? '' : 's') + ' found.';
+
+        related.forEach(function(item) {
+          var li = document.createElement('li');
+          var link = document.createElement('a');
+          link.href = item.url;
+          link.className = 'related-card';
+          link.setAttribute('aria-label', item.title);
+          link.appendChild(buildCoverElement(item.cover, item.title));
+
+          var body = document.createElement('div');
+          body.className = 'related-body';
+
+          var title = document.createElement('span');
+          title.className = 'related-title';
+          title.textContent = item.title;
+          body.appendChild(title);
+
+          var meta = document.createElement('span');
+          meta.className = 'related-meta';
+
+          var relation = relationToCurrent(current, item);
+          if (relation) {
+            var relationText = relation === 'same-series' ? 'Same series' : relationLabel(relation);
+            if (relationText) meta.appendChild(createBadge(relationText, 'relation'));
+          }
+          if (item.seriesLabel) meta.appendChild(createBadge(item.seriesLabel, 'series'));
+          if (Number.isFinite(item.order) && item.order < Number.MAX_SAFE_INTEGER) {
+            meta.appendChild(createBadge('Book ' + item.order, 'order'));
+          }
+          if (item.status === 'complete') meta.appendChild(createBadge('Complete', 'complete'));
+          if (item.status === 'incomplete') meta.appendChild(createBadge('Incomplete', 'incomplete'));
+
+          if (meta.childNodes.length) body.appendChild(meta);
+          link.appendChild(body);
+          li.appendChild(link);
+          list.appendChild(li);
+        });
+
+        section.hidden = false;
+      })
+      .catch(function() {
+        section.hidden = true;
       });
+  }
 
-      summary.textContent = related.length + ' related novel' + (related.length === 1 ? '' : 's') + ' found.';
-
-      related.forEach(function(item) {
-        var li = document.createElement('li');
-        var link = document.createElement('a');
-        link.href = item.url;
-        link.className = 'related-card';
-        link.setAttribute('aria-label', item.title);
-        link.appendChild(buildCoverElement(item.cover, item.title));
-
-        var body = document.createElement('div');
-        body.className = 'related-body';
-
-        var title = document.createElement('span');
-        title.className = 'related-title';
-        title.textContent = item.title;
-        body.appendChild(title);
-
-        var meta = document.createElement('span');
-        meta.className = 'related-meta';
-
-        var relation = relationToCurrent(current, item);
-        if (relation) {
-          var relationText = relation === 'same-series' ? 'Same series' : relationLabel(relation);
-          if (relationText) meta.appendChild(createBadge(relationText, 'relation'));
-        }
-        if (item.seriesLabel) meta.appendChild(createBadge(item.seriesLabel, 'series'));
-        if (Number.isFinite(item.order) && item.order < Number.MAX_SAFE_INTEGER) {
-          meta.appendChild(createBadge('Book ' + item.order, 'order'));
-        }
-        if (item.status === 'complete') meta.appendChild(createBadge('Complete', 'complete'));
-        if (item.status === 'incomplete') meta.appendChild(createBadge('Incomplete', 'incomplete'));
-
-        if (meta.childNodes.length) body.appendChild(meta);
-        link.appendChild(body);
-        li.appendChild(link);
-        list.appendChild(li);
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        loadRelatedNovels();
       });
+    }, { rootMargin: '300px 0px' });
+    observer.observe(section);
+  }
 
-      section.hidden = false;
-    })
-    .catch(function() {
-      section.hidden = true;
-    });
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(loadRelatedNovels, { timeout: 1800 });
+  } else {
+    setTimeout(loadRelatedNovels, 1200);
+  }
 })();
 
 // Horizontal wheel support for related novel cards

@@ -23,13 +23,11 @@
 <body data-novel-slug="{{ page.novel | escape }}" data-index-url="{{ '/novel/index.html' | relative_url }}">
 {% assign novel_slug = page.novel %}
 {% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
+{% assign cover_root = cover_url | replace: '.png', '' | replace: '.jpg', '' | replace: '.jpeg', '' | replace: '.webp', '' %}
 {% assign status = page.status | default: 'Incomplete' %}
 {% assign blurb = page.blurb %}
 {% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
 {% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
-
-<!-- optional theme-color for mobile -->
-<meta name="theme-color" content="#ffffff">
 
 <header class="site-header">
   <div class="header-content">
@@ -46,9 +44,49 @@
 <div class="container">
 <div class="novel-hero">
   <div class="novel-hero-cover" tabindex="0">
-    <img src="{{ cover_url | relative_url }}" alt="{{ novel_display_title }}">
+    <picture>
+      <source
+        type="image/webp"
+        srcset="
+          {{ cover_root | append: '-320.webp' | relative_url }} 320w,
+          {{ cover_root | append: '-640.webp' | relative_url }} 640w,
+          {{ cover_root | append: '-960.webp' | relative_url }} 960w
+        "
+        sizes="(max-width: 719px) 120px, 180px"
+      >
+      <source
+        type="image/jpeg"
+        srcset="
+          {{ cover_root | append: '-320.jpg' | relative_url }} 320w,
+          {{ cover_root | append: '-640.jpg' | relative_url }} 640w,
+          {{ cover_root | append: '-960.jpg' | relative_url }} 960w
+        "
+        sizes="(max-width: 719px) 120px, 180px"
+      >
+      <img
+        src="{{ cover_root | append: '-640.jpg' | relative_url }}"
+        srcset="
+          {{ cover_root | append: '-320.jpg' | relative_url }} 320w,
+          {{ cover_root | append: '-640.jpg' | relative_url }} 640w,
+          {{ cover_root | append: '-960.jpg' | relative_url }} 960w
+        "
+        sizes="(max-width: 719px) 120px, 180px"
+        width="180"
+        height="270"
+        decoding="async"
+        fetchpriority="high"
+        alt="{{ novel_display_title }}"
+        onerror="this.onerror=null;this.removeAttribute('srcset');this.src='{{ cover_url | relative_url }}';"
+      >
+    </picture>
     <div class="cover-popover" aria-hidden="true">
-      <img src="{{ cover_url | relative_url }}" alt="">
+      <img
+        data-src="{{ cover_root | append: '-960.jpg' | relative_url }}"
+        data-fallback="{{ cover_url | relative_url }}"
+        loading="lazy"
+        decoding="async"
+        alt=""
+      >
     </div>
   </div>
   <div>
@@ -75,12 +113,6 @@
   <span class="small-note">Tip: we'll remember your last chapter.</span>
 </div>
 
-<section id="relatedNovelsSection" class="related-novels" hidden>
-  <h2>Related novels</h2>
-  <p id="relatedNovelsSummary" class="small-note"></p>
-  <ul id="relatedNovelsList" class="related-list"></ul>
-</section>
-
 <ul id="chapterList" class="chapter-list">
   {% for ch in items %}
     <li data-title="{{ ch.Title | default: ch.title | downcase }}" data-no="{{ ch.order }}" data-url="{{ ch.url | relative_url }}">
@@ -92,6 +124,12 @@
   {% endfor %}
 </ul>
 <p id="chapterSearchEmpty" class="chapter-empty" role="status" aria-live="polite" hidden>No chapters match your search.</p>
+
+<section id="relatedNovelsSection" class="related-novels" hidden>
+  <h2>Related novels</h2>
+  <p id="relatedNovelsSummary" class="small-note"></p>
+  <ul id="relatedNovelsList" class="related-list"></ul>
+</section>
 
 </div>
 <script defer src="{{ '/assets/js/novel-page.js' | relative_url }}"></script>

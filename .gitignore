@@ -7,3 +7,5 @@ wordle/package-lock.json
 wordle/src/input.css
 wordle/config.js
 tetris/config.js
+/_site
+/perf_reports

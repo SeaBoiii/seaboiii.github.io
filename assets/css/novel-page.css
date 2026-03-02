@@ -62,14 +62,15 @@ a:hover{text-decoration:underline}
 
 .novel-hero{display:grid;grid-template-columns:120px 1fr;gap:1rem;align-items:center;margin:1.5rem 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem}
 .novel-hero-cover{position:relative;width:120px;z-index:1}
-.novel-hero-cover>img{display:block;width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12);cursor:zoom-in}
+.novel-hero-cover>picture{display:block;width:120px}
+.novel-hero-cover>picture>img{display:block;width:120px;height:180px;object-fit:cover;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.12);cursor:zoom-in}
 .novel-hero-cover:focus{outline:2px solid color-mix(in oklab, var(--btn-brd), transparent 38%);outline-offset:4px;border-radius:10px}
 .cover-popover{position:fixed;left:50%;top:50%;width:min(560px,86vw);max-height:88vh;padding:.55rem;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:0 28px 72px rgba(0,0,0,.42);opacity:0;transform:translate(-50%,-50%) scale(.92);pointer-events:none;z-index:999;transition:opacity .18s ease,transform .18s ease}
 .cover-popover img{display:block;width:100%;max-height:calc(88vh - 1.1rem);height:auto;object-fit:contain;border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 25%)}
 .novel-hero-cover:hover .cover-popover,
 .novel-hero-cover:focus .cover-popover,
 .novel-hero-cover:focus-within .cover-popover{opacity:1;transform:translate(-50%,-50%) scale(1)}
-@media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero-cover{width:180px}.novel-hero-cover>img{width:180px;height:270px}}
+@media (min-width:720px){.novel-hero{grid-template-columns:180px 1fr}.novel-hero-cover{width:180px}.novel-hero-cover>picture{width:180px}.novel-hero-cover>picture>img{width:180px;height:270px}}
 @media (max-width:640px){.cover-popover{width:min(430px,92vw)}}
 .novel-title{margin:0;font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.15}
 .novel-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin:.25rem 0 .5rem}
@@ -94,7 +95,7 @@ a:hover{text-decoration:underline}
 .chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
 .chapter-title{flex:1;min-width:0}
 .small-note{font-size:.85rem;color:var(--muted)}
-.related-novels{margin:0 0 1.1rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.related-novels{margin:1rem 0 1.1rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
 .related-novels[hidden]{display:none}
 .related-novels h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
 .related-novels .small-note{margin:.25rem 0 0}
