@@ -9,3 +9,4 @@ wordle/config.js
 tetris/config.js
 /_site
 /perf_reports
+tools/novel_wizard_state.json

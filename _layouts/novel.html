@@ -109,13 +109,20 @@
 </div>
 
 <div class="chapter-tools">
-  <input id="chapterSearch" type="search" placeholder="Search chapters... (title or number)">
+  <input id="chapterSearch" type="search" placeholder="Search chapters and epilogues... (title, number, or letter)">
   <span class="small-note">Tip: we'll remember your last chapter.</span>
 </div>
+<p id="choiceEpilogueHint" class="choice-epilogue-hint" role="status" aria-live="polite" hidden></p>
 
 <ul id="chapterList" class="chapter-list">
   {% for ch in items %}
-    <li data-title="{{ ch.Title | default: ch.title | downcase }}" data-no="{{ ch.order }}" data-url="{{ ch.url | relative_url }}">
+    <li
+      data-title="{{ ch.Title | default: ch.title | downcase | escape }}"
+      data-raw-title="{{ ch.Title | default: ch.title | escape }}"
+      data-name="{{ ch.name | escape }}"
+      data-no="{{ ch.order }}"
+      data-url="{{ ch.url | relative_url }}"
+    >
       <a href="{{ ch.url | relative_url }}">
         <span class="chapter-no">Chapter {{ ch.order }}</span>
         <span class="chapter-title">{{ ch.Title | default: ch.title }}</span>

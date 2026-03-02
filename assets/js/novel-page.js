@@ -165,30 +165,163 @@
   var q = document.getElementById('chapterSearch');
   var list = document.getElementById('chapterList');
   var empty = document.getElementById('chapterSearchEmpty');
+  var choiceHint = document.getElementById('choiceEpilogueHint');
+  var continueBtn = document.getElementById('continueReading');
   if (!q || !list) return;
 
   var chapterItems = Array.prototype.slice.call(list.querySelectorAll('li[data-url]'));
 
-  function cleanChapterTitle(text) {
-    var value = String(text || '').trim();
-    // Strip duplicated leading chapter labels like:
-    // "Chapter 12", "Chapter 12: Title", "Chapter 12 - Title"
-    return value.replace(/^\s*chapter\s+\d+\s*[:.\-]*\s*/i, '').trim();
+  function normalizePath(url) {
+    if (!url) return '';
+    var s = String(url);
+    try {
+      if (/^https?:\/\//i.test(s)) s = new URL(s).pathname;
+    } catch (e) {}
+    s = s.replace(/\/index\.html$/i, '/');
+    if (s.length > 1) s = s.replace(/\/+$/, '');
+    return s;
   }
 
+  function normalizeEpilogueMarker(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) return String(parseInt(raw, 10));
+    if (/^[a-z]+$/i.test(raw)) return raw.toUpperCase();
+    return '';
+  }
+
+  function parseEpilogueInfo(titleText, rawUrl, rawName) {
+    var title = String(titleText || '').trim();
+    var url = decodeURIComponent(String(rawUrl || ''));
+    var name = decodeURIComponent(String(rawName || ''));
+    var marker = '';
+
+    var titleMarker = title.match(/^\s*epilogue\b(?:\s+([a-z]+|\d+))?(?=\s*(?:[:.\-\u2013\u2014]|$))/i);
+    if (titleMarker && titleMarker[1]) marker = normalizeEpilogueMarker(titleMarker[1]);
+
+    if (!marker) {
+      var source = name || (url.split(/[?#]/)[0].split('/').pop() || '');
+      source = source.replace(/\.[a-z0-9]+$/i, '');
+      var sourceMarker = source.match(/^epilogue[\s._-]*([a-z]+|\d+)$/i);
+      if (sourceMarker && sourceMarker[1]) marker = normalizeEpilogueMarker(sourceMarker[1]);
+    }
+
+    var isEpilogue = /^\s*epilogue\b/i.test(title) ||
+      /^epilogue/i.test(name) ||
+      /(^|[\/._-])epilogue([\/._-]|$)/i.test(url);
+
+    return { isEpilogue: isEpilogue, marker: marker };
+  }
+
+  function cleanDisplayTitle(text) {
+    var value = String(text || '').trim();
+    value = value.replace(/^\s*chapter\b\s*\d+\s*[:.\-\u2013\u2014]*\s*/i, '').trim();
+    value = value.replace(/^\s*epilogue\b(?:\s+(?:[a-z]+|\d+))?\s*[:.\-\u2013\u2014]*\s*/i, '').trim();
+    return value;
+  }
+
+  var epilogueCount = 0;
   chapterItems.forEach(function(li) {
     var titleNode = li.querySelector('.chapter-title');
-    if (!titleNode) return;
-    var cleaned = cleanChapterTitle(titleNode.textContent);
-    if (cleaned) titleNode.textContent = cleaned;
-    li.dataset.title = cleaned.toLowerCase();
+    var rawTitle = titleNode ? titleNode.textContent : (li.dataset.rawTitle || li.dataset.title || '');
+    var info = parseEpilogueInfo(rawTitle, li.dataset.url, li.dataset.name);
+    li.dataset.isEpilogue = info.isEpilogue ? 'true' : 'false';
+    li.dataset.epilogueMarker = info.marker || '';
+    if (info.isEpilogue) epilogueCount += 1;
   });
+
+  var epilogueOrdinal = 0;
+  var choiceMarkers = [];
+  chapterItems.forEach(function(li) {
+    var noNode = li.querySelector('.chapter-no');
+    var titleNode = li.querySelector('.chapter-title');
+    if (!titleNode || !noNode) return;
+
+    var rawTitle = String(li.dataset.rawTitle || titleNode.textContent || '').trim();
+    var cleaned = cleanDisplayTitle(rawTitle);
+    var displayTitle = cleaned || rawTitle;
+    titleNode.textContent = displayTitle;
+    li.dataset.title = displayTitle.toLowerCase();
+
+    var isEpilogue = li.dataset.isEpilogue === 'true';
+    var marker = li.dataset.epilogueMarker || '';
+    var label = '';
+
+    if (isEpilogue) {
+      epilogueOrdinal += 1;
+      if (epilogueCount === 1) {
+        label = 'Epilogue';
+        marker = '';
+      } else {
+        if (!marker) marker = String(epilogueOrdinal);
+        label = 'Epilogue ' + marker;
+      }
+    } else {
+      label = 'Chapter ' + (li.dataset.no || '');
+    }
+
+    noNode.textContent = label;
+    li.dataset.displayLabel = label.toLowerCase();
+
+    var isChoiceEnding = isEpilogue && epilogueCount > 1 && /^[A-Z]+$/.test(marker);
+    li.dataset.choiceEnding = isChoiceEnding ? 'true' : 'false';
+    if (isChoiceEnding) {
+      choiceMarkers.push(marker);
+      var badge = document.createElement('span');
+      badge.className = 'chapter-choice';
+      badge.textContent = 'Choose one ending';
+      badge.title = 'Choice ending: choose this epilogue path to reach your desired ending.';
+      titleNode.appendChild(badge);
+
+      var anchor = li.querySelector('a');
+      if (anchor) {
+        anchor.setAttribute('aria-label', label + ': ' + displayTitle + '. Choice ending. Choose your desired ending path.');
+      }
+    }
+
+    var searchText = [li.dataset.title, li.dataset.displayLabel, String(li.dataset.no || '')].join(' ').toLowerCase();
+    if (isEpilogue) searchText += ' epilogue';
+    if (isChoiceEnding) searchText += ' choice ending choose one';
+    li.dataset.search = searchText;
+  });
+
+  if (choiceHint) {
+    var uniqueMarkers = Array.from(new Set(choiceMarkers)).sort();
+    if (uniqueMarkers.length > 0) {
+      choiceHint.textContent = 'Choice epilogues available: Epilogue ' + uniqueMarkers.join(' / ') + '. Choose one ending path.';
+      choiceHint.hidden = false;
+    } else {
+      choiceHint.hidden = true;
+    }
+  }
+
+  function refreshContinueLabel() {
+    if (!continueBtn || continueBtn.style.display === 'none') return;
+    var href = continueBtn.getAttribute('href');
+    if (!href) return;
+    var target = normalizePath(href);
+    if (!target) return;
+
+    var matched = null;
+    chapterItems.forEach(function(li) {
+      if (matched) return;
+      if (normalizePath(li.dataset.url) === target) matched = li;
+    });
+    if (!matched) return;
+
+    var displayLabel = String(matched.dataset.displayLabel || '').trim();
+    if (!displayLabel) return;
+    var text = 'Continue ' + displayLabel.replace(/\s+/g, ' ');
+    continueBtn.textContent = text;
+    continueBtn.setAttribute('aria-label', text);
+  }
+  refreshContinueLabel();
 
   function applyChapterFilter() {
     var v = q.value.trim().toLowerCase();
     var visible = 0;
     chapterItems.forEach(function(li) {
-      var hit = !v || li.dataset.title.includes(v) || ('chapter '+li.dataset.no).includes(v);
+      var hit = !v || String(li.dataset.search || '').includes(v);
       li.style.display = hit ? '' : 'none';
       if (hit) visible += 1;
     });

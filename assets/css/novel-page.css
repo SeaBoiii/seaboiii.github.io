@@ -92,8 +92,32 @@ a:hover{text-decoration:underline}
 .chapter-list li.completed a:hover{opacity:.78}
 .chapter-empty{margin:.5rem 0 0;padding:.65rem .75rem;border:1px dashed var(--border);border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 20%);color:var(--muted);font-size:.92rem}
 .chapter-empty[hidden]{display:none}
-.chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4.5rem}
-.chapter-title{flex:1;min-width:0}
+.choice-epilogue-hint{
+  margin:.25rem 0 .7rem;
+  padding:.55rem .7rem;
+  border:1px solid color-mix(in oklab, var(--btn-brd), var(--border) 50%);
+  border-radius:10px;
+  background:color-mix(in oklab, var(--pill), var(--btn-bg) 6%);
+  color:var(--text);
+  font-size:.86rem;
+}
+.choice-epilogue-hint[hidden]{display:none}
+.chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:7.4rem}
+.chapter-title{flex:1;min-width:0;display:flex;align-items:center;gap:.42rem;flex-wrap:wrap}
+.chapter-choice{
+  font-size:.7rem;
+  line-height:1;
+  padding:.18rem .44rem;
+  border-radius:999px;
+  border:1px solid color-mix(in oklab, var(--btn-brd), var(--border) 42%);
+  background:color-mix(in oklab, var(--pill), var(--btn-bg) 10%);
+  color:var(--text);
+  white-space:nowrap;
+}
+.chapter-list li[data-choice-ending="true"] a{
+  border-color:color-mix(in oklab, var(--btn-brd), var(--border) 50%);
+  box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 78%) inset;
+}
 .small-note{font-size:.85rem;color:var(--muted)}
 .related-novels{margin:1rem 0 1.1rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
 .related-novels[hidden]{display:none}
