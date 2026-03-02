@@ -1,8 +1,8 @@
 ---
 layout: novel
-Title: Under The Same Umbrella
+Title: Under the Same Umbrella
 novel: under-the-same-umbrella
-status: Incomplete
+status: Complete
 blurb: >-
   When a quiet Singaporean cybersecurity student and a poised Japanese exchange student fake a relationship to satisfy watchful eyes—parents, sponsors, and a rumor page—their borrowed shelter under one umbrella starts to feel dangerously like home.
 order: 0
