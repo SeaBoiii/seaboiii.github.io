@@ -7,8 +7,8 @@
    Available Novels
   </title>
   <link href="/favicon.ico" rel="icon"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&amp;family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
   <link href="/assets/css/novel-index.css" rel="stylesheet"/>
  </head>
@@ -25,7 +25,7 @@
       Profile
      </a>
      <button aria-label="Toggle theme" class="theme-toggle" id="themeToggle" type="button">
-      &#127769;
+      🌙
      </button>
     </div>
    </div>
@@ -42,7 +42,7 @@
     </div>
     <div class="controls">
      <div class="controls-top">
-      <input class="search" id="novelSearch" placeholder="Search by title&hellip;" type="search"/>
+      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
       <button aria-controls="filterPanel" aria-expanded="false" class="filter-toggle" id="filterToggle" type="button">
        Filters
       </button>
@@ -123,7 +123,7 @@
      <a aria-label="Crossroads of the Heart" href="/novel/crossroads-of-the-heart/">
       <picture>
        <source srcset="/images/crossroads-of-the-heart-cover-320.webp 320w, /images/crossroads-of-the-heart-cover-640.webp 640w, /images/crossroads-of-the-heart-cover-960.webp 960w" type="image/webp"/>
-       <img alt="Crossroads of the Heart" decoding="async" loading="eager" fetchpriority="high" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/crossroads-of-the-heart-cover-640.jpg" srcset="/images/crossroads-of-the-heart-cover-320.jpg 320w, /images/crossroads-of-the-heart-cover-640.jpg 640w, /images/crossroads-of-the-heart-cover-960.jpg 960w"/>
+       <img alt="Crossroads of the Heart" decoding="async" fetchpriority="high" loading="eager" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/crossroads-of-the-heart-cover-640.jpg" srcset="/images/crossroads-of-the-heart-cover-320.jpg 320w, /images/crossroads-of-the-heart-cover-640.jpg 640w, /images/crossroads-of-the-heart-cover-960.jpg 960w"/>
       </picture>
       <h2 class="novel-title">
        Crossroads of the Heart
@@ -749,36 +749,55 @@
       </div>
      </a>
     </li>
-     <li class="novel-empty-state" hidden="" id="novelEmptyState">
-      <div class="novel-empty-state-card">
-       <strong>
-        No matches found
-       </strong>
-       <span class="muted">
-        No novels match your current filters.
-       </span>
-       <button class="pill-button" id="clearFiltersBtn" type="button">
-        Clear filters
-       </button>
+    <li class="novel-empty-state" hidden="" id="novelEmptyState">
+     <div class="novel-empty-state-card">
+      <strong>
+       No matches found
+      </strong>
+      <span class="muted">
+       No novels match your current filters.
+      </span>
+      <button class="pill-button" id="clearFiltersBtn" type="button">
+       Clear filters
+      </button>
+     </div>
+    </li>
+    <li class="novel-card" data-status="complete" data-title="the warmth you asked for">
+     <a aria-label="The Warmth You Asked For" href="/novel/the-warmth-you-asked-for/">
+      <picture>
+       <source srcset="/images/the-warmth-you-asked-for-cover-320.webp 320w, /images/the-warmth-you-asked-for-cover-640.webp 640w, /images/the-warmth-you-asked-for-cover-960.webp 960w" type="image/webp"/>
+       <img alt="The Warmth You Asked For" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/the-warmth-you-asked-for-cover-640.jpg" srcset="/images/the-warmth-you-asked-for-cover-320.jpg 320w, /images/the-warmth-you-asked-for-cover-640.jpg 640w, /images/the-warmth-you-asked-for-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       The Warmth You Asked For
+      </h2>
+      <div class="novel-meta">
+       <div class="meta-row meta-row-status">
+        <span class="badge complete">
+         Complete
+        </span>
+       </div>
       </div>
-     </li>
-    </ul>
+     </a>
+    </li>
+   </ul>
   </main>
   <footer class="footer">
    <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-       &copy;
-       <span id="year">
-       </span>
-       SeaBoiii
-      </div>
-      <button aria-label="Secret button" id="secretBtn" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" title="&#128274;" type="button">
-       &#128274;
-      </button>
+     <div>
+      ©
+      <span id="year">
+      </span>
+      SeaBoiii
+     </div>
+     <button aria-label="Secret button" id="secretBtn" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" title="🔒" type="button">
+      🔒
+     </button>
     </div>
    </div>
   </footer>
-  <script defer="" src="/assets/js/novel-index.js"></script>
+  <script defer="" src="/assets/js/novel-index.js">
+  </script>
  </body>
 </html>
