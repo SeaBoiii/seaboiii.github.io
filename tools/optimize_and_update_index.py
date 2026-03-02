@@ -15,6 +15,7 @@ Run from repo root:
   python3 tools/optimize_and_update_index.py
 """
 
+import re
 from pathlib import Path
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -60,24 +61,38 @@ def variants_need_regen(base_out: str, source_path: Path | None) -> bool:
     return False
 
 
-def find_original_image(src_url: str) -> Path | None:
+def _is_variant_stem(stem: str) -> bool:
+    m = re.match(r"^(.*)-(\d+)$", stem or "")
+    return bool(m and int(m.group(2)) in SIZES)
+
+
+def find_original_image(src_url: str, base_out: str) -> Path | None:
     """
     src_url like '/images/when-the-song-began-cover.png'
     Try that. If missing, try images_src/<base>.(png|jpg|jpeg|webp).
     """
+    fallback_variant = None
     if src_url.startswith("/"):
         candidate = REPO / src_url.lstrip("/")
     else:
         candidate = REPO / src_url
     if candidate.exists():
-        return candidate
+        if not _is_variant_stem(candidate.stem):
+            return candidate
+        fallback_variant = candidate
 
-    base = Path(src_url).stem
-    for ext in (".png", ".jpg", ".jpeg", ".webp"):
-        cand = IMAGES_SRC / f"{base}{ext}"
+    # Prefer the original non-resized source for this base name.
+    for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+        cand = IMAGES_DIR / f"{base_out}{ext}"
         if cand.exists():
             return cand
-    return None
+
+    for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+        cand = IMAGES_SRC / f"{base_out}{ext}"
+        if cand.exists():
+            return cand
+
+    return fallback_variant
 
 
 def make_variants(orig_path: Path, base_out: str) -> tuple[int, int]:
@@ -100,11 +115,47 @@ def make_variants(orig_path: Path, base_out: str) -> tuple[int, int]:
                 optimize=True,
                 progressive=True,
             )
-    h_ref = round(h0 * 640 / w0) if w0 else 960
-    return 640, h_ref
+    ref_img = IMAGES_DIR / f"{base_out}-640.jpg"
+    if ref_img.exists():
+        try:
+            with Image.open(ref_img) as im_ref:
+                w_ref, h_ref = im_ref.size
+                if w_ref > 0 and h_ref > 0:
+                    return w_ref, h_ref
+        except Exception:
+            pass
+    if w0 and h0:
+        if w0 <= 640:
+            return w0, h0
+        h_ref = round(h0 * 640 / w0)
+        return 640, h_ref
+    return 640, 960
 
 
-def picture_markup(soup, base_out: str, alt: str, loading: str):
+def variant_dimensions(base_out: str, source_path: Path | None) -> tuple[int, int]:
+    ref_img = IMAGES_DIR / f"{base_out}-640.jpg"
+    if ref_img.exists():
+        try:
+            with Image.open(ref_img) as im_ref:
+                w_ref, h_ref = im_ref.size
+                if w_ref > 0 and h_ref > 0:
+                    return w_ref, h_ref
+        except Exception:
+            pass
+    if source_path and source_path.exists():
+        try:
+            with Image.open(source_path) as im_src:
+                w0, h0 = im_src.size
+                if w0 > 0 and h0 > 0:
+                    if w0 <= 640:
+                        return w0, h0
+                    return 640, round(h0 * 640 / w0)
+        except Exception:
+            pass
+    return 640, 960
+
+
+def picture_markup(soup, base_out: str, alt: str, loading: str, width: int, height: int):
     picture = soup.new_tag("picture")
 
     source = soup.new_tag("source")
@@ -127,25 +178,22 @@ def picture_markup(soup, base_out: str, alt: str, loading: str):
     img["alt"] = alt or ""
     img["decoding"] = "async"
     img["loading"] = "eager" if loading == "eager" else "lazy"
+    img["width"] = str(max(1, int(width or 640)))
+    img["height"] = str(max(1, int(height or 960)))
+    if loading == "eager":
+        img["fetchpriority"] = "high"
     picture.append(img)
 
     return picture
 
 
 def normalize_base_from_src(src_url: str) -> str:
-    """Turn '/images/name-cover.png' into 'name-cover'."""
-    return Path(src_url).stem.replace(" ", "-").lower()
-
-
-def card_is_converted(anchor_tag) -> bool:
-    return anchor_tag.find("picture") is not None
-
-
-def card_loading_value(anchor_tag) -> str:
-    img = anchor_tag.find("img")
-    if not img:
-        return ""
-    return str(img.get("loading", "")).strip().lower()
+    """Turn '/images/name-cover.png' or '/images/name-cover-640.jpg' into 'name-cover'."""
+    stem = Path(src_url).stem.replace(" ", "-").lower()
+    m = re.match(r"^(.*)-(\d+)$", stem)
+    if m and int(m.group(2)) in SIZES:
+        return m.group(1)
+    return stem
 
 
 def main():
@@ -161,24 +209,43 @@ def main():
         return
 
     updated = 0
-    # Preserve existing eager image if one already exists in the document.
-    eager_given = any(card_loading_value(a) == "eager" for a in anchors)
 
+    # Keep one eager image to improve LCP without overloading the critical path.
+    eager_anchor = None
     for a in anchors:
-        if card_is_converted(a):
-            continue
-
         img = a.find("img")
         if not img or not img.has_attr("src"):
             continue
+        card = a.find_parent("li")
+        if card is not None and str(card.get("data-hidden", "")).strip().lower() == "true":
+            continue
+        eager_anchor = a
+        break
+    if eager_anchor is None:
+        for a in anchors:
+            img = a.find("img")
+            if img and img.has_attr("src"):
+                eager_anchor = a
+                break
+
+    for a in anchors:
+        img = a.find("img")
+        if not img or not img.has_attr("src"):
+            continue
+
+        media_node = a.find("picture") or img
+        before_media = str(media_node)
 
         src = img.get("src", "").strip()
         alt = img.get("alt", "").strip()
         base_out = normalize_base_from_src(src)
 
-        orig = find_original_image(src)
+        if not base_out:
+            continue
+
+        orig = find_original_image(src, base_out)
         if not orig:
-            for ext in (".png", ".jpg", ".jpeg", ".webp"):
+            for ext in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
                 probe = IMAGES_DIR / f"{base_out}{ext}"
                 if probe.exists():
                     orig = probe
@@ -188,25 +255,23 @@ def main():
                     orig = probe
                     break
 
+        dims = None
         if variants_need_regen(base_out, orig):
             if orig and orig.exists():
                 print(f"Optimizing {orig} -> /images/{base_out}-{{320,640,960}}.webp/.jpg")
-                make_variants(orig, base_out)
+                dims = make_variants(orig, base_out)
             else:
                 print(f"Warning: no source found for {src}. Skipping this card.")
                 continue
 
-        loading_pref = str(img.get("loading", "")).strip().lower()
-        if loading_pref in {"eager", "lazy"}:
-            loading = loading_pref
-        else:
-            loading = "lazy" if eager_given else "eager"
-        if loading == "eager":
-            eager_given = True
+        if dims is None:
+            dims = variant_dimensions(base_out, orig)
 
-        picture = picture_markup(soup, base_out, alt, loading)
-        img.replace_with(picture)
-        updated += 1
+        loading = "eager" if a is eager_anchor else "lazy"
+        picture = picture_markup(soup, base_out, alt, loading, dims[0], dims[1])
+        media_node.replace_with(picture)
+        if before_media != str(picture):
+            updated += 1
 
     new_html = soup.prettify()
     if new_html != html:
