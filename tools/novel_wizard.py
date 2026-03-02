@@ -1091,7 +1091,7 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
     li = (
         f'''        <li class="novel-card" data-title="{html_escape(novel_title.lower())}" data-status="{status_class}"{hidden_attr}{data_series}{data_relation}{data_order}{data_related_to}>\n'''
         f'''          <a href="/novel/{slug}/" aria-label="{safe_aria}">\n'''
-        f'''            <img src="{safe_cover}" alt="{safe_title}" decoding="async" loading="lazy" />\n'''
+        f'''            <img src="{safe_cover}" alt="{safe_title}" loading="lazy" />\n'''
         f'''            <h2 class="novel-title">{safe_title}</h2>\n'''
         f'''            <div class="novel-meta">\n'''
         f'''              <div class="meta-row meta-row-status">\n'''
@@ -2554,31 +2554,18 @@ def update_novel_card_in_novels_index(
         tnode.string = title_text
 
     if cover_rel:
+        new_img = soup.new_tag("img")
+        new_img["src"] = cover_rel
+        new_img["alt"] = title_text
+        new_img["loading"] = "lazy"
         picture = card.find("picture")
+        old_img = picture.find("img") if picture is not None else card.find("img")
         if picture is not None:
-            for source in picture.find_all("source"):
-                source.decompose()
-            img_node = picture.find("img")
-            if img_node is None:
-                img_node = soup.new_tag("img")
-                picture.append(img_node)
-            img_node["src"] = cover_rel
-            img_node["alt"] = title_text
-            img_node["loading"] = "lazy"
-            img_node["decoding"] = "async"
-            for attr in ("srcset", "sizes", "fetchpriority", "width", "height"):
-                img_node.attrs.pop(attr, None)
-        else:
-            new_img = soup.new_tag("img")
-            new_img["src"] = cover_rel
-            new_img["alt"] = title_text
-            new_img["loading"] = "lazy"
-            new_img["decoding"] = "async"
-            old_img = card.find("img")
-            if old_img is not None:
-                old_img.replace_with(new_img)
-            elif a is not None:
-                a.insert(0, new_img)
+            picture.replace_with(new_img)
+        elif old_img is not None:
+            old_img.replace_with(new_img)
+        elif a is not None:
+            a.insert(0, new_img)
     else:
         pic = card.find("picture")
         pic_img = pic.find("img") if pic is not None else None
