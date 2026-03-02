@@ -190,6 +190,13 @@
     return '';
   }
 
+  function isRomanNumeralMarker(value) {
+    var token = String(value || '').trim().toUpperCase();
+    if (!token) return false;
+    // Valid Roman numerals from 1 to 3999 (I..MMMCMXCIX).
+    return /^(?=[MDCLXVI]+$)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(token);
+  }
+
   function parseEpilogueInfo(titleText, rawUrl, rawName) {
     var title = String(titleText || '').trim();
     var url = decodeURIComponent(String(rawUrl || ''));
@@ -263,7 +270,10 @@
     noNode.textContent = label;
     li.dataset.displayLabel = label.toLowerCase();
 
-    var isChoiceEnding = isEpilogue && epilogueCount > 1 && /^[A-Z]+$/.test(marker);
+    var isChoiceEnding = isEpilogue &&
+      epilogueCount > 1 &&
+      /^[A-Z]+$/.test(marker) &&
+      !isRomanNumeralMarker(marker);
     li.dataset.choiceEnding = isChoiceEnding ? 'true' : 'false';
     if (isChoiceEnding) {
       choiceMarkers.push(marker);
