@@ -23,6 +23,11 @@ from typing import Optional, Tuple
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
+try:
+    import sqlite3 as _sqlite3
+except Exception:
+    _sqlite3 = None
+
 # Optional converters for formatted paste (install with pip to enable)
 try:
     import markdownify as _markdownify  # pip install markdownify
@@ -55,7 +60,9 @@ NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
 NOVELS_INDEX_HTML = NOVEL_DIR / "index.html"
 RELATIONSHIPS_JSON = REPO_ROOT / "tools" / "novel_relationships.json"
-WIZARD_STATE_JSON = REPO_ROOT / "tools" / "novel_wizard_state.json"
+LEGACY_WIZARD_STATE_JSON = REPO_ROOT / "tools" / "novel_wizard_state.json"
+WIZARD_STATE_DB = REPO_ROOT / "tools" / "novel_wizard_state.db"
+WIZARD_STATE_DB_KEY = "state"
 WIZARD_ICON_CANDIDATES = [
     REPO_ROOT / "tools" / "novel_wizard_icon.ico",
     REPO_ROOT / "tools" / "novel_wizard_icon.png",
@@ -101,21 +108,80 @@ def write_text(p: Path, text: str):
     with p.open("w", encoding="utf-8", newline="\n") as f:
         f.write(text)
 
-def load_wizard_state() -> dict:
-    if not WIZARD_STATE_JSON.exists():
+def _ensure_wizard_state_table(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS wizard_state (
+            state_key TEXT PRIMARY KEY,
+            payload TEXT NOT NULL
+        )
+        """
+    )
+
+def _load_wizard_state_from_db() -> tuple[bool, dict]:
+    if _sqlite3 is None:
+        return False, {}
+    if not WIZARD_STATE_DB.exists():
+        return False, {}
+    try:
+        with _sqlite3.connect(str(WIZARD_STATE_DB)) as conn:
+            _ensure_wizard_state_table(conn)
+            row = conn.execute(
+                "SELECT payload FROM wizard_state WHERE state_key = ?",
+                (WIZARD_STATE_DB_KEY,),
+            ).fetchone()
+        if not row or row[0] is None:
+            return True, {}
+        raw = json.loads(str(row[0]))
+        return True, raw if isinstance(raw, dict) else {}
+    except Exception:
+        return False, {}
+
+def _load_wizard_state_from_legacy_json() -> dict:
+    if not LEGACY_WIZARD_STATE_JSON.exists():
         return {}
     try:
-        raw = json.loads(WIZARD_STATE_JSON.read_text(encoding="utf-8"))
+        raw = json.loads(LEGACY_WIZARD_STATE_JSON.read_text(encoding="utf-8"))
         return raw if isinstance(raw, dict) else {}
     except Exception:
         return {}
 
+def _save_wizard_state_to_db(state: dict) -> bool:
+    if _sqlite3 is None:
+        return False
+    try:
+        payload = json.dumps(state, ensure_ascii=False, sort_keys=True)
+        WIZARD_STATE_DB.parent.mkdir(parents=True, exist_ok=True)
+        with _sqlite3.connect(str(WIZARD_STATE_DB)) as conn:
+            _ensure_wizard_state_table(conn)
+            conn.execute(
+                "REPLACE INTO wizard_state (state_key, payload) VALUES (?, ?)",
+                (WIZARD_STATE_DB_KEY, payload),
+            )
+            conn.commit()
+        return True
+    except Exception:
+        return False
+
+def load_wizard_state() -> dict:
+    has_db, db_state = _load_wizard_state_from_db()
+    if has_db:
+        return db_state
+
+    legacy = _load_wizard_state_from_legacy_json()
+    if legacy:
+        _save_wizard_state_to_db(legacy)
+    return legacy
+
 def save_wizard_state(state: dict):
     if not isinstance(state, dict):
         return
-    WIZARD_STATE_JSON.parent.mkdir(parents=True, exist_ok=True)
+    if _save_wizard_state_to_db(state):
+        return
+    # Last-resort fallback when sqlite storage is unavailable.
+    LEGACY_WIZARD_STATE_JSON.parent.mkdir(parents=True, exist_ok=True)
     write_text(
-        WIZARD_STATE_JSON,
+        LEGACY_WIZARD_STATE_JSON,
         json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
     )
 
