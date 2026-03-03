@@ -42,10 +42,20 @@
     </div>
     <div class="controls">
      <div class="controls-top">
-      <input class="search" id="novelSearch" placeholder="Search by title…" type="search"/>
+      <input class="search" id="novelSearch" placeholder="Search title, series, status, or relation" type="search"/>
       <button aria-controls="filterPanel" aria-expanded="false" class="filter-toggle" id="filterToggle" type="button">
        Filters
       </button>
+     </div>
+     <div class="controls-actions" role="group" aria-label="Filter actions">
+      <button class="pill-button clear-filters-top" id="clearFiltersTop" type="button">
+       Clear filters
+      </button>
+      <button aria-controls="secretPanel" aria-expanded="false" class="pill-button unlock-toggle" id="secretToggleBtn" type="button">
+       Hidden novels
+      </button>
+     </div>
+     <div aria-live="polite" class="active-filter-chips" id="activeFilterChips">
      </div>
      <div aria-hidden="true" aria-label="Novel filters" aria-modal="true" class="filter-panel" hidden="" id="filterPanel" role="dialog" tabindex="-1">
       <div class="filter-grid">
@@ -111,6 +121,22 @@
         </select>
        </div>
       </div>
+     </div>
+     <div class="secret-panel" hidden="" id="secretPanel">
+      <label class="filter-label" for="secretPassword">
+       Hidden novels password
+      </label>
+      <div class="secret-panel-row">
+       <input autocomplete="current-password" class="search secret-input" id="secretPassword" placeholder="Enter password" type="password"/>
+       <button class="pill-button" id="secretUnlockBtn" type="button">
+        Unlock
+       </button>
+       <button class="pill-button" hidden="" id="secretLockBtn" type="button">
+        Hide hidden
+       </button>
+      </div>
+      <p aria-live="polite" class="secret-status muted" id="secretStatus" role="status">
+      </p>
      </div>
      <div aria-live="polite" class="muted" id="resultsCount">
      </div>
@@ -784,16 +810,13 @@
   </main>
   <footer class="footer">
    <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="footer-inner">
      <div>
       ©
       <span id="year">
       </span>
       SeaBoiii
      </div>
-     <button aria-label="Secret button" id="secretBtn" style="background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; opacity: 0.5; padding: 0.25rem 0.5rem; border-radius: 4px;" title="🔒" type="button">
-      🔒
-     </button>
     </div>
    </div>
   </footer>

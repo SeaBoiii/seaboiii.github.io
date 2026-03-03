@@ -126,12 +126,26 @@
 
   if (!list) return;
   var savedPath = normalizePath(saved);
+  var lastReadItem = null;
   list.querySelectorAll('li').forEach(function(li) {
     var path = normalizePath(li.dataset.url);
     var entry = chapters[path];
-    if (savedPath && path && path === savedPath) li.classList.add('last-read');
+    if (savedPath && path && path === savedPath) {
+      li.classList.add('last-read');
+      lastReadItem = li;
+    }
     if (!entry) return;
     if (entry.completed) li.classList.add('completed');
+  });
+
+  if (!lastReadItem || location.hash) return;
+  var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  requestAnimationFrame(function() {
+    var rect = lastReadItem.getBoundingClientRect();
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    var comfortablyVisible = rect.top >= 96 && rect.bottom <= Math.max(140, viewportHeight - 72);
+    if (comfortablyVisible) return;
+    lastReadItem.scrollIntoView({ block: 'center', behavior: prefersReducedMotion ? 'auto' : 'smooth' });
   });
 })();
 

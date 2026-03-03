@@ -73,6 +73,8 @@
         var fontSizeValue = document.getElementById("readerFontSizeValue");
         var lineHeightValue = document.getElementById("readerLineHeightValue");
         var widthValue = document.getElementById("readerContentWidthValue");
+        var widthHint = document.getElementById("readerContentWidthHint");
+        var widthAvailabilityQuery = window.matchMedia ? window.matchMedia("(min-width: 720px)") : null;
 
         if (
           !toggle ||
@@ -150,7 +152,21 @@
         function updateValueLabels() {
           fontSizeValue.textContent = Math.round(settings.fontScale * 100) + "%";
           lineHeightValue.textContent = settings.lineHeight.toFixed(2);
-          widthValue.textContent = settings.maxWidth + "px";
+          widthValue.textContent = widthInput.disabled ? "Desktop only" : (settings.maxWidth + "px");
+        }
+
+        function updateWidthAvailability() {
+          var widthControlEnabled = !widthAvailabilityQuery || widthAvailabilityQuery.matches;
+          widthInput.disabled = !widthControlEnabled;
+          if (widthHint) {
+            widthHint.hidden = widthControlEnabled;
+          }
+          if (widthControlEnabled) {
+            widthInput.removeAttribute("aria-describedby");
+          } else if (widthHint) {
+            widthInput.setAttribute("aria-describedby", "readerContentWidthHint");
+          }
+          updateValueLabels();
         }
 
         function syncInputs() {
@@ -166,7 +182,7 @@
           root.style.setProperty("--reader-max-width", Math.round(settings.maxWidth) + "px");
           root.style.setProperty("--reader-font-family", fontStacks[settings.fontFamily]);
           syncInputs();
-          updateValueLabels();
+          updateWidthAvailability();
         }
 
         function panelFocusableElements() {
@@ -210,6 +226,17 @@
         }
         apply();
 
+        if (widthAvailabilityQuery) {
+          var onWidthAvailabilityChange = function () {
+            updateWidthAvailability();
+          };
+          if (typeof widthAvailabilityQuery.addEventListener === "function") {
+            widthAvailabilityQuery.addEventListener("change", onWidthAvailabilityChange);
+          } else if (typeof widthAvailabilityQuery.addListener === "function") {
+            widthAvailabilityQuery.addListener(onWidthAvailabilityChange);
+          }
+        }
+
         fontSizeInput.addEventListener("input", function () {
           settings.fontScale = clamp(parseNumber(fontSizeInput.value, defaults.fontScale), 0.85, 1.35);
           apply();
@@ -223,6 +250,7 @@
         });
 
         widthInput.addEventListener("input", function () {
+          if (widthInput.disabled) return;
           settings.maxWidth = clamp(Math.round(parseNumber(widthInput.value, defaults.maxWidth)), 620, 980);
           apply();
           save();
@@ -616,11 +644,26 @@
           var nextLink = document.querySelector('.pager a[rel="next"]');
           if (!nextLink || !nextLink.href) return;
 
-          var prefetch = document.createElement('link');
-          prefetch.rel = 'prefetch';
-          prefetch.as = 'document';
-          prefetch.href = nextLink.href;
-          document.head.appendChild(prefetch);
+          var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          var saveData = !!(connection && connection.saveData);
+          var effectiveType = String(connection && connection.effectiveType || '').toLowerCase();
+          var slowConnection = effectiveType === 'slow-2g' || effectiveType === '2g';
+          if (saveData || slowConnection) return;
+
+          function injectPrefetch() {
+            if (document.querySelector('link[rel="prefetch"][href="' + nextLink.href + '"]')) return;
+            var prefetch = document.createElement('link');
+            prefetch.rel = 'prefetch';
+            prefetch.as = 'document';
+            prefetch.href = nextLink.href;
+            document.head.appendChild(prefetch);
+          }
+
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(injectPrefetch, { timeout: 2200 });
+          } else {
+            setTimeout(injectPrefetch, 900);
+          }
         } catch (e) {}
       })();
 

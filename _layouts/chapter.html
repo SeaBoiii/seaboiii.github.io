@@ -18,6 +18,14 @@
     data-chapter-order="{{ page.order | default: '' }}"
     data-chapter-title="{{ page.Title | default: page.title | escape }}"
   >
+    {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
+    {% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
+    {% assign novel_crumb_title = toc.Title | default: toc.title | default: page.novel | strip %}
+    {% if novel_crumb_title == '' or novel_crumb_title == page.novel %}
+      {% assign _crumb_words = page.novel | replace: '-', ' ' | replace: '_', ' ' | split: ' ' %}
+      {% capture _crumb_from_slug %}{% for w in _crumb_words %}{% if w != '' %}{{ w | capitalize }}{% unless forloop.last %} {% endunless %}{% endif %}{% endfor %}{% endcapture %}
+      {% assign novel_crumb_title = _crumb_from_slug | strip %}
+    {% endif %}
     <header class="site-header">
       <div class="header-content">
         <a class="brand" href="{{ "/novel/" | relative_url }}">{{ site.title }}</a>
@@ -26,7 +34,7 @@
             <a href="{{ "/novel/" | relative_url }}">All Novels</a>
             <span>/</span>
             <a href="{{ "/novel/" | append: page.novel | append: "/" | relative_url }}">
-              {{ page.novel | replace: '-', ' ' | capitalize }}
+              {{ novel_crumb_title }}
             </a>
           </nav>
           <div class="reader-controls">
@@ -62,12 +70,13 @@
             </label>
             <input id="readerLineHeight" type="range" min="1.45" max="2.1" step="0.05" value="1.75" />
           </div>
-          <div class="reader-setting">
+          <div class="reader-setting reader-setting-width">
             <label for="readerContentWidth">
               <strong>Content width</strong>
               <span id="readerContentWidthValue" class="reader-setting-value" role="status" aria-live="polite" aria-atomic="true"></span>
             </label>
             <input id="readerContentWidth" type="range" min="620" max="980" step="20" value="800" />
+            <span id="readerContentWidthHint" class="reader-setting-hint" hidden>Available on wider screens.</span>
           </div>
           <div class="reader-setting">
             <label for="readerFontFamily">
@@ -102,7 +111,6 @@
       </article>
 
 {% comment %}Build ordered list of chapter pages in this novel{% endcomment %}
-{% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
 {% assign siblings = site.pages
   | where_exp: 'p', 'p.url contains pathprefix'
   | where_exp: 'p', 'p.name != "index.md"'
@@ -120,7 +128,6 @@
 {% comment %}Compute prev/next indices BEFORE indexing the array{% endcomment %}
 {% assign prev_index = idx | minus: 1 %}
 {% assign next_index = idx | plus: 1 %}
-{% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
 {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
 
 
@@ -128,6 +135,13 @@
   <div class="chapter-complete-copy">
     <strong id="chapterCompletionTitle">Chapter completed</strong>
     <span id="chapterCompletionText">Nice. Ready for the next chapter?</span>
+  </div>
+  <div class="chapter-complete-actions">
+    {% if next_index < count and next_index >= 0 %}
+      {% assign next_for_panel = siblings[next_index] %}
+      <a id="chapterCompletionNext" class="btn complete-next" rel="next" href="{{ next_for_panel.url | relative_url }}">Next chapter</a>
+    {% endif %}
+    <a id="chapterCompletionToc" class="btn complete-toc" href="{{ toc_url | relative_url }}">Back to chapters</a>
   </div>
 </section>
 

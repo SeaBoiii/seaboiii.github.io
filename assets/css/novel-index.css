@@ -196,6 +196,50 @@
         flex: 1 1 auto;
       }
 
+      .controls-actions {
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .clear-filters-top:disabled {
+        cursor: not-allowed;
+        opacity: 0.58;
+      }
+
+      .unlock-toggle.is-active {
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border-color: var(--btn-brd);
+      }
+
+      .active-filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        align-items: center;
+      }
+
+      .active-filter-chips[hidden] {
+        display: none;
+      }
+
+      .active-filter-chip {
+        border: 1px solid color-mix(in oklab, var(--btn-brd), var(--border) 50%);
+        background: color-mix(in oklab, var(--card), var(--btn-bg) 7%);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 0.26rem 0.58rem;
+        font-size: 0.78rem;
+        line-height: 1.25;
+        cursor: pointer;
+      }
+
+      .active-filter-chip:hover {
+        background: color-mix(in oklab, var(--card), var(--btn-bg) 13%);
+      }
+
       .filter-toggle {
         border: 1px solid var(--border);
         background: var(--card);
@@ -296,6 +340,38 @@
         min-height: 2.3rem;
       }
 
+      .secret-panel {
+        border-top: 1px dashed var(--border);
+        padding-top: 0.75rem;
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .secret-panel[hidden] {
+        display: none;
+      }
+
+      .secret-panel-row {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+      }
+
+      .secret-input {
+        flex: 1 1 190px;
+        min-width: 0;
+      }
+
+      .secret-status {
+        margin: 0;
+        font-size: 0.82rem;
+      }
+
+      .secret-status-error {
+        color: color-mix(in oklab, #b42318, var(--text) 35%);
+      }
+
       .pill-button {
         border: 1px solid var(--border);
         background: var(--card);
@@ -320,6 +396,11 @@
         background: var(--btn-bg);
         color: var(--btn-text);
         border-color: var(--btn-brd);
+      }
+
+      .pill-button:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
       }
 
       .novel-grid {
@@ -469,6 +550,13 @@
       }
 
       @media (max-width: 719px) {
+        .controls-top,
+        .controls-actions,
+        .secret-panel-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
         #resultsCount {
           justify-self: start;
         }
@@ -503,5 +591,11 @@
         padding: 1.2rem 0 2rem;
         color: var(--muted);
         text-align: center;
+      }
+
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
   

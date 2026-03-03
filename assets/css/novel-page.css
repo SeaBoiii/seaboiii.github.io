@@ -88,8 +88,9 @@ a:hover{text-decoration:underline}
 .chapter-list li a{display:flex;gap:.6rem;align-items:center;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
 .chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
 .chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
-.chapter-list li.completed a{opacity:.58;filter:saturate(.15)}
-.chapter-list li.completed a:hover{opacity:.78}
+.chapter-list li.completed a{opacity:.86}
+.chapter-list li.completed a:hover{opacity:1}
+.chapter-list li.completed .chapter-no{color:color-mix(in oklab,var(--muted),var(--text) 18%)}
 .chapter-empty{margin:.5rem 0 0;padding:.65rem .75rem;border:1px dashed var(--border);border-radius:10px;background:color-mix(in oklab, var(--card), var(--bg) 20%);color:var(--muted);font-size:.92rem}
 .chapter-empty[hidden]{display:none}
 .choice-epilogue-hint{
@@ -142,6 +143,10 @@ a:hover{text-decoration:underline}
 .related-badge.complete{background:var(--pill-ok);border-color:var(--pill-ok-brd)}
 .related-badge.incomplete{background:var(--pill-wip);border-color:var(--pill-wip-brd)}
 @media (max-width:640px){.related-novels{--related-card-width:132px}}
+@media (max-width:640px){
+  .chapter-tools{flex-direction:column;align-items:stretch}
+  .chapter-tools .small-note{font-size:.8rem}
+}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
 .theme-toggle:hover{filter:brightness(1.05)}

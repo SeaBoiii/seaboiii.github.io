@@ -1,5 +1,6 @@
 
-   document.getElementById("year").textContent = new Date().getFullYear();
+   var yearNode = document.getElementById("year");
+   if (yearNode) yearNode.textContent = new Date().getFullYear();
 
       (function () {
         var root = document.documentElement;
@@ -74,7 +75,14 @@
         var filterPanel = document.getElementById("filterPanel");
         var emptyStateCard = document.getElementById("novelEmptyState");
         var clearFiltersBtn = document.getElementById("clearFiltersBtn");
-        var secretBtn = document.getElementById("secretBtn");
+        var clearFiltersTopBtn = document.getElementById("clearFiltersTop");
+        var activeFilterChips = document.getElementById("activeFilterChips");
+        var secretToggleBtn = document.getElementById("secretToggleBtn");
+        var secretPanel = document.getElementById("secretPanel");
+        var secretPassword = document.getElementById("secretPassword");
+        var secretUnlockBtn = document.getElementById("secretUnlockBtn");
+        var secretLockBtn = document.getElementById("secretLockBtn");
+        var secretStatus = document.getElementById("secretStatus");
         if (
           !search ||
           !grid ||
@@ -84,8 +92,7 @@
           !sortSelect ||
           !seriesSelect ||
           !filterToggle ||
-          !filterPanel ||
-          !secretBtn
+          !filterPanel
         ) return;
         var cards = Array.prototype.slice.call(grid.querySelectorAll(".novel-card"));
         var activeStatusFilter = "all";
@@ -97,8 +104,7 @@
         var uiStateKey = "site:novels-ui";
         var correctPassword = "seaboiii";
         var focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-        var lockIcon = String.fromCodePoint(128274);
-        var unlockIcon = String.fromCodePoint(128275);
+        var isSecretPanelOpen = false;
 
         cards.forEach(function (card, idx) {
           card.dataset.initialIndex = String(idx);
@@ -184,6 +190,52 @@
           filterToggle.textContent = count > 0 ? ("Filters (" + count + ")") : "Filters";
         }
 
+        function normalizeSearchText(value) {
+          return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+        }
+
+        function getUnlockedState() {
+          return localStorage.getItem(unlockedKey) === "true";
+        }
+
+        function optionLabel(select, value) {
+          var label = "";
+          Array.prototype.forEach.call(select.options, function (opt) {
+            if (!label && opt.value === value) label = (opt.textContent || "").trim();
+          });
+          return label || value;
+        }
+
+        function updateClearButtons() {
+          var hasFilters = countActiveFilters() > 0;
+          if (clearFiltersBtn) clearFiltersBtn.disabled = !hasFilters;
+          if (clearFiltersTopBtn) clearFiltersTopBtn.disabled = !hasFilters;
+        }
+
+        function renderActiveFilterChips() {
+          if (!activeFilterChips) return;
+          var chips = [];
+          var searchTerm = (search.value || "").trim();
+          if (searchTerm) chips.push({ type: "search", label: 'Search: "' + searchTerm + '"' });
+          if (activeStatusFilter !== "all") chips.push({ type: "status", label: "Status: " + optionLabel(statusSelect, activeStatusFilter) });
+          if (activeSeriesFilter !== "all") chips.push({ type: "category", label: "Category: " + optionLabel(categorySelect, activeSeriesFilter) });
+          if (activeSortFilter !== "recent") chips.push({ type: "sort", label: "Sort: " + optionLabel(sortSelect, activeSortFilter) });
+          if (activeSeriesNameFilter !== "all") chips.push({ type: "series", label: "Series: " + optionLabel(seriesSelect, activeSeriesNameFilter) });
+          if (getUnlockedState()) chips.push({ type: "unlock", label: "Hidden novels visible" });
+
+          activeFilterChips.innerHTML = "";
+          activeFilterChips.hidden = chips.length === 0;
+          chips.forEach(function (chip) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "active-filter-chip";
+            btn.dataset.filterType = chip.type;
+            btn.textContent = chip.label + " ×";
+            btn.setAttribute("aria-label", "Remove " + chip.label + " filter");
+            activeFilterChips.appendChild(btn);
+          });
+        }
+
         function getPanelFocusableElements() {
           return Array.prototype.slice.call(filterPanel.querySelectorAll(focusableSelector)).filter(function (node) {
             return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
@@ -213,6 +265,66 @@
             filterToggle.focus();
           }
           saveUiState();
+        }
+
+        function setSecretStatus(message, isError) {
+          if (!secretStatus) return;
+          secretStatus.textContent = message || "";
+          secretStatus.classList.toggle("secret-status-error", !!isError);
+        }
+
+        function setSecretPanelOpen(open, options) {
+          if (!secretPanel || !secretToggleBtn) return;
+          options = options || {};
+          isSecretPanelOpen = !!open;
+          secretPanel.hidden = !isSecretPanelOpen;
+          secretToggleBtn.setAttribute("aria-expanded", isSecretPanelOpen ? "true" : "false");
+          if (isSecretPanelOpen && options.moveFocus !== false && secretPassword && !secretPassword.disabled) {
+            secretPassword.focus();
+            return;
+          }
+          if (!isSecretPanelOpen && options.restoreFocus && typeof secretToggleBtn.focus === "function") {
+            secretToggleBtn.focus();
+          }
+        }
+
+        function syncSecretControls() {
+          var unlocked = getUnlockedState();
+          if (secretToggleBtn) {
+            secretToggleBtn.classList.toggle("is-active", unlocked);
+            secretToggleBtn.textContent = unlocked ? "Hidden novels on" : "Hidden novels";
+          }
+          if (secretUnlockBtn) secretUnlockBtn.hidden = unlocked;
+          if (secretLockBtn) secretLockBtn.hidden = !unlocked;
+          if (secretPassword) {
+            secretPassword.disabled = unlocked;
+            if (unlocked) secretPassword.value = "";
+          }
+          if (unlocked) {
+            setSecretStatus("Hidden novels are visible.", false);
+          } else {
+            setSecretStatus("Enter password to reveal hidden novels.", false);
+          }
+        }
+
+        function attemptUnlockHiddenNovels() {
+          if (!secretPassword) return;
+          var pwd = (secretPassword.value || "").trim();
+          if (!pwd) {
+            setSecretStatus("Enter a password.", true);
+            secretPassword.focus();
+            return;
+          }
+          if (pwd !== correctPassword) {
+            setSecretStatus("Incorrect password.", true);
+            secretPassword.focus();
+            secretPassword.select();
+            return;
+          }
+          localStorage.setItem(unlockedKey, "true");
+          syncSecretControls();
+          setSecretStatus("Hidden novels unlocked.", false);
+          update();
         }
 
         function clearAllFilters() {
@@ -327,6 +439,46 @@
           return fallbackSeriesLabel((card.dataset.series || "").trim());
         }
 
+        function cardSearchText(card) {
+          var parts = [];
+          var titleNode = card.querySelector(".novel-title");
+          var titleText = (card.dataset.title || (titleNode && titleNode.textContent) || "").trim();
+          var status = (card.dataset.status || "").trim();
+          var seriesId = (card.dataset.series || "").trim();
+          var seriesLabel = seriesLabelFromCard(card);
+          var relation = (card.dataset.relation || "").trim();
+          var relatedTo = (card.dataset.relatedTo || "").trim();
+          var order = (card.dataset.order || "").trim();
+          var hidden = card.dataset.hidden === "true";
+
+          if (titleText) parts.push(titleText);
+          if (status) parts.push(status);
+          if (seriesId) parts.push(seriesId.replace(/[-_]+/g, " "));
+          if (seriesLabel) parts.push(seriesLabel);
+          if (relation) parts.push(relation.replace(/[-_]+/g, " "));
+          if (relatedTo) parts.push(relatedTo.replace(/[-_]+/g, " "));
+          if (order) {
+            parts.push("book " + order);
+            parts.push("order " + order);
+          }
+          if (hidden) parts.push("hidden");
+
+          Array.prototype.forEach.call(card.querySelectorAll(".novel-meta .badge"), function (badge) {
+            var badgeText = (badge.textContent || "").trim();
+            var badgeTitle = (badge.getAttribute("title") || "").trim();
+            if (badgeText) parts.push(badgeText);
+            if (badgeTitle) parts.push(badgeTitle);
+          });
+
+          return normalizeSearchText(parts.join(" "));
+        }
+
+        function refreshCardSearchIndex() {
+          cards.forEach(function (card) {
+            card.dataset.search = cardSearchText(card);
+          });
+        }
+
         function cardSeriesOrder(card) {
           var raw = (card.dataset.order || "").trim();
           if (!raw) return 2147483647;
@@ -437,18 +589,18 @@
         }
 
         function shouldShow(card) {
-          var title = cardTitle(card);
+          var searchable = card.dataset.search || cardSearchText(card);
           var status = card.dataset.status || "";
           var hidden = card.dataset.hidden === "true";
-          var term = (search.value || "").trim().toLowerCase();
+          var term = normalizeSearchText(search.value || "");
 
-          var matchesTitle = !term || title.includes(term);
+          var matchesTerm = !term || searchable.indexOf(term) >= 0;
           var matchesStatus = activeStatusFilter === "all" || status === activeStatusFilter;
           var matchesSeries = matchesSeriesFilter(card);
           var matchesSeriesName = matchesSeriesNameFilter(card);
-          var unlocked = localStorage.getItem(unlockedKey) === "true";
+          var unlocked = getUnlockedState();
 
-          return matchesTitle && matchesStatus && matchesSeries && matchesSeriesName && (unlocked || !hidden);
+          return matchesTerm && matchesStatus && matchesSeries && matchesSeriesName && (unlocked || !hidden);
         }
 
         function update() {
@@ -464,6 +616,8 @@
           }
           count.textContent = visible + " novel" + (visible === 1 ? "" : "s") + " shown";
           updateFilterToggleLabel();
+          renderActiveFilterChips();
+          updateClearButtons();
           saveUiState();
         }
 
@@ -482,6 +636,7 @@
         applySeriesColorSchemes();
         normalizeMetaRows();
         buildSeriesSelectOptions();
+        refreshCardSearchIndex();
 
         statusSelect.value = activeStatusFilter;
         categorySelect.value = activeSeriesFilter;
@@ -527,20 +682,101 @@
           });
         }
 
+        if (clearFiltersTopBtn) {
+          clearFiltersTopBtn.addEventListener("click", function () {
+            clearAllFilters();
+            search.focus();
+          });
+        }
+
+        if (activeFilterChips) {
+          activeFilterChips.addEventListener("click", function (event) {
+            var chip = event.target && event.target.closest
+              ? event.target.closest("button[data-filter-type]")
+              : null;
+            if (!chip) return;
+
+            var type = chip.dataset.filterType || "";
+            if (type === "search") {
+              search.value = "";
+            } else if (type === "status") {
+              activeStatusFilter = "all";
+              statusSelect.value = "all";
+            } else if (type === "category") {
+              activeSeriesFilter = "all";
+              categorySelect.value = "all";
+            } else if (type === "sort") {
+              activeSortFilter = "recent";
+              sortSelect.value = "recent";
+            } else if (type === "series") {
+              activeSeriesNameFilter = "all";
+              seriesSelect.value = "all";
+            } else if (type === "unlock") {
+              localStorage.removeItem(unlockedKey);
+              syncSecretControls();
+            }
+
+            update();
+          });
+        }
+
+        if (secretToggleBtn && secretPanel) {
+          secretToggleBtn.addEventListener("click", function () {
+            var willOpen = !isSecretPanelOpen;
+            setSecretPanelOpen(willOpen, { moveFocus: willOpen, restoreFocus: !willOpen });
+          });
+        }
+
+        if (secretUnlockBtn && secretPassword) {
+          secretUnlockBtn.addEventListener("click", function () {
+            attemptUnlockHiddenNovels();
+          });
+        }
+
+        if (secretPassword) {
+          secretPassword.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            attemptUnlockHiddenNovels();
+          });
+        }
+
+        if (secretLockBtn) {
+          secretLockBtn.addEventListener("click", function () {
+            localStorage.removeItem(unlockedKey);
+            syncSecretControls();
+            update();
+          });
+        }
+
         document.addEventListener("click", function (event) {
-          if (!isFilterPanelOpen) return;
-          if (filterPanel.contains(event.target) || filterToggle.contains(event.target)) return;
-          setFilterPanelOpen(false, { restoreFocus: true });
+          if (isFilterPanelOpen) {
+            if (!filterPanel.contains(event.target) && !filterToggle.contains(event.target)) {
+              setFilterPanelOpen(false, { restoreFocus: true });
+            }
+          }
+          if (isSecretPanelOpen && secretPanel && secretToggleBtn) {
+            if (!secretPanel.contains(event.target) && !secretToggleBtn.contains(event.target)) {
+              setSecretPanelOpen(false, { restoreFocus: true });
+            }
+          }
         });
 
         document.addEventListener("keydown", function (event) {
-          if (!isFilterPanelOpen) return;
-
           if (event.key === "Escape") {
-            event.preventDefault();
-            setFilterPanelOpen(false, { restoreFocus: true });
-            return;
+            if (isFilterPanelOpen) {
+              event.preventDefault();
+              setFilterPanelOpen(false, { restoreFocus: true });
+              return;
+            }
+            if (isSecretPanelOpen) {
+              event.preventDefault();
+              setSecretPanelOpen(false, { restoreFocus: true });
+              return;
+            }
           }
+
+          if (!isFilterPanelOpen) return;
 
           if (event.key !== "Tab") return;
           var focusable = getPanelFocusableElements();
@@ -569,34 +805,7 @@
         });
 
         search.addEventListener("input", update);
-
-        secretBtn.addEventListener("click", function () {
-          var isUnlocked = localStorage.getItem(unlockedKey) === "true";
-          if (isUnlocked) {
-            localStorage.removeItem(unlockedKey);
-            secretBtn.textContent = lockIcon;
-            secretBtn.title = lockIcon;
-            update();
-          } else {
-            var pwd = prompt("Enter password to unlock hidden novels:");
-            if (pwd === correctPassword) {
-              localStorage.setItem(unlockedKey, "true");
-              secretBtn.textContent = unlockIcon;
-              secretBtn.title = unlockIcon;
-              update();
-            } else if (pwd) {
-              alert("Incorrect password.");
-            }
-          }
-        });
-
-        if (localStorage.getItem(unlockedKey) === "true") {
-          secretBtn.textContent = unlockIcon;
-          secretBtn.title = unlockIcon;
-        } else {
-          secretBtn.textContent = lockIcon;
-          secretBtn.title = lockIcon;
-        }
+        syncSecretControls();
 
         update();
       })();
