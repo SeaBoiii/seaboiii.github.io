@@ -420,6 +420,51 @@
         );
       })();
 
+      // Keyboard shortcuts for chapter navigation
+      (function () {
+        var prevLink = document.querySelector('.pager a[rel="prev"]');
+        var nextLink = document.querySelector('.pager a[rel="next"]');
+        var tocLink =
+          document.querySelector('.pager .toc[href]') ||
+          document.querySelector('#chapterCompletionToc[href]') ||
+          document.querySelector('.mobile-chapter-nav .m-btn.toc[href]');
+        var settingsPanel = document.getElementById("readerSettingsPanel");
+
+        function isTypingContext(target) {
+          if (!target || !target.closest) return false;
+          return !!target.closest('input, textarea, select, [contenteditable], [contenteditable="true"]');
+        }
+
+        function go(url) {
+          if (!url) return;
+          window.location.href = url;
+        }
+
+        document.addEventListener("keydown", function (event) {
+          if (event.defaultPrevented) return;
+          if (settingsPanel && !settingsPanel.hidden) return;
+          if (event.altKey || event.ctrlKey || event.metaKey) return;
+          if (isTypingContext(event.target)) return;
+
+          if (event.key === "[" && prevLink && prevLink.href) {
+            event.preventDefault();
+            go(prevLink.href);
+            return;
+          }
+
+          if (event.key === "]" && nextLink && nextLink.href) {
+            event.preventDefault();
+            go(nextLink.href);
+            return;
+          }
+
+          if ((event.key === "c" || event.key === "C") && tocLink && tocLink.href) {
+            event.preventDefault();
+            go(tocLink.href);
+          }
+        });
+      })();
+
       // Save + restore reading progress
       (function() {
         try {

@@ -184,6 +184,11 @@
         filter: brightness(1.05);
       }
 
+      .theme-toggle:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
+        outline-offset: 2px;
+      }
+
       .reader-settings-toggle {
         font-weight: 600;
         letter-spacing: 0.01em;
@@ -284,6 +289,11 @@
 
       .reader-settings-reset:hover {
         background: color-mix(in oklab, var(--card), var(--text) 6%);
+      }
+
+      .reader-settings-reset:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
+        outline-offset: 2px;
       }
 
       .reader {
@@ -416,6 +426,11 @@
         text-decoration: none;
       }
 
+      .pager .btn:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
+        outline-offset: 2px;
+      }
+
       .pager .prev {
         justify-self: start;
       }
@@ -505,6 +520,11 @@
         filter: brightness(1.04);
       }
 
+      .chapter-complete-actions .btn:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
+        outline-offset: 2px;
+      }
+
       .chapter-complete-actions .complete-next {
         border-color: var(--btn-brd);
         background: var(--btn-bg);
@@ -570,6 +590,11 @@
         pointer-events: none;
       }
 
+      .mobile-chapter-nav .m-btn:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
+        outline-offset: 2px;
+      }
+
       @media (max-width: 640px) {
         .reader {
           padding-bottom: 6.75rem;
@@ -608,6 +633,17 @@
 
         .mobile-chapter-nav {
           display: block;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .read-progress-fill,
+        .pager .btn,
+        .chapter-complete-actions .btn,
+        .mobile-chapter-nav .m-btn,
+        .theme-toggle,
+        .reader-settings-reset {
+          transition: none;
         }
       }
     

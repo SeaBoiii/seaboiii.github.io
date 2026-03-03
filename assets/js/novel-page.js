@@ -356,6 +356,32 @@
   applyChapterFilter();
 })();
 
+// Keyboard shortcuts for chapter list search
+(function() {
+  var chapterSearch = document.getElementById('chapterSearch');
+  if (!chapterSearch) return;
+
+  function isTypingContext(target) {
+    if (!target || !target.closest) return false;
+    return !!target.closest('input, textarea, select, [contenteditable], [contenteditable="true"]');
+  }
+
+  document.addEventListener('keydown', function(event) {
+    var plainKey = !event.altKey && !event.ctrlKey && !event.metaKey;
+    if (plainKey && event.key === '/' && !isTypingContext(event.target)) {
+      event.preventDefault();
+      chapterSearch.focus();
+      chapterSearch.select();
+      return;
+    }
+    if (event.key === 'Escape' && document.activeElement === chapterSearch && chapterSearch.value) {
+      event.preventDefault();
+      chapterSearch.value = '';
+      chapterSearch.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+})();
+
 // Related novels list from /novel/index.html
 (function() {
   var slug = (document.body && document.body.dataset && document.body.dataset.novelSlug) || '';

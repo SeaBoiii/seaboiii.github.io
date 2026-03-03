@@ -194,6 +194,11 @@
           return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
         }
 
+        function isTypingContext(target) {
+          if (!target || !target.closest) return false;
+          return !!target.closest('input, textarea, select, [contenteditable], [contenteditable="true"]');
+        }
+
         function getUnlockedState() {
           return localStorage.getItem(unlockedKey) === "true";
         }
@@ -230,7 +235,7 @@
             btn.type = "button";
             btn.className = "active-filter-chip";
             btn.dataset.filterType = chip.type;
-            btn.textContent = chip.label + " ×";
+            btn.textContent = chip.label + " x";
             btn.setAttribute("aria-label", "Remove " + chip.label + " filter");
             activeFilterChips.appendChild(btn);
           });
@@ -763,6 +768,14 @@
         });
 
         document.addEventListener("keydown", function (event) {
+          var plainKey = !event.altKey && !event.ctrlKey && !event.metaKey;
+          if (plainKey && event.key === "/" && !isTypingContext(event.target) && !isFilterPanelOpen && !isSecretPanelOpen) {
+            event.preventDefault();
+            search.focus();
+            search.select();
+            return;
+          }
+
           if (event.key === "Escape") {
             if (isFilterPanelOpen) {
               event.preventDefault();
@@ -772,6 +785,12 @@
             if (isSecretPanelOpen) {
               event.preventDefault();
               setSecretPanelOpen(false, { restoreFocus: true });
+              return;
+            }
+            if ((!isTypingContext(event.target) || document.activeElement === search) && search.value) {
+              event.preventDefault();
+              search.value = "";
+              update();
               return;
             }
           }

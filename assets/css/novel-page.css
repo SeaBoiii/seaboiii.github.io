@@ -81,12 +81,15 @@ a:hover{text-decoration:underline}
 .novel-actions a{display:inline-block;padding:.6rem .9rem;border-radius:8px;text-decoration:none;border:1px solid var(--border);background:var(--card);color:var(--link)}
 .novel-actions a.primary{background:var(--btn-bg);color:var(--btn-text);border-color:var(--btn-brd)}
 .novel-actions a:hover{filter:brightness(1.05)}
+.novel-actions a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
 .chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
 .chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
+.chapter-tools input[type=search]:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .chapter-list{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
 .chapter-list li a{display:flex;gap:.6rem;align-items:center;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
 .chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
+.chapter-list li a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
 .chapter-list li.completed a{opacity:.86}
 .chapter-list li.completed a:hover{opacity:1}
@@ -132,6 +135,7 @@ a:hover{text-decoration:underline}
 .related-list::-webkit-scrollbar-track{background:color-mix(in oklab, var(--card), var(--bg) 28%);border-radius:999px}
 .related-card{display:grid;grid-template-rows:auto 1fr;height:100%;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 20%);text-decoration:none;color:inherit;transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease}
 .related-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.17);background:color-mix(in oklab, var(--card), var(--text) 5%);text-decoration:none}
+.related-card:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .related-cover-wrap{display:block;aspect-ratio:2/3;overflow:hidden;background:color-mix(in oklab, var(--card), var(--bg) 35%)}
 .related-cover-wrap picture,
 .related-cover-wrap img{display:block;width:100%;height:100%;object-fit:cover}
@@ -150,3 +154,8 @@ a:hover{text-decoration:underline}
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
 .theme-toggle:hover{filter:brightness(1.05)}
+.theme-toggle:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  .cover-popover,.related-card,.theme-toggle,.novel-actions a{transition:none}
+  .related-card:hover{transform:none;box-shadow:none}
+}
