@@ -77,12 +77,7 @@
         var clearFiltersBtn = document.getElementById("clearFiltersBtn");
         var clearFiltersTopBtn = document.getElementById("clearFiltersTop");
         var activeFilterChips = document.getElementById("activeFilterChips");
-        var secretToggleBtn = document.getElementById("secretToggleBtn");
-        var secretPanel = document.getElementById("secretPanel");
-        var secretPassword = document.getElementById("secretPassword");
-        var secretUnlockBtn = document.getElementById("secretUnlockBtn");
-        var secretLockBtn = document.getElementById("secretLockBtn");
-        var secretStatus = document.getElementById("secretStatus");
+        var secretBtn = document.getElementById("secretBtn");
         if (
           !search ||
           !grid ||
@@ -92,7 +87,8 @@
           !sortSelect ||
           !seriesSelect ||
           !filterToggle ||
-          !filterPanel
+          !filterPanel ||
+          !secretBtn
         ) return;
         var cards = Array.prototype.slice.call(grid.querySelectorAll(".novel-card"));
         var activeStatusFilter = "all";
@@ -104,7 +100,8 @@
         var uiStateKey = "site:novels-ui";
         var correctPassword = "seaboiii";
         var focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-        var isSecretPanelOpen = false;
+        var lockIcon = String.fromCodePoint(128274);
+        var unlockIcon = String.fromCodePoint(128275);
 
         cards.forEach(function (card, idx) {
           card.dataset.initialIndex = String(idx);
@@ -272,64 +269,11 @@
           saveUiState();
         }
 
-        function setSecretStatus(message, isError) {
-          if (!secretStatus) return;
-          secretStatus.textContent = message || "";
-          secretStatus.classList.toggle("secret-status-error", !!isError);
-        }
-
-        function setSecretPanelOpen(open, options) {
-          if (!secretPanel || !secretToggleBtn) return;
-          options = options || {};
-          isSecretPanelOpen = !!open;
-          secretPanel.hidden = !isSecretPanelOpen;
-          secretToggleBtn.setAttribute("aria-expanded", isSecretPanelOpen ? "true" : "false");
-          if (isSecretPanelOpen && options.moveFocus !== false && secretPassword && !secretPassword.disabled) {
-            secretPassword.focus();
-            return;
-          }
-          if (!isSecretPanelOpen && options.restoreFocus && typeof secretToggleBtn.focus === "function") {
-            secretToggleBtn.focus();
-          }
-        }
-
-        function syncSecretControls() {
+        function syncSecretButton() {
           var unlocked = getUnlockedState();
-          if (secretToggleBtn) {
-            secretToggleBtn.classList.toggle("is-active", unlocked);
-            secretToggleBtn.textContent = unlocked ? "Hidden novels on" : "Hidden novels";
-          }
-          if (secretUnlockBtn) secretUnlockBtn.hidden = unlocked;
-          if (secretLockBtn) secretLockBtn.hidden = !unlocked;
-          if (secretPassword) {
-            secretPassword.disabled = unlocked;
-            if (unlocked) secretPassword.value = "";
-          }
-          if (unlocked) {
-            setSecretStatus("Hidden novels are visible.", false);
-          } else {
-            setSecretStatus("Enter password to reveal hidden novels.", false);
-          }
-        }
-
-        function attemptUnlockHiddenNovels() {
-          if (!secretPassword) return;
-          var pwd = (secretPassword.value || "").trim();
-          if (!pwd) {
-            setSecretStatus("Enter a password.", true);
-            secretPassword.focus();
-            return;
-          }
-          if (pwd !== correctPassword) {
-            setSecretStatus("Incorrect password.", true);
-            secretPassword.focus();
-            secretPassword.select();
-            return;
-          }
-          localStorage.setItem(unlockedKey, "true");
-          syncSecretControls();
-          setSecretStatus("Hidden novels unlocked.", false);
-          update();
+          secretBtn.textContent = unlocked ? unlockIcon : lockIcon;
+          secretBtn.title = unlocked ? unlockIcon : lockIcon;
+          secretBtn.setAttribute("aria-label", unlocked ? "Hide hidden novels" : "Unlock hidden novels");
         }
 
         function clearAllFilters() {
@@ -718,39 +662,31 @@
               seriesSelect.value = "all";
             } else if (type === "unlock") {
               localStorage.removeItem(unlockedKey);
-              syncSecretControls();
+              syncSecretButton();
             }
 
             update();
           });
         }
 
-        if (secretToggleBtn && secretPanel) {
-          secretToggleBtn.addEventListener("click", function () {
-            var willOpen = !isSecretPanelOpen;
-            setSecretPanelOpen(willOpen, { moveFocus: willOpen, restoreFocus: !willOpen });
-          });
-        }
+        if (secretBtn) {
+          secretBtn.addEventListener("click", function () {
+            var isUnlocked = getUnlockedState();
+            if (isUnlocked) {
+              localStorage.removeItem(unlockedKey);
+              syncSecretButton();
+              update();
+              return;
+            }
 
-        if (secretUnlockBtn && secretPassword) {
-          secretUnlockBtn.addEventListener("click", function () {
-            attemptUnlockHiddenNovels();
-          });
-        }
-
-        if (secretPassword) {
-          secretPassword.addEventListener("keydown", function (event) {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            attemptUnlockHiddenNovels();
-          });
-        }
-
-        if (secretLockBtn) {
-          secretLockBtn.addEventListener("click", function () {
-            localStorage.removeItem(unlockedKey);
-            syncSecretControls();
-            update();
+            var pwd = prompt("Enter password to unlock hidden novels:");
+            if (pwd === correctPassword) {
+              localStorage.setItem(unlockedKey, "true");
+              syncSecretButton();
+              update();
+            } else if (pwd) {
+              alert("Incorrect password.");
+            }
           });
         }
 
@@ -760,16 +696,11 @@
               setFilterPanelOpen(false, { restoreFocus: true });
             }
           }
-          if (isSecretPanelOpen && secretPanel && secretToggleBtn) {
-            if (!secretPanel.contains(event.target) && !secretToggleBtn.contains(event.target)) {
-              setSecretPanelOpen(false, { restoreFocus: true });
-            }
-          }
         });
 
         document.addEventListener("keydown", function (event) {
           var plainKey = !event.altKey && !event.ctrlKey && !event.metaKey;
-          if (plainKey && event.key === "/" && !isTypingContext(event.target) && !isFilterPanelOpen && !isSecretPanelOpen) {
+          if (plainKey && event.key === "/" && !isTypingContext(event.target) && !isFilterPanelOpen) {
             event.preventDefault();
             search.focus();
             search.select();
@@ -780,11 +711,6 @@
             if (isFilterPanelOpen) {
               event.preventDefault();
               setFilterPanelOpen(false, { restoreFocus: true });
-              return;
-            }
-            if (isSecretPanelOpen) {
-              event.preventDefault();
-              setSecretPanelOpen(false, { restoreFocus: true });
               return;
             }
             if ((!isTypingContext(event.target) || document.activeElement === search) && search.value) {
@@ -824,7 +750,7 @@
         });
 
         search.addEventListener("input", update);
-        syncSecretControls();
+        syncSecretButton();
 
         update();
       })();

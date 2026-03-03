@@ -213,12 +213,6 @@
         opacity: 0.58;
       }
 
-      .unlock-toggle.is-active {
-        background: var(--btn-bg);
-        color: var(--btn-text);
-        border-color: var(--btn-brd);
-      }
-
       .active-filter-chips {
         display: flex;
         flex-wrap: wrap;
@@ -348,38 +342,6 @@
       .filter-group-series-list {
         border-radius: 12px;
         min-height: 2.3rem;
-      }
-
-      .secret-panel {
-        border-top: 1px dashed var(--border);
-        padding-top: 0.75rem;
-        display: grid;
-        gap: 0.45rem;
-      }
-
-      .secret-panel[hidden] {
-        display: none;
-      }
-
-      .secret-panel-row {
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-        flex-wrap: wrap;
-      }
-
-      .secret-input {
-        flex: 1 1 190px;
-        min-width: 0;
-      }
-
-      .secret-status {
-        margin: 0;
-        font-size: 0.82rem;
-      }
-
-      .secret-status-error {
-        color: color-mix(in oklab, #b42318, var(--text) 35%);
       }
 
       .pill-button {
@@ -580,8 +542,7 @@
 
       @media (max-width: 719px) {
         .controls-top,
-        .controls-actions,
-        .secret-panel-row {
+        .controls-actions {
           flex-direction: column;
           align-items: stretch;
         }
@@ -626,6 +587,29 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+      }
+
+      .secret-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.75rem;
+        opacity: 0.55;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: opacity 0.15s ease, background-color 0.15s ease;
+      }
+
+      .secret-btn:hover {
+        opacity: 0.92;
+        background: color-mix(in oklab, var(--card), var(--text) 8%);
+      }
+
+      .secret-btn:focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 40%);
+        outline-offset: 2px;
+        opacity: 1;
       }
 
       @media (prefers-reduced-motion: reduce) {

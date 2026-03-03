@@ -51,9 +51,6 @@
       <button class="pill-button clear-filters-top" id="clearFiltersTop" type="button">
        Clear filters
       </button>
-      <button aria-controls="secretPanel" aria-expanded="false" class="pill-button unlock-toggle" id="secretToggleBtn" type="button">
-       Hidden novels
-      </button>
      </div>
      <div aria-live="polite" class="active-filter-chips" id="activeFilterChips">
      </div>
@@ -121,22 +118,6 @@
         </select>
        </div>
       </div>
-     </div>
-     <div class="secret-panel" hidden="" id="secretPanel">
-      <label class="filter-label" for="secretPassword">
-       Hidden novels password
-      </label>
-      <div class="secret-panel-row">
-       <input autocomplete="current-password" class="search secret-input" id="secretPassword" placeholder="Enter password" type="password"/>
-       <button class="pill-button" id="secretUnlockBtn" type="button">
-        Unlock
-       </button>
-       <button class="pill-button" hidden="" id="secretLockBtn" type="button">
-        Hide hidden
-       </button>
-      </div>
-      <p aria-live="polite" class="secret-status muted" id="secretStatus" role="status">
-      </p>
      </div>
      <div aria-live="polite" class="muted" id="resultsCount">
      </div>
@@ -817,6 +798,9 @@
       </span>
       SeaBoiii
      </div>
+     <button aria-label="Unlock hidden novels" class="secret-btn" id="secretBtn" title="&#128274;" type="button">
+      &#128274;
+     </button>
     </div>
    </div>
   </footer>
