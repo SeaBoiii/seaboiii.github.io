@@ -541,8 +541,7 @@
       }
 
       @media (max-width: 719px) {
-        .controls-top,
-        .controls-actions {
+        .controls-top {
           flex-direction: column;
           align-items: stretch;
         }

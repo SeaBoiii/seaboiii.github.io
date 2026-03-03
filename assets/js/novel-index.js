@@ -76,6 +76,7 @@
         var emptyStateCard = document.getElementById("novelEmptyState");
         var clearFiltersBtn = document.getElementById("clearFiltersBtn");
         var clearFiltersTopBtn = document.getElementById("clearFiltersTop");
+        var controlsActions = document.getElementById("controlsActions");
         var activeFilterChips = document.getElementById("activeFilterChips");
         var secretBtn = document.getElementById("secretBtn");
         if (
@@ -211,7 +212,11 @@
         function updateClearButtons() {
           var hasFilters = countActiveFilters() > 0;
           if (clearFiltersBtn) clearFiltersBtn.disabled = !hasFilters;
-          if (clearFiltersTopBtn) clearFiltersTopBtn.disabled = !hasFilters;
+          if (clearFiltersTopBtn) {
+            clearFiltersTopBtn.disabled = !hasFilters;
+            clearFiltersTopBtn.hidden = !hasFilters;
+          }
+          if (controlsActions) controlsActions.hidden = !hasFilters;
         }
 
         function renderActiveFilterChips() {
@@ -223,7 +228,6 @@
           if (activeSeriesFilter !== "all") chips.push({ type: "category", label: "Category: " + optionLabel(categorySelect, activeSeriesFilter) });
           if (activeSortFilter !== "recent") chips.push({ type: "sort", label: "Sort: " + optionLabel(sortSelect, activeSortFilter) });
           if (activeSeriesNameFilter !== "all") chips.push({ type: "series", label: "Series: " + optionLabel(seriesSelect, activeSeriesNameFilter) });
-          if (getUnlockedState()) chips.push({ type: "unlock", label: "Hidden novels visible" });
 
           activeFilterChips.innerHTML = "";
           activeFilterChips.hidden = chips.length === 0;
@@ -660,9 +664,6 @@
             } else if (type === "series") {
               activeSeriesNameFilter = "all";
               seriesSelect.value = "all";
-            } else if (type === "unlock") {
-              localStorage.removeItem(unlockedKey);
-              syncSecretButton();
             }
 
             update();
