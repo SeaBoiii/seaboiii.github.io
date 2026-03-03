@@ -2644,20 +2644,49 @@ def load_novel_catalog() -> dict:
 
     return catalog
 
-def _extract_import_sequence(name: str, fallback_order: Optional[int] = None) -> Optional[Tuple[str, int]]:
+def _normalize_import_stem(name: str) -> str:
+    """Normalize import filenames so tokens like 'Epilogue1' and 'EpilogueA' are detectable."""
     stem = Path(name).stem
+    if not stem:
+        return ""
 
-    m_ep = re.search(r"(?i)\bepilogue\b[\s._-]*([0-9]+)?", stem)
+    norm = re.sub(r"[_-]+", " ", stem)
+    # Split joined alpha/number boundaries (e.g. Chapter10 -> Chapter 10).
+    norm = re.sub(r"(?<=[A-Za-z])(?=[0-9])", " ", norm)
+    norm = re.sub(r"(?<=[0-9])(?=[A-Za-z])", " ", norm)
+    # Split keyword-attached alpha suffixes (e.g. EpilogueA -> Epilogue A).
+    norm = re.sub(r"(?i)\b(epilogue|chapter)(?=[A-Za-z])", r"\1 ", norm)
+    return re.sub(r"\s+", " ", norm).strip()
+
+def _extract_import_sequence(name: str, fallback_order: Optional[int] = None) -> Optional[Tuple[str, int]]:
+    stem = _normalize_import_stem(name)
+    fallback_num = None
+    try:
+        if fallback_order is not None:
+            cand = int(fallback_order)
+            if cand > 0:
+                fallback_num = cand
+    except Exception:
+        fallback_num = None
+
+    m_ep = re.search(r"(?i)\bepilogue\b(?:\s*[:.\-–—]*\s*([0-9]+))?", stem)
     if m_ep:
         val = m_ep.group(1)
-        return ("epilogue", int(val) if val and str(val).isdigit() else 1)
+        if val and str(val).isdigit():
+            return ("epilogue", int(val))
+        # Support lettered epilogues like "Epilogue A".
+        tail = stem[m_ep.end():]
+        m_alpha = re.match(r"\s*([A-Za-z])\b", tail)
+        if m_alpha:
+            return ("epilogue", ord(m_alpha.group(1).upper()) - ord("A") + 1)
+        return ("epilogue", fallback_num if fallback_num is not None else 1)
 
-    m_ch = re.search(r"(?i)\bchapter\b[\s._-]*([0-9]+)", stem)
+    m_ch = re.search(r"(?i)\bchapter\b(?:\s*[:.\-–—]*\s*([0-9]+))", stem)
     if m_ch:
         return ("chapter", int(m_ch.group(1)))
 
-    if fallback_order is not None and int(fallback_order) > 0:
-        return ("chapter", int(fallback_order))
+    if fallback_num is not None:
+        return ("chapter", fallback_num)
 
     m_any = re.search(r"([0-9]+)", stem)
     if m_any:
@@ -3741,13 +3770,15 @@ class Wizard(tk.Tk):
             ent = entries[i]
             info = ent["info"] or {}
             stem = ent["path"].stem
-            stem_guess = re.sub(r"[_-]+", " ", stem).strip().title()
+            stem_guess = _normalize_import_stem(stem).title()
             if ent["kind"] == "epilogue":
                 stem_after = re.sub(r"(?i)^.*?\bepilogue\b\s*\d*\s*[:.\-–—]*\s*", "", stem_guess).strip()
             else:
                 stem_after = re.sub(r"(?i)^.*?\bchapter\s*\d+\b\s*[:.\-–—]*\s*", "", stem_guess).strip()
 
             title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after or stem_guess)
+            if ent["kind"] == "epilogue" and re.fullmatch(r"[A-Za-z]", title_guess or ""):
+                title_guess = f"Epilogue {title_guess.upper()}"
             if not title_guess and ent["kind"] == "epilogue":
                 title_guess = f"Epilogue {ent['num']}"
             title_guess = _sanitize_auto_chapter_title(title_guess)
