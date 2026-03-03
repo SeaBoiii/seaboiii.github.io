@@ -1,9 +1,9 @@
 {
   "wizard_ui": {
-    "chapter_count": 6,
+    "chapter_count": 16,
     "edit_submode": "Append Chapters",
-    "existing_slug": "under-the-same-umbrella",
-    "geometry": "1380x1040+590+176",
-    "mode": "Edit Current"
+    "existing_slug": "untitled",
+    "geometry": "1380x1040+176+169",
+    "mode": "Create New"
   }
 }

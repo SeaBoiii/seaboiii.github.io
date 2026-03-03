@@ -1,6 +1,6 @@
 ---
 layout: novel
-Title: I M Dating My Anonymous Enemy
+Title: I'm Dating My Anonymous Enemy
 novel: i-m-dating-my-anonymous-enemy
 status: Complete
 blurb: >-

@@ -2313,9 +2313,11 @@ def _sanitize_auto_chapter_title(title: str) -> str:
     return s
 
 def _canonical_novel_title(slug: str, preferred_title: str = "") -> str:
-    card_title = _clean_novel_title_for_editor(str(novel_card_details(slug).get("title") or ""))
-    if card_title:
-        return card_title
+    card = novel_card_details(slug)
+    if bool(card.get("exists")):
+        card_title = _clean_novel_title_for_editor(str(card.get("title") or ""))
+        if card_title:
+            return card_title
 
     preferred = _clean_novel_title_for_editor(preferred_title)
     if preferred:
@@ -2809,6 +2811,9 @@ class Wizard(tk.Tk):
                 photo = tk.PhotoImage(file=str(icon_path))
             except Exception:
                 photo = None
+        elif ext == ".ico" and sys.platform == "win32":
+            # On Windows, iconbitmap() is enough and avoids PIL .ico size warnings.
+            photo = None
         elif _PILImage is not None and _PILImageTk is not None:
             try:
                 with _PILImage.open(icon_path) as im0:
@@ -4131,11 +4136,13 @@ class Wizard(tk.Tk):
                 for p in IMAGES_DIR.glob(f"{base}-*.{ext}"):
                     staged_paths.add(p)
 
+        commit_failed = False
         try:
             committed, git_msg = self._stage_and_commit(staged_paths, summary, description)
         except Exception as exc:
-            messagebox.showerror("Git commit failed", str(exc))
-            return
+            committed = False
+            commit_failed = True
+            git_msg = str(exc).strip() or "git commit failed"
 
         self._refresh_catalog()
         self._refresh_selected_cover_preview()
@@ -4151,6 +4158,13 @@ class Wizard(tk.Tk):
                 f"{git_msg}",
             )
             self.destroy()
+        elif commit_failed:
+            messagebox.showwarning(
+                "Done with warning",
+                f"{action} /novel/{slug}/ with {written} chapter(s).\n\n"
+                "Auto-commit failed. Please run git add/commit manually.\n\n"
+                f"{git_msg}",
+            )
         else:
             messagebox.showinfo(
                 "No commit",
