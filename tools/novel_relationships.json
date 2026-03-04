@@ -23,6 +23,12 @@
     "series_id": "abix-series",
     "series_label": "ABIX Series"
   },
+  "redstone-between-us": {
+    "related_to": "the-abix-chronicle",
+    "relation_type": "spin-off",
+    "series_id": "abix-series",
+    "series_label": "ABIX Series"
+  },
   "the-abix-chronicle": {
     "reading_order": 1,
     "series_id": "abix-series",
