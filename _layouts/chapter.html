@@ -130,7 +130,7 @@
 {% assign next_index = idx | plus: 1 %}
 {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
 
-
+<!--
 <section id="chapterCompletionPanel" class="chapter-complete" hidden aria-live="polite">
   <div class="chapter-complete-copy">
     <strong id="chapterCompletionTitle">Chapter completed</strong>
@@ -144,6 +144,7 @@
     <a id="chapterCompletionToc" class="btn complete-toc" href="{{ toc_url | relative_url }}">Back to chapters</a>
   </div>
 </section>
+-->
 
 <nav class="pager">
   {% if prev_index >= 0 %}
