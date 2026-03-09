@@ -9,6 +9,10 @@ gallery: |-
   /images/redstone-between-us-gallery-1.png
   /images/redstone-between-us-gallery-2.png
   /images/redstone-between-us-gallery-3.png
+  /images/redstone-between-us-gallery-4.png
+  /images/redstone-between-us-gallery-5.png
+  /images/redstone-between-us-gallery-6.png
+  /images/redstone-between-us-gallery-7.png
 order: 0
 ---
 
