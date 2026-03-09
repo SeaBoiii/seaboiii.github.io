@@ -1141,17 +1141,29 @@ def copy_cover_to_images(src_path: str, slug: str) -> str:
     shutil.copyfile(sp, dst)
     return f"/images/{dst.name}"
 
-def copy_gallery_to_images(src_paths: list[str], slug: str) -> tuple[list[str], list[Path]]:
-    slug = slugify(slug)
-    valid_paths = []
-    for raw in src_paths or []:
-        p = Path(str(raw or "")).expanduser()
-        if p.exists() and p.is_file():
-            valid_paths.append(p)
-    if not valid_paths:
-        return [], []
+def _gallery_index_from_url(url: str, slug: str) -> int:
+    u = str(url or "").strip()
+    if not u:
+        return 0
+    stem = Path(u).stem
+    m = re.match(rf"^{re.escape(slug)}-gallery-(\d+)$", stem)
+    if not m:
+        return 0
+    try:
+        return int(m.group(1))
+    except Exception:
+        return 0
 
-    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+def _next_gallery_index(slug: str, existing_urls: list[str]) -> int:
+    max_idx = 0
+    for url in _normalize_gallery_urls(existing_urls):
+        max_idx = max(max_idx, _gallery_index_from_url(url, slug))
+    for candidate in IMAGES_DIR.glob(f"{slug}-gallery-*"):
+        max_idx = max(max_idx, _gallery_index_from_url(candidate.name, slug))
+    return max_idx + 1 if max_idx > 0 else 1
+
+def remove_gallery_assets(slug: str) -> list[Path]:
+    slug = slugify(slug)
     removed = []
     for candidate in IMAGES_DIR.glob(f"{slug}-gallery-*"):
         try:
@@ -1160,17 +1172,49 @@ def copy_gallery_to_images(src_paths: list[str], slug: str) -> tuple[list[str], 
                 removed.append(candidate)
         except Exception:
             pass
+    return removed
 
-    gallery_urls = []
-    for idx, src in enumerate(valid_paths, start=1):
+def copy_gallery_to_images(
+    src_paths: list[str],
+    slug: str,
+    existing_urls: Optional[list[str]] = None,
+    mode: str = "replace",
+) -> tuple[list[str], list[str], list[Path]]:
+    slug = slugify(slug)
+    mode_key = str(mode or "").strip().lower()
+    if mode_key not in {"replace", "append"}:
+        mode_key = "replace"
+
+    valid_paths = []
+    for raw in src_paths or []:
+        p = Path(str(raw or "")).expanduser()
+        if p.exists() and p.is_file():
+            valid_paths.append(p)
+    if not valid_paths:
+        return _normalize_gallery_urls(existing_urls), [], []
+
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    existing = _normalize_gallery_urls(existing_urls)
+    removed = remove_gallery_assets(slug) if mode_key == "replace" else []
+
+    gallery_urls = [] if mode_key == "replace" else list(existing)
+    added_urls = []
+    next_idx = 1 if mode_key == "replace" else _next_gallery_index(slug, existing)
+    for src in valid_paths:
         ext = src.suffix.lower() or ".png"
         if ext not in SUPPORTED_COVER_EXTS:
             ext = ".png"
+        idx = next_idx
+        while (IMAGES_DIR / f"{slug}-gallery-{idx}{ext}").exists():
+            idx += 1
+        next_idx = idx + 1
         dst = IMAGES_DIR / f"{slug}-gallery-{idx}{ext}"
         shutil.copyfile(src, dst)
-        gallery_urls.append(f"/images/{dst.name}")
+        url = f"/images/{dst.name}"
+        gallery_urls.append(url)
+        added_urls.append(url)
 
-    return gallery_urls, removed
+    return _normalize_gallery_urls(gallery_urls), _normalize_gallery_urls(added_urls), removed
 
 def generate_responsive_variants_for_site_images(site_urls: list[str]) -> tuple[list[Path], list[str]]:
     urls = _normalize_gallery_urls(site_urls)
@@ -2468,6 +2512,10 @@ MODE_EDIT = "Edit Current"
 EDIT_SUBMODE_APPEND = "Append Chapters"
 EDIT_SUBMODE_EDIT = "Edit Current Chapters"
 SUPPORTED_COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+GALLERY_ACTION_KEEP = "keep"
+GALLERY_ACTION_APPEND = "append"
+GALLERY_ACTION_REPLACE = "replace"
+GALLERY_ACTION_REMOVE = "remove"
 
 def _normalize_status_choice(value: str) -> str:
     return "Complete" if str(value or "").strip().lower() == "complete" else "Incomplete"
@@ -2937,6 +2985,7 @@ class Wizard(tk.Tk):
         self.status_var = tk.StringVar(value="Complete")
         self.cover_var = tk.StringVar()
         self.blurb_var = tk.StringVar()
+        self.gallery_action_var = tk.StringVar(value=GALLERY_ACTION_KEEP)
         self.gallery_summary_var = tk.StringVar(value="No gallery images selected.")
         self.hidden_var = tk.BooleanVar(value=False)
         self.series_label_var = tk.StringVar()
@@ -3235,8 +3284,24 @@ class Wizard(tk.Tk):
         self.gallery_entry.grid(row=5, column=1, sticky="we", padx=(8, 8), pady=(8, 0))
         gallery_btns = ttk.Frame(form)
         gallery_btns.grid(row=5, column=2, columnspan=2, sticky="e", pady=(8, 0))
-        self.btn_gallery_browse = ttk.Button(gallery_btns, text="Select...", command=self._pick_gallery_images)
-        self.btn_gallery_browse.pack(side="left")
+        self.btn_gallery_append = ttk.Button(
+            gallery_btns,
+            text="Append...",
+            command=lambda: self._pick_gallery_images(GALLERY_ACTION_APPEND),
+        )
+        self.btn_gallery_append.pack(side="left")
+        self.btn_gallery_replace = ttk.Button(
+            gallery_btns,
+            text="Replace...",
+            command=lambda: self._pick_gallery_images(GALLERY_ACTION_REPLACE),
+        )
+        self.btn_gallery_replace.pack(side="left", padx=(6, 0))
+        self.btn_gallery_remove = ttk.Button(
+            gallery_btns,
+            text="Remove all",
+            command=self._mark_gallery_remove_all,
+        )
+        self.btn_gallery_remove.pack(side="left", padx=(6, 0))
         self.btn_gallery_clear = ttk.Button(gallery_btns, text="Clear", command=self._clear_gallery_selection)
         self.btn_gallery_clear.pack(side="left", padx=(6, 0))
 
@@ -3602,35 +3667,72 @@ class Wizard(tk.Tk):
             self.cover_var.set(p)
 
     def _refresh_gallery_summary(self):
-        if self.gallery_paths:
-            names = [Path(p).name for p in self.gallery_paths if str(p).strip()]
-            if names:
-                summary = ", ".join(names[:2])
-                if len(names) > 2:
-                    summary += f" +{len(names) - 2} more"
-                self.gallery_summary_var.set(f"{len(names)} selected: {summary}")
-                return
-
+        mode = self.mode_var.get()
+        action = str(self.gallery_action_var.get() or GALLERY_ACTION_KEEP).strip().lower()
+        names = [Path(p).name for p in self.gallery_paths if str(p).strip()]
         current_count = len(_normalize_gallery_urls(self._existing_gallery_urls))
-        if self.mode_var.get() == MODE_EDIT and current_count > 0:
-            self.gallery_summary_var.set(
-                f"Current gallery: {current_count} image(s). Select files to replace."
-            )
-        else:
-            self.gallery_summary_var.set("No gallery images selected.")
 
-    def _pick_gallery_images(self):
+        if action == GALLERY_ACTION_REMOVE:
+            self.gallery_summary_var.set("Will remove all gallery images on commit.")
+            return
+
+        if names:
+            summary = ", ".join(names[:2])
+            if len(names) > 2:
+                summary += f" +{len(names) - 2} more"
+            if mode == MODE_EDIT:
+                if action == GALLERY_ACTION_APPEND:
+                    self.gallery_summary_var.set(f"Will append {len(names)} image(s): {summary}")
+                else:
+                    self.gallery_summary_var.set(f"Will replace with {len(names)} image(s): {summary}")
+            else:
+                self.gallery_summary_var.set(f"{len(names)} selected: {summary}")
+            return
+
+        if mode == MODE_EDIT and current_count > 0:
+            self.gallery_summary_var.set(
+                f"Current gallery: {current_count} image(s). No gallery action selected."
+            )
+            return
+
+        self.gallery_summary_var.set("No gallery images selected.")
+
+    def _pick_gallery_images(self, action: str = GALLERY_ACTION_REPLACE):
         paths = filedialog.askopenfilenames(
             title="Choose gallery images",
             filetypes=[("Images", "*.png;*.jpg;*.jpeg;*.webp;*.gif"), ("All files", "*.*")],
         )
         if not paths:
             return
-        self.gallery_paths = [str(Path(p).expanduser()) for p in paths if str(p).strip()]
+        action_key = str(action or GALLERY_ACTION_REPLACE).strip().lower()
+        if action_key not in {GALLERY_ACTION_APPEND, GALLERY_ACTION_REPLACE}:
+            action_key = GALLERY_ACTION_REPLACE
+
+        selected = [str(Path(p).expanduser()) for p in paths if str(p).strip()]
+        if action_key == GALLERY_ACTION_APPEND and self.gallery_action_var.get() == GALLERY_ACTION_APPEND:
+            merged = []
+            seen = set()
+            for p in list(self.gallery_paths) + selected:
+                key = str(Path(p)).lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append(p)
+            self.gallery_paths = merged
+        else:
+            self.gallery_paths = selected
+
+        self.gallery_action_var.set(action_key)
+        self._refresh_gallery_summary()
+
+    def _mark_gallery_remove_all(self):
+        self.gallery_paths = []
+        self.gallery_action_var.set(GALLERY_ACTION_REMOVE)
         self._refresh_gallery_summary()
 
     def _clear_gallery_selection(self):
         self.gallery_paths = []
+        self.gallery_action_var.set(GALLERY_ACTION_KEEP)
         self._refresh_gallery_summary()
 
     def _refresh_selected_cover_preview(self):
@@ -3754,6 +3856,7 @@ class Wizard(tk.Tk):
             self.status_var.set("Complete")
             self.cover_var.set("")
             self.blurb_var.set("")
+            self.gallery_action_var.set(GALLERY_ACTION_KEEP)
             self.gallery_paths = []
             self._existing_gallery_urls = []
             self.hidden_var.set(False)
@@ -3767,6 +3870,7 @@ class Wizard(tk.Tk):
             self.spin_count.state(["!disabled"])
             self.btn_bulk.state(["!disabled"])
             self.btn_bulk_replace.state(["disabled"])
+            self.btn_gallery_remove.state(["disabled"])
 
             self.lbl_existing.grid_remove()
             self.existing_combo.grid_remove()
@@ -3789,6 +3893,7 @@ class Wizard(tk.Tk):
             if self._existing_slugs and not slugify(self.existing_slug_var.get()):
                 self.existing_slug_var.set(self._existing_slugs[0])
             self.btn_bulk_replace.state(["!disabled"])
+            self.btn_gallery_remove.state(["!disabled"])
             self._on_existing_selected()
 
         self.chapter_tabs = []
@@ -3829,6 +3934,7 @@ class Wizard(tk.Tk):
         self.blurb_var.set(str(idx_meta.get("blurb") or ""))
         self.hidden_var.set(bool(card_meta.get("hidden")))
         self.cover_var.set("")
+        self.gallery_action_var.set(GALLERY_ACTION_KEEP)
         self.gallery_paths = []
         self._existing_gallery_urls = _normalize_gallery_urls(idx_meta.get("gallery"))
         self._refresh_gallery_summary()
@@ -4308,9 +4414,27 @@ class Wizard(tk.Tk):
         existing_idx_meta = read_novel_index_metadata(slug) if mode == MODE_EDIT else {"gallery": []}
         gallery_urls = _normalize_gallery_urls(existing_idx_meta.get("gallery"))
         gallery_uploaded_this_run = False
-        if self.gallery_paths:
-            gallery_urls, removed_gallery = copy_gallery_to_images(self.gallery_paths, slug)
-            gallery_uploaded_this_run = True
+        gallery_optimize_targets = []
+        gallery_action = (
+            str(self.gallery_action_var.get() or GALLERY_ACTION_KEEP).strip().lower()
+            if mode == MODE_EDIT
+            else (GALLERY_ACTION_REPLACE if self.gallery_paths else GALLERY_ACTION_KEEP)
+        )
+
+        if gallery_action == GALLERY_ACTION_REMOVE and mode == MODE_EDIT:
+            removed_gallery = remove_gallery_assets(slug)
+            for p in removed_gallery:
+                staged_paths.add(p)
+            gallery_urls = []
+        elif gallery_action in {GALLERY_ACTION_APPEND, GALLERY_ACTION_REPLACE} and self.gallery_paths:
+            gallery_urls, added_gallery_urls, removed_gallery = copy_gallery_to_images(
+                self.gallery_paths,
+                slug,
+                existing_urls=gallery_urls,
+                mode=gallery_action,
+            )
+            gallery_optimize_targets = list(added_gallery_urls) if gallery_action == GALLERY_ACTION_APPEND else list(gallery_urls)
+            gallery_uploaded_this_run = bool(gallery_optimize_targets)
             for p in removed_gallery:
                 staged_paths.add(p)
             for url in gallery_urls:
@@ -4400,7 +4524,7 @@ class Wizard(tk.Tk):
                     staged_paths.add(p)
 
         if gallery_uploaded_this_run:
-            generated_variants, gallery_optimize_issues = generate_responsive_variants_for_site_images(gallery_urls)
+            generated_variants, gallery_optimize_issues = generate_responsive_variants_for_site_images(gallery_optimize_targets)
             for p in generated_variants:
                 staged_paths.add(p)
             if gallery_optimize_issues:
