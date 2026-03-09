@@ -5,6 +5,10 @@ novel: redstone-between-us
 status: Complete
 blurb: >-
   Aleem, a grounded, logical Singaporean (ABIX’s steady chaos-brain) meets a “girl” on a Minecraft survival server and becomes her survival mate. Night after night, their pixel world turns into a sanctuary—until voice chat becomes confession, and confession becomes a video call… where “Sharon” is revealed to be Myoui Mina. Now their romance isn’t just long-distance—it’s high-risk, high-stakes, and built on the fragile trust between a fan and the woman behind an idol.
+gallery: |-
+  /images/redstone-between-us-gallery-1.png
+  /images/redstone-between-us-gallery-2.png
+  /images/redstone-between-us-gallery-3.png
 order: 0
 ---
 
