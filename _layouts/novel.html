@@ -156,17 +156,6 @@
   {% endfor %}
 {% endcapture %}
 {% assign gallery_markup = gallery_markup | strip %}
-{% if gallery_markup != '' %}
-<section class="novel-gallery" aria-label="Gallery">
-  <div class="novel-gallery-head">
-    <h2>Gallery</h2>
-    <p class="small-note">Tap any image to open full size.</p>
-  </div>
-  <ul class="novel-gallery-grid">
-    {{ gallery_markup }}
-  </ul>
-</section>
-{% endif %}
 
 <div class="chapter-tools">
   <input id="chapterSearch" type="search" placeholder="Search chapters and epilogues... (title, number, or letter)">
@@ -191,6 +180,18 @@
   {% endfor %}
 </ul>
 <p id="chapterSearchEmpty" class="chapter-empty" role="status" aria-live="polite" hidden>No chapters match your search.</p>
+
+{% if gallery_markup != '' %}
+<section class="novel-gallery" aria-label="Gallery">
+  <div class="novel-gallery-head">
+    <h2>Gallery</h2>
+    <p class="small-note">Tap any image to open full size.</p>
+  </div>
+  <ul class="novel-gallery-grid">
+    {{ gallery_markup }}
+  </ul>
+</section>
+{% endif %}
 
 <section id="relatedNovelsSection" class="related-novels" hidden>
   <h2>Related novels</h2>
