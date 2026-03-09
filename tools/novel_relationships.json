@@ -29,6 +29,12 @@
     "series_id": "abix-series",
     "series_label": "ABIX Series"
   },
+  "second-skin": {
+    "reading_order": 1,
+    "relation_type": "original",
+    "series_id": "secondskin",
+    "series_label": "secondskin"
+  },
   "second-skin-keyhole-protocol": {
     "reading_order": 2,
     "related_to": "second-skin",
