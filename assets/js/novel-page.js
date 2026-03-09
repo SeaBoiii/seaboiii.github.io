@@ -174,6 +174,129 @@
   cover.addEventListener('touchstart', ensurePopoverImageLoaded, { once: true, passive: true });
 })();
 
+// Gallery lightbox: browse all gallery images without leaving the novel page
+(function() {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.novel-gallery-link[data-gallery-full]'));
+  var lightbox = document.getElementById('galleryLightbox');
+  if (!links.length || !lightbox) return;
+
+  var backdrop = lightbox.querySelector('[data-gallery-dismiss]');
+  var closeBtn = lightbox.querySelector('[data-gallery-close]');
+  var prevBtn = lightbox.querySelector('[data-gallery-prev]');
+  var nextBtn = lightbox.querySelector('[data-gallery-next]');
+  var image = document.getElementById('galleryLightboxImage');
+  var counter = document.getElementById('galleryLightboxCounter');
+  var openOriginal = document.getElementById('galleryLightboxOpenOriginal');
+  if (!backdrop || !closeBtn || !prevBtn || !nextBtn || !image || !counter || !openOriginal) return;
+
+  var activeIndex = 0;
+  var opened = false;
+  var lastFocused = null;
+  var touchStartX = null;
+
+  function clampIndex(index) {
+    if (!links.length) return 0;
+    var n = index % links.length;
+    return n < 0 ? n + links.length : n;
+  }
+
+  function currentLink() {
+    return links[activeIndex] || null;
+  }
+
+  function updateLightbox(index) {
+    activeIndex = clampIndex(index);
+    var link = currentLink();
+    if (!link) return;
+
+    var full = link.getAttribute('data-gallery-full') || link.getAttribute('href') || '';
+    var alt = link.getAttribute('data-gallery-alt') || '';
+    image.onerror = function() {
+      var fallback = link.getAttribute('href') || full;
+      if (!fallback) return;
+      image.onerror = null;
+      image.src = fallback;
+    };
+    image.src = full;
+    image.alt = alt;
+    counter.textContent = (activeIndex + 1) + ' / ' + links.length;
+    openOriginal.href = full || '#';
+  }
+
+  function openAt(index) {
+    if (!links.length) return;
+    lastFocused = document.activeElement;
+    opened = true;
+    lightbox.hidden = false;
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('gallery-lightbox-open');
+    updateLightbox(index);
+    closeBtn.focus();
+  }
+
+  function closeLightbox() {
+    if (!opened) return;
+    opened = false;
+    lightbox.hidden = true;
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('gallery-lightbox-open');
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus();
+    }
+  }
+
+  function nextImage() {
+    updateLightbox(activeIndex + 1);
+  }
+
+  function prevImage() {
+    updateLightbox(activeIndex - 1);
+  }
+
+  links.forEach(function(link, index) {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+      openAt(index);
+    });
+  });
+
+  backdrop.addEventListener('click', closeLightbox);
+  closeBtn.addEventListener('click', closeLightbox);
+  prevBtn.addEventListener('click', prevImage);
+  nextBtn.addEventListener('click', nextImage);
+
+  document.addEventListener('keydown', function(event) {
+    if (!opened) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeLightbox();
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      nextImage();
+      return;
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      prevImage();
+    }
+  });
+
+  lightbox.addEventListener('touchstart', function(event) {
+    if (!opened || !event.touches || !event.touches.length) return;
+    touchStartX = event.touches[0].clientX;
+  }, { passive: true });
+  lightbox.addEventListener('touchend', function(event) {
+    if (!opened || touchStartX === null || !event.changedTouches || !event.changedTouches.length) return;
+    var dx = event.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) nextImage();
+    else prevImage();
+  }, { passive: true });
+})();
+
 // Filter chapters
 (function() {
   var q = document.getElementById('chapterSearch');

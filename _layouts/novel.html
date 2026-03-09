@@ -115,7 +115,15 @@
     {% if gallery_url != '' %}
       {% assign gallery_root = gallery_url | replace: '.png', '' | replace: '.jpg', '' | replace: '.jpeg', '' | replace: '.webp', '' | replace: '.gif', '' %}
       <li class="novel-gallery-item">
-        <a class="novel-gallery-link" href="{{ gallery_url | relative_url }}" target="_blank" rel="noopener" aria-label="Open gallery image {{ forloop.index }} in full size">
+        <a
+          class="novel-gallery-link"
+          href="{{ gallery_url | relative_url }}"
+          target="_blank"
+          rel="noopener"
+          data-gallery-full="{{ gallery_url | relative_url }}"
+          data-gallery-alt="{{ novel_display_title }} gallery image {{ forloop.index }}"
+          aria-label="Open gallery image {{ forloop.index }} in full size"
+        >
           <picture>
             <source
               type="image/webp"
@@ -190,6 +198,21 @@
   <ul class="novel-gallery-grid">
     {{ gallery_markup }}
   </ul>
+  <div id="galleryLightbox" class="gallery-lightbox" hidden aria-hidden="true">
+    <div class="gallery-lightbox-backdrop" data-gallery-dismiss></div>
+    <div class="gallery-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Gallery image viewer">
+      <button type="button" class="gallery-lightbox-close" data-gallery-close>Back to novel</button>
+      <div class="gallery-lightbox-stage">
+        <button type="button" class="gallery-lightbox-nav prev" data-gallery-prev aria-label="Previous image">&#10094;</button>
+        <img id="galleryLightboxImage" src="" alt="" loading="eager" decoding="async">
+        <button type="button" class="gallery-lightbox-nav next" data-gallery-next aria-label="Next image">&#10095;</button>
+      </div>
+      <div class="gallery-lightbox-meta">
+        <span id="galleryLightboxCounter" class="small-note"></span>
+        <a id="galleryLightboxOpenOriginal" href="#" target="_blank" rel="noopener">Open full size</a>
+      </div>
+    </div>
+  </div>
 </section>
 {% endif %}
 
