@@ -26,6 +26,7 @@
 {% assign cover_root = cover_url | replace: '.png', '' | replace: '.jpg', '' | replace: '.jpeg', '' | replace: '.webp', '' %}
 {% assign status = page.status | default: 'Incomplete' %}
 {% assign blurb = page.blurb %}
+{% assign gallery_lines = page.gallery | default: '' | newline_to_br | split: '<br />' %}
 {% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
 {% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
 
@@ -107,6 +108,65 @@
     </div>
   </div>
 </div>
+
+{% capture gallery_markup %}
+  {% for entry in gallery_lines %}
+    {% assign gallery_url = entry | strip %}
+    {% if gallery_url != '' %}
+      {% assign gallery_root = gallery_url | replace: '.png', '' | replace: '.jpg', '' | replace: '.jpeg', '' | replace: '.webp', '' | replace: '.gif', '' %}
+      <li class="novel-gallery-item">
+        <a class="novel-gallery-link" href="{{ gallery_url | relative_url }}" target="_blank" rel="noopener" aria-label="Open gallery image {{ forloop.index }} in full size">
+          <picture>
+            <source
+              type="image/webp"
+              srcset="
+                {{ gallery_root | append: '-320.webp' | relative_url }} 320w,
+                {{ gallery_root | append: '-640.webp' | relative_url }} 640w,
+                {{ gallery_root | append: '-960.webp' | relative_url }} 960w
+              "
+              sizes="(max-width: 720px) 48vw, (max-width: 1100px) 31vw, 280px"
+            >
+            <source
+              type="image/jpeg"
+              srcset="
+                {{ gallery_root | append: '-320.jpg' | relative_url }} 320w,
+                {{ gallery_root | append: '-640.jpg' | relative_url }} 640w,
+                {{ gallery_root | append: '-960.jpg' | relative_url }} 960w
+              "
+              sizes="(max-width: 720px) 48vw, (max-width: 1100px) 31vw, 280px"
+            >
+            <img
+              src="{{ gallery_root | append: '-640.jpg' | relative_url }}"
+              srcset="
+                {{ gallery_root | append: '-320.jpg' | relative_url }} 320w,
+                {{ gallery_root | append: '-640.jpg' | relative_url }} 640w,
+                {{ gallery_root | append: '-960.jpg' | relative_url }} 960w
+              "
+              sizes="(max-width: 720px) 48vw, (max-width: 1100px) 31vw, 280px"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low"
+              alt="{{ novel_display_title }} gallery image {{ forloop.index }}"
+              onerror="this.onerror=null;this.removeAttribute('srcset');this.src='{{ gallery_url | relative_url }}';"
+            >
+          </picture>
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+{% endcapture %}
+{% assign gallery_markup = gallery_markup | strip %}
+{% if gallery_markup != '' %}
+<section class="novel-gallery" aria-label="Gallery">
+  <div class="novel-gallery-head">
+    <h2>Gallery</h2>
+    <p class="small-note">Tap any image to open full size.</p>
+  </div>
+  <ul class="novel-gallery-grid">
+    {{ gallery_markup }}
+  </ul>
+</section>
+{% endif %}
 
 <div class="chapter-tools">
   <input id="chapterSearch" type="search" placeholder="Search chapters and epilogues... (title, number, or letter)">

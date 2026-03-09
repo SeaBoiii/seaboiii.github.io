@@ -83,6 +83,15 @@ a:hover{text-decoration:underline}
 .novel-actions a:hover{filter:brightness(1.05)}
 .novel-actions a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
+.novel-gallery{margin:1rem 0 1.2rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.novel-gallery-head{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.7rem;flex-wrap:wrap}
+.novel-gallery h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
+.novel-gallery-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.62rem}
+.novel-gallery-item{min-width:0}
+.novel-gallery-link{display:block;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:color-mix(in oklab,var(--card),var(--bg) 26%);transition:transform .16s ease,box-shadow .16s ease}
+.novel-gallery-link:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.18);text-decoration:none}
+.novel-gallery-link:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
+.novel-gallery-link picture,.novel-gallery-link img{display:block;width:100%;height:100%;aspect-ratio:4/5;object-fit:cover}
 .chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
 .chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
 .chapter-tools input[type=search]:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
@@ -156,6 +165,7 @@ a:hover{text-decoration:underline}
 .theme-toggle:hover{filter:brightness(1.05)}
 .theme-toggle:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){
-  .cover-popover,.related-card,.theme-toggle,.novel-actions a{transition:none}
+  .cover-popover,.related-card,.novel-gallery-link,.theme-toggle,.novel-actions a{transition:none}
   .related-card:hover{transform:none;box-shadow:none}
+  .novel-gallery-link:hover{transform:none;box-shadow:none}
 }

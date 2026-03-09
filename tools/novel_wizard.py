@@ -72,6 +72,7 @@ WIZARD_ICON_CANDIDATES = [
     REPO_ROOT / "favicon-32x32.png",
 ]
 MARKDOWN_EXTS = {".md", ".markdown", ".mdown", ".mkd"}
+RESPONSIVE_IMAGE_WIDTHS = (320, 640, 960)
 
 RELATION_TYPE_LABELS = {
     "original": "Original",
@@ -87,7 +88,7 @@ OPTIONAL_DEPENDENCIES = [
     {"key": "mammoth", "package": "mammoth", "label": "mammoth", "purpose": "DOCX chapter import"},
     {"key": "striprtf", "package": "striprtf", "label": "striprtf", "purpose": "RTF paste conversion"},
     {"key": "beautifulsoup4", "package": "beautifulsoup4", "label": "beautifulsoup4", "purpose": "novel card/relationship HTML parsing"},
-    {"key": "pillow", "package": "pillow", "label": "pillow", "purpose": "image previews and richer icon conversion"},
+    {"key": "pillow", "package": "pillow", "label": "pillow", "purpose": "image previews, gallery optimization, and richer icon conversion"},
     {"key": "wordfreq", "package": "wordfreq", "label": "wordfreq", "purpose": "stronger dictionary filtering for name extraction"},
 ]
 
@@ -963,10 +964,45 @@ def _format_blurb_yaml_block(blurb: str) -> str:
     lines = text.splitlines() or ["A captivating story."]
     return "\n".join(f"  {line}" for line in lines)
 
+def _normalize_gallery_urls(value) -> list[str]:
+    if value is None:
+        return []
+
+    raw_items = []
+    if isinstance(value, (list, tuple, set)):
+        raw_items = list(value)
+    else:
+        raw_items = str(value).splitlines()
+
+    out = []
+    seen = set()
+    for raw in raw_items:
+        url = str(raw or "").strip().replace("\\", "/")
+        if not url:
+            continue
+        if not url.startswith(("/", "http://", "https://")):
+            if url.lower().startswith("images/"):
+                url = "/" + url.lstrip("/")
+            else:
+                url = "/images/" + Path(url).name
+        if url in seen:
+            continue
+        seen.add(url)
+        out.append(url)
+    return out
+
+def _format_gallery_yaml_block(gallery_urls: list[str]) -> str:
+    items = _normalize_gallery_urls(gallery_urls)
+    if not items:
+        return ""
+    lines = "\n".join(f"  {url}" for url in items)
+    return f"gallery: |-\n{lines}\n"
+
 def build_index_md(
     slug: str,
     status: str = "Incomplete",
     blurb: str = "",
+    gallery_urls: Optional[list[str]] = None,
     title: Optional[str] = None,
     body: Optional[str] = None,
 ) -> str:
@@ -974,6 +1010,7 @@ def build_index_md(
     body_text = body if body is not None else DEFAULT_NOVEL_INDEX_BODY
     body_text = body_text if body_text.endswith("\n") else body_text + "\n"
     blurb_yaml = _format_blurb_yaml_block(blurb)
+    gallery_yaml = _format_gallery_yaml_block(gallery_urls or [])
     return (
         "---\n"
         f"layout: novel\n"
@@ -982,6 +1019,7 @@ def build_index_md(
         f"status: {status}\n"
         f"blurb: >-\n"
         f"{blurb_yaml}\n"
+        f"{gallery_yaml}"
         f"order: 0\n"
         "---\n\n"
         f"{body_text}"
@@ -1102,6 +1140,83 @@ def copy_cover_to_images(src_path: str, slug: str) -> str:
     dst = IMAGES_DIR / f"{slug}-cover{ext}"
     shutil.copyfile(sp, dst)
     return f"/images/{dst.name}"
+
+def copy_gallery_to_images(src_paths: list[str], slug: str) -> tuple[list[str], list[Path]]:
+    slug = slugify(slug)
+    valid_paths = []
+    for raw in src_paths or []:
+        p = Path(str(raw or "")).expanduser()
+        if p.exists() and p.is_file():
+            valid_paths.append(p)
+    if not valid_paths:
+        return [], []
+
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    removed = []
+    for candidate in IMAGES_DIR.glob(f"{slug}-gallery-*"):
+        try:
+            if candidate.is_file():
+                candidate.unlink()
+                removed.append(candidate)
+        except Exception:
+            pass
+
+    gallery_urls = []
+    for idx, src in enumerate(valid_paths, start=1):
+        ext = src.suffix.lower() or ".png"
+        if ext not in SUPPORTED_COVER_EXTS:
+            ext = ".png"
+        dst = IMAGES_DIR / f"{slug}-gallery-{idx}{ext}"
+        shutil.copyfile(src, dst)
+        gallery_urls.append(f"/images/{dst.name}")
+
+    return gallery_urls, removed
+
+def generate_responsive_variants_for_site_images(site_urls: list[str]) -> tuple[list[Path], list[str]]:
+    urls = _normalize_gallery_urls(site_urls)
+    if not urls:
+        return [], []
+    if _PILImage is None:
+        return [], ["Install pillow to generate responsive gallery image variants."]
+
+    generated = []
+    issues = []
+    resampling = getattr(_PILImage, "Resampling", None)
+    lanczos = getattr(resampling, "LANCZOS", None) if resampling is not None else None
+    if lanczos is None:
+        lanczos = getattr(_PILImage, "LANCZOS", None)
+    if lanczos is None:
+        lanczos = 1
+
+    for url in urls:
+        src = _local_path_from_site_url(url)
+        if src is None or not src.exists():
+            issues.append(f"Missing source for gallery image: {url}")
+            continue
+        base = src.stem
+        try:
+            with _PILImage.open(src) as im0:
+                rgb = im0.convert("RGB")
+                for w in RESPONSIVE_IMAGE_WIDTHS:
+                    im = rgb.copy()
+                    im.thumbnail((w, w * 5000), lanczos)
+                    webp = IMAGES_DIR / f"{base}-{w}.webp"
+                    jpg = IMAGES_DIR / f"{base}-{w}.jpg"
+                    im.save(webp, format="WEBP", quality=78, method=6)
+                    im.save(jpg, format="JPEG", quality=80, optimize=True, progressive=True)
+                    generated.extend([webp, jpg])
+        except Exception as exc:
+            issues.append(f"Could not optimize {src.name}: {exc}")
+
+    unique_generated = []
+    seen = set()
+    for p in generated:
+        key = str(p).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_generated.append(p)
+    return unique_generated, issues
 
 def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, status_choice: str, hidden: bool = False):
     """Insert an <li> into /novel/index.html inside <ul class="novel-grid" id="novelGrid"> if possible."""
@@ -2437,6 +2552,7 @@ def read_novel_index_metadata(slug: str) -> dict:
         "title": pretty(slug),
         "status": "Incomplete",
         "blurb": "",
+        "gallery": [],
         "body": DEFAULT_NOVEL_INDEX_BODY,
     }
     if not idx.exists():
@@ -2458,12 +2574,21 @@ def read_novel_index_metadata(slug: str) -> dict:
     if blurb:
         data["blurb"] = blurb
 
+    gallery_raw = fm.get("gallery")
+    data["gallery"] = _normalize_gallery_urls(gallery_raw)
+
     if body.strip():
         data["body"] = body if body.endswith("\n") else body + "\n"
 
     return data
 
-def write_novel_index_metadata(slug: str, title: str, status: str, blurb: str) -> Path:
+def write_novel_index_metadata(
+    slug: str,
+    title: str,
+    status: str,
+    blurb: str,
+    gallery_urls: Optional[list[str]] = None,
+) -> Path:
     slug = slugify(slug)
     idx = NOVEL_DIR / slug / "index.md"
     existing = read_novel_index_metadata(slug)
@@ -2471,10 +2596,16 @@ def write_novel_index_metadata(slug: str, title: str, status: str, blurb: str) -
         slug=slug,
         preferred_title=title or existing.get("title") or "",
     )
+    normalized_gallery = (
+        _normalize_gallery_urls(gallery_urls)
+        if gallery_urls is not None
+        else _normalize_gallery_urls(existing.get("gallery"))
+    )
     md = build_index_md(
         slug=slug,
         status=_normalize_status_choice(status),
         blurb=blurb,
+        gallery_urls=normalized_gallery,
         title=normalized_title,
         body=existing.get("body") or DEFAULT_NOVEL_INDEX_BODY,
     )
@@ -2806,6 +2937,7 @@ class Wizard(tk.Tk):
         self.status_var = tk.StringVar(value="Complete")
         self.cover_var = tk.StringVar()
         self.blurb_var = tk.StringVar()
+        self.gallery_summary_var = tk.StringVar(value="No gallery images selected.")
         self.hidden_var = tk.BooleanVar(value=False)
         self.series_label_var = tk.StringVar()
         self.series_order_var = tk.StringVar()
@@ -2822,6 +2954,8 @@ class Wizard(tk.Tk):
         self.catalog = {}
         self._existing_slugs = []
         self._existing_chapter_entries = []
+        self.gallery_paths = []
+        self._existing_gallery_urls = []
 
         # Chapters buffer: list of dict {order,title_var,text}
         self.chapter_tabs = []
@@ -3095,8 +3229,19 @@ class Wizard(tk.Tk):
         self.btn_browse = ttk.Button(form, text="Browse...", command=self._pick_cover)
         self.btn_browse.grid(row=4, column=3, sticky="e", pady=(8, 0))
 
+        self.lbl_gallery = ttk.Label(form, text="Gallery Images")
+        self.lbl_gallery.grid(row=5, column=0, sticky="w", pady=(8, 0))
+        self.gallery_entry = ttk.Entry(form, textvariable=self.gallery_summary_var, state="readonly")
+        self.gallery_entry.grid(row=5, column=1, sticky="we", padx=(8, 8), pady=(8, 0))
+        gallery_btns = ttk.Frame(form)
+        gallery_btns.grid(row=5, column=2, columnspan=2, sticky="e", pady=(8, 0))
+        self.btn_gallery_browse = ttk.Button(gallery_btns, text="Select...", command=self._pick_gallery_images)
+        self.btn_gallery_browse.pack(side="left")
+        self.btn_gallery_clear = ttk.Button(gallery_btns, text="Clear", command=self._clear_gallery_selection)
+        self.btn_gallery_clear.pack(side="left", padx=(6, 0))
+
         self.rel_frame = ttk.LabelFrame(form, text="Relationships", padding=(8, 6))
-        self.rel_frame.grid(row=5, column=0, columnspan=4, sticky="we", pady=(10, 0))
+        self.rel_frame.grid(row=6, column=0, columnspan=4, sticky="we", pady=(10, 0))
         self.rel_frame.columnconfigure(1, weight=1)
         self.rel_frame.columnconfigure(3, weight=1)
 
@@ -3129,7 +3274,7 @@ class Wizard(tk.Tk):
             form,
             text="Related slug is searchable. Type a few letters to narrow likely novels.",
             style="Hint.TLabel",
-        ).grid(row=6, column=0, columnspan=4, sticky="w", pady=(8, 0))
+        ).grid(row=7, column=0, columnspan=4, sticky="w", pady=(8, 0))
 
         preview_col = ttk.Frame(top)
         preview_col.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
@@ -3327,10 +3472,10 @@ class Wizard(tk.Tk):
         title = (self.title_var.get() or pretty(slug)).strip()
         if self.mode_var.get() == MODE_CREATE:
             summary = f"feat(novel): create {slug}"
-            desc = f"Create '{title}' with metadata, relationships, cover updates, and chapter files."
+            desc = f"Create '{title}' with metadata, relationships, cover/gallery assets, and chapter files."
         else:
             summary = f"chore(novel): update {slug}"
-            desc = f"Update '{title}' metadata, relationships, cover assets, and appended chapters."
+            desc = f"Update '{title}' metadata, relationships, cover/gallery assets, and appended chapters."
 
         cur_summary = self.commit_summary_var.get().strip()
         cur_desc = self._get_commit_description()
@@ -3456,6 +3601,38 @@ class Wizard(tk.Tk):
         if p:
             self.cover_var.set(p)
 
+    def _refresh_gallery_summary(self):
+        if self.gallery_paths:
+            names = [Path(p).name for p in self.gallery_paths if str(p).strip()]
+            if names:
+                summary = ", ".join(names[:2])
+                if len(names) > 2:
+                    summary += f" +{len(names) - 2} more"
+                self.gallery_summary_var.set(f"{len(names)} selected: {summary}")
+                return
+
+        current_count = len(_normalize_gallery_urls(self._existing_gallery_urls))
+        if self.mode_var.get() == MODE_EDIT and current_count > 0:
+            self.gallery_summary_var.set(
+                f"Current gallery: {current_count} image(s). Select files to replace."
+            )
+        else:
+            self.gallery_summary_var.set("No gallery images selected.")
+
+    def _pick_gallery_images(self):
+        paths = filedialog.askopenfilenames(
+            title="Choose gallery images",
+            filetypes=[("Images", "*.png;*.jpg;*.jpeg;*.webp;*.gif"), ("All files", "*.*")],
+        )
+        if not paths:
+            return
+        self.gallery_paths = [str(Path(p).expanduser()) for p in paths if str(p).strip()]
+        self._refresh_gallery_summary()
+
+    def _clear_gallery_selection(self):
+        self.gallery_paths = []
+        self._refresh_gallery_summary()
+
     def _refresh_selected_cover_preview(self):
         if self.mode_var.get() != MODE_EDIT:
             self._selected_cover_preview_img = None
@@ -3577,6 +3754,8 @@ class Wizard(tk.Tk):
             self.status_var.set("Complete")
             self.cover_var.set("")
             self.blurb_var.set("")
+            self.gallery_paths = []
+            self._existing_gallery_urls = []
             self.hidden_var.set(False)
             self.series_label_var.set("")
             self.series_order_var.set("")
@@ -3614,6 +3793,7 @@ class Wizard(tk.Tk):
 
         self.chapter_tabs = []
         self._build_chapter_tabs()
+        self._refresh_gallery_summary()
         self._refresh_related_choices(self.related_to_var.get())
         self._refresh_selected_cover_preview()
         self._refresh_upload_cover_preview()
@@ -3649,6 +3829,9 @@ class Wizard(tk.Tk):
         self.blurb_var.set(str(idx_meta.get("blurb") or ""))
         self.hidden_var.set(bool(card_meta.get("hidden")))
         self.cover_var.set("")
+        self.gallery_paths = []
+        self._existing_gallery_urls = _normalize_gallery_urls(idx_meta.get("gallery"))
+        self._refresh_gallery_summary()
 
         rel = relationship_entry_for_slug(slug)
         self.series_label_var.set(str(rel.get("series_label") or ""))
@@ -4122,11 +4305,25 @@ class Wizard(tk.Tk):
             messagebox.showerror("No chapters", "Please enter at least one chapter body.")
             return
 
+        existing_idx_meta = read_novel_index_metadata(slug) if mode == MODE_EDIT else {"gallery": []}
+        gallery_urls = _normalize_gallery_urls(existing_idx_meta.get("gallery"))
+        gallery_uploaded_this_run = False
+        if self.gallery_paths:
+            gallery_urls, removed_gallery = copy_gallery_to_images(self.gallery_paths, slug)
+            gallery_uploaded_this_run = True
+            for p in removed_gallery:
+                staged_paths.add(p)
+            for url in gallery_urls:
+                local = _local_path_from_site_url(url)
+                if local is not None:
+                    staged_paths.add(local)
+
         idx = write_novel_index_metadata(
             slug=slug,
             title=novel_title,
             status=self.status_var.get(),
             blurb=self.blurb_var.get(),
+            gallery_urls=gallery_urls,
         )
         staged_paths.add(idx)
 
@@ -4201,6 +4398,17 @@ class Wizard(tk.Tk):
             for ext in ("jpg", "webp"):
                 for p in IMAGES_DIR.glob(f"{base}-*.{ext}"):
                     staged_paths.add(p)
+
+        if gallery_uploaded_this_run:
+            generated_variants, gallery_optimize_issues = generate_responsive_variants_for_site_images(gallery_urls)
+            for p in generated_variants:
+                staged_paths.add(p)
+            if gallery_optimize_issues:
+                messagebox.showwarning(
+                    "Gallery optimize",
+                    "Some gallery variants could not be generated:\n"
+                    + "\n".join(gallery_optimize_issues[:8]),
+                )
 
         commit_failed = False
         try:
