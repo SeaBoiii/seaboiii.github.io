@@ -29,6 +29,13 @@
     "series_id": "abix-series",
     "series_label": "ABIX Series"
   },
+  "second-skin-keyhole-protocol": {
+    "reading_order": 2,
+    "related_to": "second-skin",
+    "relation_type": "sequel",
+    "series_id": "secondskin",
+    "series_label": "secondskin"
+  },
   "the-abix-chronicle": {
     "reading_order": 1,
     "series_id": "abix-series",
