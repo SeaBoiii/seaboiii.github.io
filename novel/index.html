@@ -9,7 +9,7 @@
   <link href="/favicon.ico" rel="icon"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;700&amp;family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link href="/assets/css/novel-index.css" rel="stylesheet"/>
  </head>
  <body>
@@ -33,11 +33,17 @@
   <section class="hero">
    <div class="container hero-card">
     <div>
+     <div class="hero-kicker">
+      Cozy Story Shelf
+     </div>
      <h1>
       Available Novels
      </h1>
      <p>
       Browse completed and ongoing stories. Use search or filters to find your next read.
+     </p>
+     <p class="hero-tip">
+      Settle in, then press / to find your next comfort read.
      </p>
     </div>
     <div class="controls">
@@ -118,8 +124,6 @@
         </select>
        </div>
       </div>
-     </div>
-     <div aria-live="polite" class="muted" id="resultsCount">
      </div>
     </div>
    </div>
@@ -936,9 +940,13 @@
       </span>
       SeaBoiii
      </div>
-     <button aria-label="Unlock hidden novels" class="secret-btn" id="secretBtn" title="🔒" type="button">
-      🔒
-     </button>
+     <div class="footer-actions">
+      <div aria-live="polite" class="muted" id="resultsCount">
+      </div>
+      <button aria-label="Unlock hidden novels" class="secret-btn" id="secretBtn" title="🔒" type="button">
+       🔒
+      </button>
+     </div>
     </div>
    </div>
   </footer>
