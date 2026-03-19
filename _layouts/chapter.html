@@ -127,17 +127,28 @@
           {% assign resolved_music_is_remote = true %}
         {% endif %}
         {% if resolved_music_url != '' %}
-          <section class="chapter-audio" aria-label="Chapter soundtrack">
+          <section
+            class="chapter-audio"
+            aria-label="Chapter soundtrack"
+            data-music-src="{% if resolved_music_is_remote %}{{ resolved_music_url | escape }}{% else %}{{ resolved_music_url | relative_url | escape }}{% endif %}"
+            data-music-title="{{ resolved_music_title | escape }}"
+          >
             <div class="chapter-audio-copy">
               <span class="chapter-audio-label">Chapter soundtrack</span>
               {% if resolved_music_title != '' %}
                 <strong>{{ resolved_music_title }}</strong>
               {% endif %}
             </div>
-            <audio controls preload="none">
-              <source src="{% if resolved_music_is_remote %}{{ resolved_music_url }}{% else %}{{ resolved_music_url | relative_url }}{% endif %}" />
-              Your browser does not support the audio element.
-            </audio>
+            <div class="chapter-audio-player">
+              <a
+                class="chapter-audio-link"
+                href="{% if resolved_music_is_remote %}{{ resolved_music_url }}{% else %}{{ resolved_music_url | relative_url }}{% endif %}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open soundtrack
+              </a>
+            </div>
           </section>
         {% endif %}
         {{ content }}

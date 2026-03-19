@@ -318,6 +318,264 @@
         });
       })();
 
+      // Resolve chapter soundtrack URLs into direct audio or provider embeds.
+      (function () {
+        var section = document.querySelector(".chapter-audio[data-music-src]");
+        if (!section) return;
+
+        var playerWrap = section.querySelector(".chapter-audio-player");
+        if (!playerWrap) return;
+
+        var rawSrc = String(section.getAttribute("data-music-src") || "").trim();
+        var rawTitle = String(section.getAttribute("data-music-title") || "").trim();
+        if (!rawSrc) return;
+
+        function parseUrl(value) {
+          try {
+            return new URL(value, window.location.href);
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function cleanHost(hostname) {
+          return String(hostname || "").replace(/^www\./i, "").toLowerCase();
+        }
+
+        function clearPlayer() {
+          while (playerWrap.firstChild) {
+            playerWrap.removeChild(playerWrap.firstChild);
+          }
+        }
+
+        function renderLink(url, label) {
+          clearPlayer();
+          var link = document.createElement("a");
+          link.className = "chapter-audio-link";
+          link.href = url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = label || "Open soundtrack";
+          playerWrap.appendChild(link);
+        }
+
+        function renderAudio(url) {
+          clearPlayer();
+          var audio = document.createElement("audio");
+          audio.controls = true;
+          audio.preload = "none";
+          audio.src = url;
+          playerWrap.appendChild(audio);
+          section.classList.add("chapter-audio-provider-audio");
+        }
+
+        function renderIframe(src, provider, title, height) {
+          clearPlayer();
+          var iframe = document.createElement("iframe");
+          iframe.className = "chapter-audio-embed " + provider;
+          iframe.loading = "lazy";
+          iframe.src = src;
+          iframe.title = title || "Embedded media player";
+          iframe.setAttribute("frameborder", "0");
+          if (provider === "youtube") {
+            iframe.setAttribute(
+              "allow",
+              "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            );
+            iframe.setAttribute("allowfullscreen", "");
+          } else if (provider === "spotify") {
+            iframe.setAttribute(
+              "allow",
+              "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            );
+          } else {
+            iframe.setAttribute("allow", "autoplay");
+          }
+          if (height) {
+            iframe.style.height = String(height) + "px";
+          }
+          playerWrap.appendChild(iframe);
+          section.classList.add("chapter-audio-provider-" + provider);
+        }
+
+        function renderEmbedHtml(html, provider) {
+          if (!html) return false;
+          var tmp = document.createElement("div");
+          tmp.innerHTML = html;
+          var iframe = tmp.querySelector("iframe");
+          if (!iframe) return false;
+
+          iframe.classList.add("chapter-audio-embed", provider);
+          iframe.setAttribute("loading", "lazy");
+          if (!iframe.getAttribute("title")) {
+            iframe.setAttribute("title", (rawTitle ? rawTitle + " " : "") + provider + " embed");
+          }
+          if (provider === "soundcloud") {
+            iframe.style.height = iframe.style.height || "166px";
+          }
+          clearPlayer();
+          playerWrap.appendChild(iframe);
+          section.classList.add("chapter-audio-provider-" + provider);
+          return true;
+        }
+
+        function isDirectAudio(url) {
+          return /\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|webm)(?:$|[?#])/i.test(String(url || ""));
+        }
+
+        function resolveYouTube(url) {
+          var parsed = parseUrl(url);
+          if (!parsed) return null;
+
+          var host = cleanHost(parsed.hostname);
+          var parts = parsed.pathname.split("/").filter(Boolean);
+          var videoId = "";
+          var listId = "";
+
+          if (host === "youtu.be") {
+            videoId = parts[0] || "";
+            listId = parsed.searchParams.get("list") || "";
+          } else if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+            listId = parsed.searchParams.get("list") || "";
+            if (parts[0] === "watch" || parts.length === 0) {
+              videoId = parsed.searchParams.get("v") || "";
+            } else if (parts[0] === "embed" && parts[1]) {
+              videoId = parts[1];
+            } else if (parts[0] === "shorts" && parts[1]) {
+              videoId = parts[1];
+            } else if (parts[0] === "playlist") {
+              videoId = "";
+            }
+          } else {
+            return null;
+          }
+
+          if (!videoId && !listId) return null;
+
+          var src = "";
+          if (videoId) {
+            src = "https://www.youtube.com/embed/" + encodeURIComponent(videoId) + "?playsinline=1&rel=0";
+            if (listId) {
+              src += "&list=" + encodeURIComponent(listId);
+            }
+          } else {
+            src =
+              "https://www.youtube.com/embed?listType=playlist&list=" +
+              encodeURIComponent(listId) +
+              "&playsinline=1&rel=0";
+          }
+          return {
+            src: src,
+            height: null,
+            title: (rawTitle ? rawTitle + " " : "") + "YouTube player"
+          };
+        }
+
+        function resolveSpotifyFallback(url) {
+          var parsed = parseUrl(url);
+          if (!parsed) return null;
+          var host = cleanHost(parsed.hostname);
+          if (host !== "open.spotify.com") return null;
+
+          var parts = parsed.pathname.split("/").filter(Boolean);
+          if (parts[0] === "embed") {
+            parts.shift();
+          }
+          if (parts.length < 2) return null;
+
+          var kind = parts[0];
+          var id = parts[1];
+          var supported = {
+            track: 152,
+            album: 352,
+            artist: 352,
+            playlist: 352,
+            episode: 152,
+            show: 232
+          };
+          if (!supported[kind] || !id) return null;
+
+          return {
+            src: "https://open.spotify.com/embed/" + encodeURIComponent(kind) + "/" + encodeURIComponent(id) + "?utm_source=generator",
+            height: supported[kind],
+            title: (rawTitle ? rawTitle + " " : "") + "Spotify player"
+          };
+        }
+
+        function resolveOEmbed(endpoint, url, provider, fallback) {
+          fetch(endpoint + encodeURIComponent(url))
+            .then(function (response) {
+              if (!response.ok) {
+                throw new Error(String(response.status || "request failed"));
+              }
+              return response.json();
+            })
+            .then(function (data) {
+              if (!renderEmbedHtml(data && data.html, provider)) {
+                if (fallback) {
+                  fallback();
+                  return;
+                }
+                renderLink(url, "Open soundtrack");
+              }
+            })
+            .catch(function () {
+              if (fallback) {
+                fallback();
+                return;
+              }
+              renderLink(url, "Open soundtrack");
+            });
+        }
+
+        var parsed = parseUrl(rawSrc);
+        var host = parsed ? cleanHost(parsed.hostname) : "";
+
+        if (isDirectAudio(rawSrc)) {
+          renderAudio(rawSrc);
+          return;
+        }
+
+        var youtube = resolveYouTube(rawSrc);
+        if (youtube) {
+          renderIframe(youtube.src, "youtube", youtube.title, youtube.height);
+          return;
+        }
+
+        if (
+          host === "soundcloud.com" ||
+          host === "m.soundcloud.com" ||
+          host === "snd.sc" ||
+          host === "on.soundcloud.com"
+        ) {
+          resolveOEmbed(
+            "https://soundcloud.com/oembed?format=json&maxheight=166&url=",
+            rawSrc,
+            "soundcloud"
+          );
+          return;
+        }
+
+        if (host === "open.spotify.com" || host === "spotify.link") {
+          resolveOEmbed(
+            "https://open.spotify.com/oembed?url=",
+            rawSrc,
+            "spotify",
+            function () {
+              var spotify = resolveSpotifyFallback(rawSrc);
+              if (spotify) {
+                renderIframe(spotify.src, "spotify", spotify.title, spotify.height);
+              } else {
+                renderLink(rawSrc, "Open soundtrack");
+              }
+            }
+          );
+          return;
+        }
+
+        renderLink(rawSrc, "Open soundtrack");
+      })();
+
       // Swipe left/right on mobile for chapter navigation
       (function () {
         var prevLink = document.querySelector('.pager a[rel="prev"]');

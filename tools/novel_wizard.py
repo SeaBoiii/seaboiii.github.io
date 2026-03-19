@@ -3506,9 +3506,14 @@ class Wizard(tk.Tk):
 
         ttk.Label(
             self.music_frame,
-            text="Set one shared track here, then leave chapters on Shared or switch individual chapters to Custom/None.",
+            text="Accepts local files, direct audio URLs, and SoundCloud / Spotify / YouTube links.",
             style="Hint.TLabel",
         ).grid(row=2, column=0, columnspan=4, sticky="w", pady=(8, 0))
+        ttk.Label(
+            self.music_frame,
+            text="Set one shared track here, then leave chapters on Shared or switch individual chapters to Custom/None.",
+            style="Hint.TLabel",
+        ).grid(row=3, column=0, columnspan=4, sticky="w", pady=(2, 0))
 
         preview_col = ttk.Frame(top)
         preview_col.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
@@ -4283,7 +4288,7 @@ class Wizard(tk.Tk):
                     browse_btn.state(["!disabled"])
                     clear_btn.state(["!disabled"])
                     title_entry.state(["!disabled"])
-                    note_label.configure(text="Custom track for this chapter only.")
+                    note_label.configure(text="Custom source for this chapter only: file, direct audio URL, or supported provider link.")
                 else:
                     source_entry.state(["disabled"])
                     browse_btn.state(["disabled"])
