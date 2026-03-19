@@ -3153,7 +3153,7 @@ class Wizard(tk.Tk):
         sw = int(self.winfo_screenwidth())
         sh = int(self.winfo_screenheight())
         w = min(1380, max(1120, int(sw * 0.88)))
-        h = min(1040, max(820, int(sh * 0.90)))
+        h = min(1160, max(860, int(sh * 0.94)))
         x = max(0, (sw - w) // 2)
         y = max(0, (sh - h) // 2 - 24)
         self.geometry(f"{w}x{h}+{x}+{y}")
@@ -3506,14 +3506,9 @@ class Wizard(tk.Tk):
 
         ttk.Label(
             self.music_frame,
-            text="Accepts local files, direct audio URLs, and SoundCloud / Spotify / YouTube links.",
+            text="Accepts local files, direct audio URLs, and SoundCloud / Spotify / YouTube links. Set one shared source here, then override specific chapters only when needed.",
             style="Hint.TLabel",
         ).grid(row=2, column=0, columnspan=4, sticky="w", pady=(8, 0))
-        ttk.Label(
-            self.music_frame,
-            text="Set one shared track here, then leave chapters on Shared or switch individual chapters to Custom/None.",
-            style="Hint.TLabel",
-        ).grid(row=3, column=0, columnspan=4, sticky="w", pady=(2, 0))
 
         preview_col = ttk.Frame(top)
         preview_col.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
@@ -4251,7 +4246,8 @@ class Wizard(tk.Tk):
             music_shared_note = ttk.Label(music_frame, style="Hint.TLabel")
             music_shared_note.grid(row=0, column=2, columnspan=2, sticky="w")
 
-            ttk.Label(music_frame, text="Custom source").grid(row=1, column=0, sticky="w", pady=(6, 0))
+            music_source_label = ttk.Label(music_frame, text="Custom source")
+            music_source_label.grid(row=1, column=0, sticky="w", pady=(6, 0))
             music_source_entry = ttk.Entry(music_frame, textvariable=music_source_var)
             music_source_entry.grid(row=1, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(6, 0))
             music_btns = ttk.Frame(music_frame)
@@ -4269,14 +4265,18 @@ class Wizard(tk.Tk):
             )
             music_clear_btn.pack(side="left", padx=(6, 0))
 
-            ttk.Label(music_frame, text="Custom label").grid(row=2, column=0, sticky="w", pady=(6, 0))
+            music_title_label = ttk.Label(music_frame, text="Custom label")
+            music_title_label.grid(row=2, column=0, sticky="w", pady=(6, 0))
             music_title_entry = ttk.Entry(music_frame, textvariable=music_title_var)
             music_title_entry.grid(row=2, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(6, 0))
 
             def _refresh_music_ui(
                 mode_var=music_mode_var,
+                source_label=music_source_label,
                 source_entry=music_source_entry,
                 source_var=music_source_var,
+                buttons_row=music_btns,
+                title_label=music_title_label,
                 browse_btn=music_browse_btn,
                 clear_btn=music_clear_btn,
                 title_entry=music_title_entry,
@@ -4284,12 +4284,22 @@ class Wizard(tk.Tk):
             ):
                 mode_key = _normalize_music_mode(mode_var.get())
                 if mode_key == "custom":
+                    source_label.grid()
+                    source_entry.grid()
+                    buttons_row.grid()
+                    title_label.grid()
+                    title_entry.grid()
                     source_entry.state(["!disabled"])
                     browse_btn.state(["!disabled"])
                     clear_btn.state(["!disabled"])
                     title_entry.state(["!disabled"])
                     note_label.configure(text="Custom source for this chapter only: file, direct audio URL, or supported provider link.")
                 else:
+                    source_label.grid_remove()
+                    source_entry.grid_remove()
+                    buttons_row.grid_remove()
+                    title_label.grid_remove()
+                    title_entry.grid_remove()
                     source_entry.state(["disabled"])
                     browse_btn.state(["disabled"])
                     clear_btn.state(["disabled"])
