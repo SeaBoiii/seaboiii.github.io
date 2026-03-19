@@ -58,6 +58,7 @@ except Exception:
 REPO_ROOT = Path(__file__).resolve().parents[1]  # repo root (../ from tools/)
 NOVEL_DIR = REPO_ROOT / "novel"
 IMAGES_DIR = REPO_ROOT / "images"
+AUDIO_DIR = REPO_ROOT / "assets" / "audio"
 NOVELS_INDEX_HTML = NOVEL_DIR / "index.html"
 RELATIONSHIPS_JSON = REPO_ROOT / "tools" / "novel_relationships.json"
 LEGACY_WIZARD_STATE_JSON = REPO_ROOT / "tools" / "novel_wizard_state.json"
@@ -73,6 +74,7 @@ WIZARD_ICON_CANDIDATES = [
 ]
 MARKDOWN_EXTS = {".md", ".markdown", ".mdown", ".mkd"}
 RESPONSIVE_IMAGE_WIDTHS = (320, 640, 960)
+SUPPORTED_AUDIO_EXTS = {".mp3", ".m4a", ".aac", ".ogg", ".oga", ".opus", ".wav", ".flac", ".webm"}
 
 RELATION_TYPE_LABELS = {
     "original": "Original",
@@ -932,13 +934,62 @@ def import_file_info(path: Path) -> dict:
 
 # ---- Chapter/index builders ----
 
-def build_chapter_md(slug: str, order: int, title: str, body: str) -> str:
+def _format_yaml_block_field(key: str, value: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    lines = text.splitlines() or [text]
+    payload = "\n".join(f"  {line}" for line in lines)
+    return f"{key}: >-\n{payload}\n"
+
+def _normalize_music_mode(value: str) -> str:
+    v = str(value or "").strip().lower()
+    if v in {"shared", "use shared", "inherit", "default"}:
+        return "shared"
+    if v in {"custom", "unique"}:
+        return "custom"
+    return "none"
+
+def _normalize_music_source_input(value: str) -> str:
+    s = str(value or "").strip().replace("\\", "/")
+    if not s:
+        return ""
+    if re.match(r"^[A-Za-z]:/", s):
+        return s
+    if s.startswith("/") or "://" in s:
+        return s
+    if s.lower().startswith(("assets/", "audio/", "images/", "novel/")):
+        return "/" + s.lstrip("/")
+    return s
+
+def _is_remote_music_source(value: str) -> bool:
+    s = _normalize_music_source_input(value)
+    return bool(s and "://" in s)
+
+def _chapter_music_asset_key(order: int) -> str:
+    return f"chapter-{int(order):03d}"
+
+def build_chapter_md(
+    slug: str,
+    order: int,
+    title: str,
+    body: str,
+    music_mode: str = "none",
+    music_url: str = "",
+    music_title: str = "",
+) -> str:
+    music_mode_key = _normalize_music_mode(music_mode)
+    music_url_block = _format_yaml_block_field("music_url", music_url) if music_mode_key == "custom" else ""
+    music_title_block = _format_yaml_block_field("music_title", music_title) if (music_mode_key == "custom" and music_title) else ""
     header = (
         "---\n"
         f"layout: chapter\n"
         f"Title: {title.strip()}\n"
         f"novel: {slug}\n"
         f"order: {order}\n"
+        f"music_mode: {music_mode_key}\n"
+        f"{music_url_block}"
+        f"{music_title_block}"
         "---\n\n"
     )
     # Preserve leading indentation/spacing from imported or pasted content.
@@ -1003,6 +1054,8 @@ def build_index_md(
     status: str = "Incomplete",
     blurb: str = "",
     gallery_urls: Optional[list[str]] = None,
+    chapter_music_url: str = "",
+    chapter_music_title: str = "",
     title: Optional[str] = None,
     body: Optional[str] = None,
 ) -> str:
@@ -1011,6 +1064,8 @@ def build_index_md(
     body_text = body_text if body_text.endswith("\n") else body_text + "\n"
     blurb_yaml = _format_blurb_yaml_block(blurb)
     gallery_yaml = _format_gallery_yaml_block(gallery_urls or [])
+    chapter_music_url_yaml = _format_yaml_block_field("chapter_music_url", chapter_music_url)
+    chapter_music_title_yaml = _format_yaml_block_field("chapter_music_title", chapter_music_title)
     return (
         "---\n"
         f"layout: novel\n"
@@ -1020,6 +1075,8 @@ def build_index_md(
         f"blurb: >-\n"
         f"{blurb_yaml}\n"
         f"{gallery_yaml}"
+        f"{chapter_music_url_yaml}"
+        f"{chapter_music_title_yaml}"
         f"order: 0\n"
         "---\n\n"
         f"{body_text}"
@@ -1093,6 +1150,9 @@ def load_existing_chapter_entries(slug: str) -> list[dict]:
                 "order": int(order),
                 "title": title,
                 "body": (body or "").rstrip(),
+                "music_mode": _normalize_music_mode(str(fm.get("music_mode") or ("custom" if str(fm.get("music_url") or "").strip() else "none"))),
+                "music_source": _normalize_music_source_input(str(fm.get("music_url") or "").strip()),
+                "music_title": str(fm.get("music_title") or "").strip(),
                 "path": p,
             }
         )
@@ -1140,6 +1200,54 @@ def copy_cover_to_images(src_path: str, slug: str) -> str:
     dst = IMAGES_DIR / f"{slug}-cover{ext}"
     shutil.copyfile(sp, dst)
     return f"/images/{dst.name}"
+
+def copy_music_to_assets(src_path: str, slug: str, key: str) -> tuple[str, list[Path]]:
+    slug = slugify(slug)
+    asset_key = slugify(key) or "track"
+    src = Path(src_path).expanduser()
+    if not src.exists() or not src.is_file():
+        raise FileNotFoundError(f"Music file not found: {src}")
+
+    ext = src.suffix.lower()
+    if ext not in SUPPORTED_AUDIO_EXTS:
+        raise ValueError(
+            f"Unsupported music file type '{src.suffix}'. "
+            "Use mp3, m4a, ogg, opus, wav, flac, aac, or webm audio."
+        )
+
+    target_dir = AUDIO_DIR / slug
+    target_dir.mkdir(parents=True, exist_ok=True)
+    dst = target_dir / f"{asset_key}{ext}"
+    shutil.copyfile(src, dst)
+
+    affected = [dst]
+    for candidate in target_dir.glob(f"{asset_key}.*"):
+        if candidate == dst or candidate.suffix.lower() not in SUPPORTED_AUDIO_EXTS:
+            continue
+        try:
+            candidate.unlink()
+            affected.append(candidate)
+        except Exception:
+            pass
+
+    return f"/assets/audio/{slug}/{dst.name}", affected
+
+def resolve_music_source_for_commit(source: str, slug: str, key: str) -> tuple[str, list[Path], Optional[str]]:
+    raw = _normalize_music_source_input(source)
+    if not raw:
+        return "", [], None
+    if raw.startswith("/") or _is_remote_music_source(raw):
+        return raw, [], None
+
+    src = Path(raw).expanduser()
+    if not src.exists() or not src.is_file():
+        return "", [], f"Music source not found: {raw}"
+
+    try:
+        url, affected = copy_music_to_assets(str(src), slug, key)
+        return url, affected, None
+    except Exception as exc:
+        return "", [], str(exc)
 
 def _gallery_index_from_url(url: str, slug: str) -> int:
     u = str(url or "").strip()
@@ -2511,6 +2619,10 @@ MODE_CREATE = "Create New"
 MODE_EDIT = "Edit Current"
 EDIT_SUBMODE_APPEND = "Append Chapters"
 EDIT_SUBMODE_EDIT = "Edit Current Chapters"
+MUSIC_MODE_NONE = "None"
+MUSIC_MODE_SHARED = "Shared"
+MUSIC_MODE_CUSTOM = "Custom"
+MUSIC_MODE_CHOICES = [MUSIC_MODE_NONE, MUSIC_MODE_SHARED, MUSIC_MODE_CUSTOM]
 SUPPORTED_COVER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 GALLERY_ACTION_KEEP = "keep"
 GALLERY_ACTION_APPEND = "append"
@@ -2601,6 +2713,8 @@ def read_novel_index_metadata(slug: str) -> dict:
         "status": "Incomplete",
         "blurb": "",
         "gallery": [],
+        "chapter_music_url": "",
+        "chapter_music_title": "",
         "body": DEFAULT_NOVEL_INDEX_BODY,
     }
     if not idx.exists():
@@ -2624,6 +2738,8 @@ def read_novel_index_metadata(slug: str) -> dict:
 
     gallery_raw = fm.get("gallery")
     data["gallery"] = _normalize_gallery_urls(gallery_raw)
+    data["chapter_music_url"] = _normalize_music_source_input(str(fm.get("chapter_music_url") or "").strip())
+    data["chapter_music_title"] = str(fm.get("chapter_music_title") or "").strip()
 
     if body.strip():
         data["body"] = body if body.endswith("\n") else body + "\n"
@@ -2636,6 +2752,8 @@ def write_novel_index_metadata(
     status: str,
     blurb: str,
     gallery_urls: Optional[list[str]] = None,
+    chapter_music_url: str = "",
+    chapter_music_title: str = "",
 ) -> Path:
     slug = slugify(slug)
     idx = NOVEL_DIR / slug / "index.md"
@@ -2654,6 +2772,8 @@ def write_novel_index_metadata(
         status=_normalize_status_choice(status),
         blurb=blurb,
         gallery_urls=normalized_gallery,
+        chapter_music_url=chapter_music_url,
+        chapter_music_title=chapter_music_title,
         title=normalized_title,
         body=existing.get("body") or DEFAULT_NOVEL_INDEX_BODY,
     )
@@ -2987,6 +3107,8 @@ class Wizard(tk.Tk):
         self.blurb_var = tk.StringVar()
         self.gallery_action_var = tk.StringVar(value=GALLERY_ACTION_KEEP)
         self.gallery_summary_var = tk.StringVar(value="No gallery images selected.")
+        self.shared_music_source_var = tk.StringVar()
+        self.shared_music_title_var = tk.StringVar()
         self.hidden_var = tk.BooleanVar(value=False)
         self.series_label_var = tk.StringVar()
         self.series_order_var = tk.StringVar()
@@ -3341,6 +3463,53 @@ class Wizard(tk.Tk):
             style="Hint.TLabel",
         ).grid(row=7, column=0, columnspan=4, sticky="w", pady=(8, 0))
 
+        self.music_frame = ttk.LabelFrame(form, text="Chapter Music", padding=(8, 6))
+        self.music_frame.grid(row=8, column=0, columnspan=4, sticky="we", pady=(10, 0))
+        self.music_frame.columnconfigure(1, weight=1)
+        self.music_frame.columnconfigure(2, weight=1)
+
+        ttk.Label(self.music_frame, text="Shared source").grid(row=0, column=0, sticky="w")
+        self.shared_music_entry = ttk.Entry(self.music_frame, textvariable=self.shared_music_source_var)
+        self.shared_music_entry.grid(row=0, column=1, columnspan=2, sticky="we", padx=(8, 8))
+        shared_music_btns = ttk.Frame(self.music_frame)
+        shared_music_btns.grid(row=0, column=3, sticky="e")
+        self.btn_shared_music_browse = ttk.Button(
+            shared_music_btns,
+            text="Browse...",
+            command=lambda: self._pick_music_source(self.shared_music_source_var),
+        )
+        self.btn_shared_music_browse.pack(side="left")
+        self.btn_shared_music_clear = ttk.Button(
+            shared_music_btns,
+            text="Clear",
+            command=self._clear_shared_music,
+        )
+        self.btn_shared_music_clear.pack(side="left", padx=(6, 0))
+
+        ttk.Label(self.music_frame, text="Shared label").grid(row=1, column=0, sticky="w", pady=(6, 0))
+        self.shared_music_title_entry = ttk.Entry(self.music_frame, textvariable=self.shared_music_title_var)
+        self.shared_music_title_entry.grid(row=1, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(6, 0))
+        shared_music_actions = ttk.Frame(self.music_frame)
+        shared_music_actions.grid(row=1, column=3, sticky="e", pady=(6, 0))
+        self.btn_apply_shared_music = ttk.Button(
+            shared_music_actions,
+            text="Use for all chapters",
+            command=self._apply_shared_music_to_all_chapters,
+        )
+        self.btn_apply_shared_music.pack(side="left")
+        self.btn_clear_chapter_music = ttk.Button(
+            shared_music_actions,
+            text="Clear chapter music",
+            command=self._clear_all_chapter_music,
+        )
+        self.btn_clear_chapter_music.pack(side="left", padx=(6, 0))
+
+        ttk.Label(
+            self.music_frame,
+            text="Set one shared track here, then leave chapters on Shared or switch individual chapters to Custom/None.",
+            style="Hint.TLabel",
+        ).grid(row=2, column=0, columnspan=4, sticky="w", pady=(8, 0))
+
         preview_col = ttk.Frame(top)
         preview_col.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
         preview_col.columnconfigure(1, weight=1)
@@ -3457,6 +3626,7 @@ class Wizard(tk.Tk):
         self.edit_submode_var.trace_add("write", lambda *_: self._queue_ui_state_save())
         self.existing_slug_var.trace_add("write", lambda *_: self._queue_ui_state_save())
         self.count_var.trace_add("write", lambda *_: self._queue_ui_state_save())
+        self.shared_music_source_var.trace_add("write", lambda *_: self._refresh_chapter_music_widgets())
 
     def _get_commit_description(self) -> str:
         return self.commit_desc_text.get("1.0", "end").strip()
@@ -3537,10 +3707,10 @@ class Wizard(tk.Tk):
         title = (self.title_var.get() or pretty(slug)).strip()
         if self.mode_var.get() == MODE_CREATE:
             summary = f"feat(novel): create {slug}"
-            desc = f"Create '{title}' with metadata, relationships, cover/gallery assets, and chapter files."
+            desc = f"Create '{title}' with metadata, relationships, cover/gallery/audio assets, and chapter files."
         else:
             summary = f"chore(novel): update {slug}"
-            desc = f"Update '{title}' metadata, relationships, cover/gallery assets, and appended chapters."
+            desc = f"Update '{title}' metadata, relationships, cover/gallery/audio assets, and chapter files."
 
         cur_summary = self.commit_summary_var.get().strip()
         cur_desc = self._get_commit_description()
@@ -3665,6 +3835,50 @@ class Wizard(tk.Tk):
         )
         if p:
             self.cover_var.set(p)
+
+    def _pick_music_source(self, target_var: tk.StringVar):
+        p = filedialog.askopenfilename(
+            title="Choose audio file",
+            filetypes=[
+                ("Audio", "*.mp3;*.m4a;*.aac;*.ogg;*.oga;*.opus;*.wav;*.flac;*.webm"),
+                ("All files", "*.*"),
+            ],
+        )
+        if p:
+            target_var.set(p)
+
+    def _clear_shared_music(self):
+        self.shared_music_source_var.set("")
+        self.shared_music_title_var.set("")
+
+    def _apply_shared_music_to_all_chapters(self):
+        if not self.chapter_tabs:
+            return
+        for rec in self.chapter_tabs:
+            try:
+                rec["music_mode_var"].set(MUSIC_MODE_SHARED)
+            except Exception:
+                pass
+        self._refresh_chapter_music_widgets()
+
+    def _clear_all_chapter_music(self):
+        if not self.chapter_tabs:
+            return
+        for rec in self.chapter_tabs:
+            try:
+                rec["music_mode_var"].set(MUSIC_MODE_NONE)
+            except Exception:
+                pass
+        self._refresh_chapter_music_widgets()
+
+    def _refresh_chapter_music_widgets(self):
+        for rec in self.chapter_tabs:
+            try:
+                refresh = rec.get("refresh_music_ui")
+                if callable(refresh):
+                    refresh()
+            except Exception:
+                pass
 
     def _refresh_gallery_summary(self):
         mode = self.mode_var.get()
@@ -3859,6 +4073,8 @@ class Wizard(tk.Tk):
             self.gallery_action_var.set(GALLERY_ACTION_KEEP)
             self.gallery_paths = []
             self._existing_gallery_urls = []
+            self.shared_music_source_var.set("")
+            self.shared_music_title_var.set("")
             self.hidden_var.set(False)
             self.series_label_var.set("")
             self.series_order_var.set("")
@@ -3899,6 +4115,7 @@ class Wizard(tk.Tk):
         self.chapter_tabs = []
         self._build_chapter_tabs()
         self._refresh_gallery_summary()
+        self._refresh_chapter_music_widgets()
         self._refresh_related_choices(self.related_to_var.get())
         self._refresh_selected_cover_preview()
         self._refresh_upload_cover_preview()
@@ -3937,6 +4154,8 @@ class Wizard(tk.Tk):
         self.gallery_action_var.set(GALLERY_ACTION_KEEP)
         self.gallery_paths = []
         self._existing_gallery_urls = _normalize_gallery_urls(idx_meta.get("gallery"))
+        self.shared_music_source_var.set(str(idx_meta.get("chapter_music_url") or ""))
+        self.shared_music_title_var.set(str(idx_meta.get("chapter_music_title") or ""))
         self._refresh_gallery_summary()
 
         rel = relationship_entry_for_slug(slug)
@@ -3963,7 +4182,10 @@ class Wizard(tk.Tk):
             try:
                 preserved[int(rec['order'])] = {
                     'title': rec['title_var'].get(),
-                    'body': rec['text'].get('1.0', 'end')
+                    'body': rec['text'].get('1.0', 'end'),
+                    'music_mode': rec['music_mode_var'].get(),
+                    'music_source': rec['music_source_var'].get(),
+                    'music_title': rec['music_title_var'].get(),
                 }
             except Exception:
                 pass
@@ -3992,7 +4214,10 @@ class Wizard(tk.Tk):
             self.nb.add(frame, text=f"{order}")
 
             title_var = tk.StringVar()
-            
+            music_mode_var = tk.StringVar(value=MUSIC_MODE_NONE)
+            music_source_var = tk.StringVar()
+            music_title_var = tk.StringVar()
+
             # Validate title length on change
             def _validate_title(var=title_var):
                 val = var.get()
@@ -4003,6 +4228,78 @@ class Wizard(tk.Tk):
             ttk.Label(frame, text=f"Chapter {order} Title").pack(anchor="w")
             title_entry = ttk.Entry(frame, textvariable=title_var)
             title_entry.pack(fill="x", pady=(2,8))
+
+            music_frame = ttk.LabelFrame(frame, text="Music", padding=(8, 6))
+            music_frame.pack(fill="x", pady=(0, 8))
+            music_frame.columnconfigure(1, weight=1)
+            music_frame.columnconfigure(2, weight=1)
+
+            ttk.Label(music_frame, text="Mode").grid(row=0, column=0, sticky="w")
+            music_mode_combo = ttk.Combobox(
+                music_frame,
+                textvariable=music_mode_var,
+                values=MUSIC_MODE_CHOICES,
+                state="readonly",
+                width=12,
+            )
+            music_mode_combo.grid(row=0, column=1, sticky="w", padx=(8, 8))
+            music_shared_note = ttk.Label(music_frame, style="Hint.TLabel")
+            music_shared_note.grid(row=0, column=2, columnspan=2, sticky="w")
+
+            ttk.Label(music_frame, text="Custom source").grid(row=1, column=0, sticky="w", pady=(6, 0))
+            music_source_entry = ttk.Entry(music_frame, textvariable=music_source_var)
+            music_source_entry.grid(row=1, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(6, 0))
+            music_btns = ttk.Frame(music_frame)
+            music_btns.grid(row=1, column=3, sticky="e", pady=(6, 0))
+            music_browse_btn = ttk.Button(
+                music_btns,
+                text="Browse...",
+                command=lambda v=music_source_var: self._pick_music_source(v),
+            )
+            music_browse_btn.pack(side="left")
+            music_clear_btn = ttk.Button(
+                music_btns,
+                text="Clear",
+                command=lambda v=music_source_var, t=music_title_var: (v.set(""), t.set("")),
+            )
+            music_clear_btn.pack(side="left", padx=(6, 0))
+
+            ttk.Label(music_frame, text="Custom label").grid(row=2, column=0, sticky="w", pady=(6, 0))
+            music_title_entry = ttk.Entry(music_frame, textvariable=music_title_var)
+            music_title_entry.grid(row=2, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(6, 0))
+
+            def _refresh_music_ui(
+                mode_var=music_mode_var,
+                source_entry=music_source_entry,
+                source_var=music_source_var,
+                browse_btn=music_browse_btn,
+                clear_btn=music_clear_btn,
+                title_entry=music_title_entry,
+                note_label=music_shared_note,
+            ):
+                mode_key = _normalize_music_mode(mode_var.get())
+                if mode_key == "custom":
+                    source_entry.state(["!disabled"])
+                    browse_btn.state(["!disabled"])
+                    clear_btn.state(["!disabled"])
+                    title_entry.state(["!disabled"])
+                    note_label.configure(text="Custom track for this chapter only.")
+                else:
+                    source_entry.state(["disabled"])
+                    browse_btn.state(["disabled"])
+                    clear_btn.state(["disabled"])
+                    title_entry.state(["disabled"])
+                    if mode_key == "shared":
+                        shared_note = "Uses the shared track from novel settings."
+                        if not self.shared_music_source_var.get().strip():
+                            shared_note = "Uses the shared track from novel settings. No shared source is set yet."
+                        note_label.configure(text=shared_note)
+                    else:
+                        note_label.configure(text="No music embedded for this chapter.")
+                if mode_key != "custom" and not source_var.get().strip():
+                    source_var.set(source_var.get().strip())
+
+            music_mode_var.trace_add("write", lambda *_args, refresh=_refresh_music_ui: refresh())
 
             # toolbar for formatted paste / import
             tools = ttk.Frame(frame)
@@ -4025,7 +4322,7 @@ class Wizard(tk.Tk):
 
             # Bind chapter navigation to horizontal wheel only so vertical scrolling
             # continues to scroll the chapter text while editing.
-            for w in (frame, title_entry, tools, txt_frame, text):
+            for w in (frame, title_entry, music_frame, music_mode_combo, music_source_entry, music_title_entry, tools, txt_frame, text):
                 w.bind("<Shift-MouseWheel>", self._on_hmousewheel)
                 if self._supports_x11_hwheel_buttons:
                     w.bind("<Button-6>", self._on_hmousewheel)
@@ -4034,6 +4331,9 @@ class Wizard(tk.Tk):
             # restore preserved content if exists
             if order in preserved:
                 title_var.set(preserved[order]['title'][:MAX_TITLE_LEN])  # Truncate if too long
+                music_mode_var.set(str(preserved[order].get('music_mode') or MUSIC_MODE_NONE))
+                music_source_var.set(str(preserved[order].get('music_source') or ""))
+                music_title_var.set(str(preserved[order].get('music_title') or ""))
                 try:
                     text.delete('1.0','end')
                     text.insert('1.0', preserved[order]['body'])
@@ -4044,13 +4344,35 @@ class Wizard(tk.Tk):
                 src_title = str(src.get("title") or f"Chapter {order}")
                 src_body = str(src.get("body") or "")
                 title_var.set(src_title[:MAX_TITLE_LEN])
+                src_music_mode = _normalize_music_mode(str(src.get("music_mode") or MUSIC_MODE_NONE))
+                src_music_source = _normalize_music_source_input(str(src.get("music_source") or src.get("music_url") or ""))
+                src_music_title = str(src.get("music_title") or "")
+                if src_music_mode == "none" and src_music_source:
+                    src_music_mode = "custom"
+                music_mode_var.set(MUSIC_MODE_CUSTOM if src_music_mode == "custom" else (MUSIC_MODE_SHARED if src_music_mode == "shared" else MUSIC_MODE_NONE))
+                music_source_var.set(src_music_source)
+                music_title_var.set(src_music_title)
                 try:
                     text.delete('1.0', 'end')
                     text.insert('1.0', src_body)
                 except Exception:
                     pass
+            else:
+                music_mode_var.set(MUSIC_MODE_NONE)
 
-            self.chapter_tabs.append({"order": order, "title_var": title_var, "text": text})
+            _refresh_music_ui()
+
+            self.chapter_tabs.append(
+                {
+                    "order": order,
+                    "title_var": title_var,
+                    "text": text,
+                    "music_mode_var": music_mode_var,
+                    "music_source_var": music_source_var,
+                    "music_title_var": music_title_var,
+                    "refresh_music_ui": _refresh_music_ui,
+                }
+            )
 
 
     def _bulk_import_docx(self):
@@ -4396,20 +4718,111 @@ class Wizard(tk.Tk):
 
         staged_paths = set()
         written = 0
+        shared_music_source_raw = self.shared_music_source_var.get().strip()
+        shared_music_title = self.shared_music_title_var.get().strip()
+        shared_music_url = ""
+        chapter_source_plans = []
         for rec in self.chapter_tabs:
             order = int(rec["order"])
             ch_title = rec["title_var"].get().strip() or f"Chapter {order}"
             body = rec["text"].get("1.0", "end").rstrip()
             if not body:
                 continue
-            ch_path = dest / f"Chapter{order}.md"
-            write_text(ch_path, build_chapter_md(slug, order, ch_title, body))
-            staged_paths.add(ch_path)
-            written += 1
+            music_mode = _normalize_music_mode(rec["music_mode_var"].get())
+            music_source_raw = rec["music_source_var"].get().strip()
+            music_title = rec["music_title_var"].get().strip()
+            music_url = ""
 
-        if mode == MODE_CREATE and written == 0:
+            if music_mode == "shared":
+                if not shared_music_source_raw:
+                    messagebox.showerror(
+                        "Chapter music",
+                        f"Chapter {order} is set to Shared music, but no shared track is configured.",
+                    )
+                    return
+            elif music_mode == "custom":
+                if not music_source_raw:
+                    messagebox.showerror(
+                        "Chapter music",
+                        f"Chapter {order} is set to Custom music, but no music source was provided.",
+                    )
+                    return
+            else:
+                music_title = ""
+
+            chapter_source_plans.append(
+                {
+                    "order": order,
+                    "title": ch_title,
+                    "body": body,
+                    "music_mode": music_mode,
+                    "music_source": music_source_raw,
+                    "music_title": music_title,
+                }
+            )
+
+        if mode == MODE_CREATE and not chapter_source_plans:
             messagebox.showerror("No chapters", "Please enter at least one chapter body.")
             return
+
+        if shared_music_source_raw:
+            shared_music_url, shared_music_assets, shared_music_err = resolve_music_source_for_commit(
+                shared_music_source_raw,
+                slug,
+                "shared",
+            )
+            if shared_music_err:
+                messagebox.showerror("Chapter music", shared_music_err)
+                return
+            for p in shared_music_assets:
+                staged_paths.add(p)
+        else:
+            shared_music_title = ""
+
+        chapter_writes = []
+        for rec in chapter_source_plans:
+            order = int(rec["order"])
+            music_mode = str(rec["music_mode"])
+            music_url = ""
+            if music_mode == "custom":
+                music_url, music_assets, music_err = resolve_music_source_for_commit(
+                    str(rec["music_source"]),
+                    slug,
+                    _chapter_music_asset_key(order),
+                )
+                if music_err:
+                    messagebox.showerror("Chapter music", f"Chapter {order}: {music_err}")
+                    return
+                for p in music_assets:
+                    staged_paths.add(p)
+            chapter_writes.append(
+                {
+                    "order": order,
+                    "title": str(rec["title"]),
+                    "body": str(rec["body"]),
+                    "music_mode": music_mode,
+                    "music_url": music_url,
+                    "music_title": str(rec["music_title"]),
+                }
+            )
+
+        for rec in chapter_writes:
+            order = int(rec["order"])
+            ch_path = dest / f"Chapter{order}.md"
+            write_text(
+                ch_path,
+                build_chapter_md(
+                    slug,
+                    order,
+                    str(rec["title"]),
+                    str(rec["body"]),
+                    music_mode=str(rec["music_mode"]),
+                    music_url=str(rec["music_url"]),
+                    music_title=str(rec["music_title"]),
+                ),
+            )
+            staged_paths.add(ch_path)
+            written += 1
 
         existing_idx_meta = read_novel_index_metadata(slug) if mode == MODE_EDIT else {"gallery": []}
         gallery_urls = _normalize_gallery_urls(existing_idx_meta.get("gallery"))
@@ -4448,6 +4861,8 @@ class Wizard(tk.Tk):
             status=self.status_var.get(),
             blurb=self.blurb_var.get(),
             gallery_urls=gallery_urls,
+            chapter_music_url=shared_music_url,
+            chapter_music_title=shared_music_title,
         )
         staged_paths.add(idx)
 
@@ -4545,6 +4960,7 @@ class Wizard(tk.Tk):
         self._refresh_catalog()
         self._refresh_selected_cover_preview()
         self._refresh_upload_cover_preview()
+        self._refresh_chapter_music_widgets()
         self._refresh_related_cover_preview()
 
         action = "Created" if mode == MODE_CREATE else "Updated"

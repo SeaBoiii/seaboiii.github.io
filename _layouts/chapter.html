@@ -107,6 +107,39 @@
       <article>
         <h1>{{ page.Title | default: page.title }}</h1>
         {% if page.order %}<div class="chapter-meta">Chapter {{ page.order }}</div>{% endif %}
+        {% assign shared_music_url = toc.chapter_music_url | default: '' | strip %}
+        {% assign shared_music_title = toc.chapter_music_title | default: '' | strip %}
+        {% assign chapter_music_mode = page.music_mode | default: '' | downcase | strip %}
+        {% assign resolved_music_url = '' %}
+        {% assign resolved_music_title = '' %}
+        {% if chapter_music_mode == 'custom' %}
+          {% assign resolved_music_url = page.music_url | default: '' | strip %}
+          {% assign resolved_music_title = page.music_title | default: '' | strip %}
+        {% elsif chapter_music_mode == 'shared' %}
+          {% assign resolved_music_url = shared_music_url %}
+          {% assign resolved_music_title = shared_music_title %}
+        {% elsif chapter_music_mode != 'none' and page.music_url %}
+          {% assign resolved_music_url = page.music_url | strip %}
+          {% assign resolved_music_title = page.music_title | default: '' | strip %}
+        {% endif %}
+        {% assign resolved_music_is_remote = false %}
+        {% if resolved_music_url contains '://' %}
+          {% assign resolved_music_is_remote = true %}
+        {% endif %}
+        {% if resolved_music_url != '' %}
+          <section class="chapter-audio" aria-label="Chapter soundtrack">
+            <div class="chapter-audio-copy">
+              <span class="chapter-audio-label">Chapter soundtrack</span>
+              {% if resolved_music_title != '' %}
+                <strong>{{ resolved_music_title }}</strong>
+              {% endif %}
+            </div>
+            <audio controls preload="none">
+              <source src="{% if resolved_music_is_remote %}{{ resolved_music_url }}{% else %}{{ resolved_music_url | relative_url }}{% endif %}" />
+              Your browser does not support the audio element.
+            </audio>
+          </section>
+        {% endif %}
         {{ content }}
       </article>
 

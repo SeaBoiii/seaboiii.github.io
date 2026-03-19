@@ -327,6 +327,38 @@
         font-family: system-ui, -apple-system, sans-serif;
       }
 
+      .chapter-audio {
+        margin: 0 0 1.6rem;
+        padding: 0.9rem 1rem;
+        border: 1px solid color-mix(in oklab, var(--border), transparent 12%);
+        border-radius: 14px;
+        background: color-mix(in oklab, var(--card), var(--bg) 16%);
+        box-shadow: var(--shadow);
+      }
+
+      .chapter-audio-copy {
+        display: grid;
+        gap: 0.18rem;
+        margin-bottom: 0.75rem;
+        font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+      }
+
+      .chapter-audio-label {
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .chapter-audio-copy strong {
+        font-size: 0.98rem;
+        line-height: 1.3;
+      }
+
+      .chapter-audio audio {
+        width: 100%;
+      }
+
       article p {
         margin: 0 0 1.25rem;
       }
