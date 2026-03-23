@@ -27,56 +27,56 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #0d1523;
-  --bg-2: #111c2d;
-  --surface: #121d30;
-  --surface-2: #16243a;
+  --bg: #070d16;
+  --bg-2: #0b1320;
+  --surface: #0f1827;
+  --surface-2: #132036;
   --text: #e7eefb;
-  --muted: #9fb1cb;
-  --border: #2a3a55;
+  --muted: #98acc9;
+  --border: #22324c;
   --link: #e7eefb;
-  --accent: #8db0e8;
-  --accent-strong: #b0c8f2;
-  --accent-soft: #1d2b42;
-  --accent-teal: #5274a8;
-  --pill: #1d2a42;
-  --pill-brd: #334765;
-  --pill-ok: #1d2a42;
-  --pill-ok-brd: #334765;
-  --pill-wip: #22314b;
-  --pill-wip-brd: #415a82;
-  --btn-bg: #8db0e8;
-  --btn-text: #10203a;
-  --btn-brd: #a8c3f1;
-  --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.36);
-  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.28);
+  --accent: #8fb2eb;
+  --accent-strong: #b4caf4;
+  --accent-soft: #16243a;
+  --accent-teal: #4c6e9f;
+  --pill: #16233a;
+  --pill-brd: #2d4261;
+  --pill-ok: #16233a;
+  --pill-ok-brd: #2d4261;
+  --pill-wip: #1a2941;
+  --pill-wip-brd: #3a5477;
+  --btn-bg: #8fb2eb;
+  --btn-text: #0d1d35;
+  --btn-brd: #a9c4f2;
+  --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.44);
+  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.34);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0d1523;
-    --bg-2: #111c2d;
-    --surface: #121d30;
-    --surface-2: #16243a;
+    --bg: #070d16;
+    --bg-2: #0b1320;
+    --surface: #0f1827;
+    --surface-2: #132036;
     --text: #e7eefb;
-    --muted: #9fb1cb;
-    --border: #2a3a55;
+    --muted: #98acc9;
+    --border: #22324c;
     --link: #e7eefb;
-    --accent: #8db0e8;
-    --accent-strong: #b0c8f2;
-    --accent-soft: #1d2b42;
-    --accent-teal: #5274a8;
-    --pill: #1d2a42;
-    --pill-brd: #334765;
-    --pill-ok: #1d2a42;
-    --pill-ok-brd: #334765;
-    --pill-wip: #22314b;
-    --pill-wip-brd: #415a82;
-    --btn-bg: #8db0e8;
-    --btn-text: #10203a;
-    --btn-brd: #a8c3f1;
-    --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.36);
-    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.28);
+    --accent: #8fb2eb;
+    --accent-strong: #b4caf4;
+    --accent-soft: #16243a;
+    --accent-teal: #4c6e9f;
+    --pill: #16233a;
+    --pill-brd: #2d4261;
+    --pill-ok: #16233a;
+    --pill-ok-brd: #2d4261;
+    --pill-wip: #1a2941;
+    --pill-wip-brd: #3a5477;
+    --btn-bg: #8fb2eb;
+    --btn-text: #0d1d35;
+    --btn-brd: #a9c4f2;
+    --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.44);
+    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.34);
   }
 }
 
@@ -621,7 +621,7 @@ main.container {
 .novel-card:focus-within {
   transform: translateY(-4px);
   border-color: color-mix(in oklab, var(--accent), var(--border) 50%);
-  box-shadow: 0 16px 30px rgba(48, 33, 20, 0.19);
+  box-shadow: 0 16px 30px rgba(18, 37, 72, 0.24);
 }
 
 .novel-card > a:focus-visible {
@@ -647,7 +647,7 @@ main.container {
   bottom: 0;
   height: 42%;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(10, 8, 6, 0.3), rgba(10, 8, 6, 0));
+  background: linear-gradient(to top, rgba(6, 14, 28, 0.34), rgba(6, 14, 28, 0));
   opacity: 0.11;
   transition: opacity 0.22s ease;
 }
@@ -680,6 +680,7 @@ main.container {
   line-height: 1.05;
   letter-spacing: 0.01em;
   text-wrap: balance;
+  text-align: center;
 }
 
 .novel-meta {

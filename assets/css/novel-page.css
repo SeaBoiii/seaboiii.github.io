@@ -18,17 +18,17 @@
 
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0d1523;
+    --bg:#070d16;
     --text:#e7eefb;
-    --muted:#9fb1cb;
-    --card:#121d30;
-    --border:#2a3a55;
+    --muted:#98acc9;
+    --card:#0f1827;
+    --border:#22324c;
     --link:#e7eefb;
-    --btn-bg:#8db0e8; --btn-text:#10203a; --btn-brd:#a8c3f1;
+    --btn-bg:#8fb2eb; --btn-text:#0d1d35; --btn-brd:#a9c4f2;
 
-    --pill:#1d2a42; --pill-brd:#334765;
-    --pill-ok:#1d2a42; --pill-ok-brd:#334765;
-    --pill-wip:#22314b; --pill-wip-brd:#415a82;
+    --pill:#16233a; --pill-brd:#2d4261;
+    --pill-ok:#16233a; --pill-ok-brd:#2d4261;
+    --pill-wip:#1a2941; --pill-wip-brd:#3a5477;
   }
 }
 
@@ -39,9 +39,9 @@
   --pill:#e7eff9; --pill-brd:#cad8ea; --pill-ok:#e7eff9; --pill-ok-brd:#cad8ea; --pill-wip:#e3edf9; --pill-wip-brd:#b8cae4;
 }
 :root[data-theme="dark"]{
-  --bg:#0d1523; --text:#e7eefb; --muted:#9fb1cb; --card:#121d30; --border:#2a3a55; --link:#e7eefb;
-  --btn-bg:#8db0e8; --btn-text:#10203a; --btn-brd:#a8c3f1;
-  --pill:#1d2a42; --pill-brd:#334765; --pill-ok:#1d2a42; --pill-ok-brd:#334765; --pill-wip:#22314b; --pill-wip-brd:#415a82;
+  --bg:#070d16; --text:#e7eefb; --muted:#98acc9; --card:#0f1827; --border:#22324c; --link:#e7eefb;
+  --btn-bg:#8fb2eb; --btn-text:#0d1d35; --btn-brd:#a9c4f2;
+  --pill:#16233a; --pill-brd:#2d4261; --pill-ok:#16233a; --pill-ok-brd:#2d4261; --pill-wip:#1a2941; --pill-wip-brd:#3a5477;
 }
 
 body{background:var(--bg); color:var(--text); margin:0; font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
@@ -83,7 +83,7 @@ a:hover{text-decoration:underline}
 .novel-actions a:hover{filter:brightness(1.05)}
 .novel-actions a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
-.novel-gallery{margin:1rem 0 1.2rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.novel-gallery{margin:1rem 0 1.2rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card);content-visibility:auto;contain-intrinsic-size:420px}
 .novel-gallery-head{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.7rem;flex-wrap:wrap}
 .novel-gallery h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
 .novel-gallery-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.62rem}

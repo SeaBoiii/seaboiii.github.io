@@ -198,6 +198,68 @@ function applyNovelStatusBadgeDebug(scope) {
   cover.addEventListener('touchstart', ensurePopoverImageLoaded, { once: true, passive: true });
 })();
 
+function ensureGalleryLinkMedia(link) {
+  if (!link) return;
+  var picture = link.querySelector('picture[data-deferred-media]');
+  if (!picture || picture.dataset.mediaReady === 'true') return;
+
+  Array.prototype.forEach.call(picture.querySelectorAll('source[data-srcset]'), function(source) {
+    var srcset = source.getAttribute('data-srcset');
+    if (!srcset) return;
+    source.srcset = srcset;
+    source.removeAttribute('data-srcset');
+  });
+
+  var img = picture.querySelector('img');
+  if (img) {
+    var srcset = img.getAttribute('data-srcset');
+    if (srcset) {
+      img.srcset = srcset;
+      img.removeAttribute('data-srcset');
+    }
+    var src = img.getAttribute('data-src');
+    if (src) {
+      img.src = src;
+      img.removeAttribute('data-src');
+    }
+  }
+
+  picture.dataset.mediaReady = 'true';
+}
+
+// Defer gallery thumbnail media until the gallery approaches the viewport.
+(function() {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.novel-gallery-link'));
+  if (!links.length) return;
+
+  function activate(link) {
+    ensureGalleryLinkMedia(link);
+  }
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        activate(entry.target);
+      });
+    }, { rootMargin: '360px 0px' });
+
+    links.forEach(function(link) {
+      observer.observe(link);
+    });
+  } else {
+    links.forEach(activate);
+  }
+
+  links.forEach(function(link) {
+    var warm = function() { activate(link); };
+    link.addEventListener('mouseenter', warm, { once: true });
+    link.addEventListener('focusin', warm, { once: true });
+    link.addEventListener('touchstart', warm, { once: true, passive: true });
+  });
+})();
+
 // Gallery lightbox: browse all gallery images without leaving the novel page
 (function() {
   var links = Array.prototype.slice.call(document.querySelectorAll('.novel-gallery-link[data-gallery-full]'));
@@ -218,6 +280,8 @@ function applyNovelStatusBadgeDebug(scope) {
   var opened = false;
   var lastFocused = null;
   var touchStartX = null;
+  var lightboxLoadToken = 0;
+  var lightboxPreloadCache = Object.create(null);
 
   function clampIndex(index) {
     if (!links.length) return 0;
@@ -229,28 +293,95 @@ function applyNovelStatusBadgeDebug(scope) {
     return links[activeIndex] || null;
   }
 
+  function lightboxDisplaySrc(link) {
+    return link.getAttribute('data-gallery-lightbox') || link.getAttribute('data-gallery-full') || link.getAttribute('href') || '';
+  }
+
+  function lightboxFullSrc(link) {
+    return link.getAttribute('data-gallery-full') || link.getAttribute('href') || '';
+  }
+
+  function lightboxThumbSrc(link) {
+    var thumb = link.querySelector('img');
+    if (!thumb) return '';
+    var src = thumb.currentSrc || thumb.getAttribute('src') || '';
+    return /^data:image\/gif/i.test(src) ? '' : src;
+  }
+
+  function cacheLightboxImage(src) {
+    if (!src || lightboxPreloadCache[src]) return;
+    var preload = new Image();
+    preload.decoding = 'async';
+    preload.src = src;
+    if (typeof preload.decode === 'function') {
+      preload.decode().catch(function() {});
+    }
+    lightboxPreloadCache[src] = preload;
+  }
+
+  function prefetchLightboxNeighbors(index) {
+    [index - 1, index + 1].forEach(function(candidate) {
+      var link = links[clampIndex(candidate)];
+      if (!link) return;
+      cacheLightboxImage(lightboxDisplaySrc(link));
+    });
+  }
+
+  function setLightboxImageSource(src, fallback) {
+    image.onerror = function() {
+      if (!fallback || src === fallback) return;
+      image.onerror = null;
+      image.src = fallback;
+    };
+    image.src = src;
+  }
+
   function updateLightbox(index) {
     activeIndex = clampIndex(index);
     var link = currentLink();
     if (!link) return;
+    ensureGalleryLinkMedia(link);
 
-    var full = link.getAttribute('data-gallery-full') || link.getAttribute('href') || '';
+    var full = lightboxFullSrc(link);
+    var display = lightboxDisplaySrc(link);
+    var thumb = lightboxThumbSrc(link);
     var alt = link.getAttribute('data-gallery-alt') || '';
     var desc = link.getAttribute('data-gallery-description') || '';
-    image.onerror = function() {
-      var fallback = link.getAttribute('href') || full;
-      if (!fallback) return;
-      image.onerror = null;
-      image.src = fallback;
-    };
-    image.src = full;
     image.alt = alt;
+    if (thumb) {
+      image.onerror = null;
+      image.src = thumb;
+    }
     counter.textContent = (activeIndex + 1) + ' / ' + links.length;
     if (description) {
       description.textContent = desc;
       description.hidden = !desc;
     }
     openOriginal.href = full || '#';
+
+    var requestToken = ++lightboxLoadToken;
+    if (!display || display === full) {
+      setLightboxImageSource(full, full);
+      prefetchLightboxNeighbors(activeIndex);
+      return;
+    }
+
+    var preload = new Image();
+    preload.decoding = 'async';
+    preload.onload = function() {
+      if (lightboxLoadToken !== requestToken) return;
+      setLightboxImageSource(display, full);
+      prefetchLightboxNeighbors(activeIndex);
+    };
+    preload.onerror = function() {
+      if (lightboxLoadToken !== requestToken) return;
+      setLightboxImageSource(full, full);
+      prefetchLightboxNeighbors(activeIndex);
+    };
+    preload.src = display;
+    if (preload.complete && preload.naturalWidth > 0) {
+      preload.onload();
+    }
   }
 
   function openAt(index) {
@@ -284,8 +415,17 @@ function applyNovelStatusBadgeDebug(scope) {
   }
 
   links.forEach(function(link, index) {
+    var prewarm = function() {
+      ensureGalleryLinkMedia(link);
+      cacheLightboxImage(lightboxDisplaySrc(link));
+    };
+
+    link.addEventListener('mouseenter', prewarm, { once: true });
+    link.addEventListener('focusin', prewarm, { once: true });
+    link.addEventListener('touchstart', prewarm, { once: true, passive: true });
     link.addEventListener('click', function(event) {
       event.preventDefault();
+      prewarm();
       openAt(index);
     });
   });

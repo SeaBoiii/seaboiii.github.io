@@ -133,14 +133,15 @@
             target="_blank"
             rel="noopener"
             data-gallery-full="{{ gallery_url | relative_url }}"
+            data-gallery-lightbox="{{ gallery_root | append: '-960.jpg' | relative_url }}"
             data-gallery-alt="{{ gallery_alt | escape }}"
             data-gallery-description="{{ gallery_description | escape }}"
             aria-label="Open gallery image {{ forloop.index }} in full size"
           >
-            <picture>
+            <picture data-deferred-media>
               <source
                 type="image/webp"
-                srcset="
+                data-srcset="
                   {{ gallery_root | append: '-320.webp' | relative_url }} 320w,
                   {{ gallery_root | append: '-640.webp' | relative_url }} 640w,
                   {{ gallery_root | append: '-960.webp' | relative_url }} 960w
@@ -149,7 +150,7 @@
               >
               <source
                 type="image/jpeg"
-                srcset="
+                data-srcset="
                   {{ gallery_root | append: '-320.jpg' | relative_url }} 320w,
                   {{ gallery_root | append: '-640.jpg' | relative_url }} 640w,
                   {{ gallery_root | append: '-960.jpg' | relative_url }} 960w
@@ -157,8 +158,9 @@
                 sizes="(max-width: 720px) 48vw, (max-width: 1100px) 31vw, 280px"
               >
               <img
-                src="{{ gallery_root | append: '-640.jpg' | relative_url }}"
-                srcset="
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                data-src="{{ gallery_root | append: '-320.jpg' | relative_url }}"
+                data-srcset="
                   {{ gallery_root | append: '-320.jpg' | relative_url }} 320w,
                   {{ gallery_root | append: '-640.jpg' | relative_url }} 640w,
                   {{ gallery_root | append: '-960.jpg' | relative_url }} 960w
@@ -167,6 +169,8 @@
                 loading="lazy"
                 decoding="async"
                 fetchpriority="low"
+                width="280"
+                height="350"
                 alt="{{ gallery_alt | escape }}"
                 onerror="this.onerror=null;this.removeAttribute('srcset');this.src='{{ gallery_url | relative_url }}';"
               >
@@ -188,14 +192,15 @@
             target="_blank"
             rel="noopener"
             data-gallery-full="{{ gallery_url | relative_url }}"
+            data-gallery-lightbox="{{ gallery_root | append: '-960.jpg' | relative_url }}"
             data-gallery-alt="{{ novel_display_title }} gallery image {{ forloop.index }}"
             data-gallery-description=""
             aria-label="Open gallery image {{ forloop.index }} in full size"
           >
-            <picture>
+            <picture data-deferred-media>
               <source
                 type="image/webp"
-                srcset="
+                data-srcset="
                   {{ gallery_root | append: '-320.webp' | relative_url }} 320w,
                   {{ gallery_root | append: '-640.webp' | relative_url }} 640w,
                   {{ gallery_root | append: '-960.webp' | relative_url }} 960w
@@ -204,7 +209,7 @@
               >
               <source
                 type="image/jpeg"
-                srcset="
+                data-srcset="
                   {{ gallery_root | append: '-320.jpg' | relative_url }} 320w,
                   {{ gallery_root | append: '-640.jpg' | relative_url }} 640w,
                   {{ gallery_root | append: '-960.jpg' | relative_url }} 960w
@@ -212,8 +217,9 @@
                 sizes="(max-width: 720px) 48vw, (max-width: 1100px) 31vw, 280px"
               >
               <img
-                src="{{ gallery_root | append: '-640.jpg' | relative_url }}"
-                srcset="
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                data-src="{{ gallery_root | append: '-320.jpg' | relative_url }}"
+                data-srcset="
                   {{ gallery_root | append: '-320.jpg' | relative_url }} 320w,
                   {{ gallery_root | append: '-640.jpg' | relative_url }} 640w,
                   {{ gallery_root | append: '-960.jpg' | relative_url }} 960w
@@ -222,6 +228,8 @@
                 loading="lazy"
                 decoding="async"
                 fetchpriority="low"
+                width="280"
+                height="350"
                 alt="{{ novel_display_title }} gallery image {{ forloop.index }}"
                 onerror="this.onerror=null;this.removeAttribute('srcset');this.src='{{ gallery_url | relative_url }}';"
               >
