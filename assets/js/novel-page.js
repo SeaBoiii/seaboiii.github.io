@@ -1,4 +1,28 @@
 
+function novelsHideCompleteStatusEnabled() {
+  try {
+    return localStorage.getItem('site:novels-debug-hide-complete-status') === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+function applyNovelStatusBadgeDebug(scope) {
+  if (!scope || !novelsHideCompleteStatusEnabled()) return;
+
+  Array.prototype.slice.call(scope.querySelectorAll('.badge.complete, .related-badge.complete')).forEach(function(node) {
+    node.hidden = true;
+    node.style.display = 'none';
+  });
+
+  Array.prototype.slice.call(scope.querySelectorAll('.meta-row, .related-meta')).forEach(function(container) {
+    var hasVisible = Array.prototype.some.call(container.children, function(child) {
+      return child.nodeType === 1 && !child.hidden && child.style.display !== 'none';
+    });
+    container.hidden = !hasVisible;
+  });
+}
+
 // Continue Reading + chapter progress UI (per novel)
 (function() {
   var slug = (document.body && document.body.dataset && document.body.dataset.novelSlug) || '';
@@ -188,7 +212,7 @@
   var counter = document.getElementById('galleryLightboxCounter');
   var description = document.getElementById('galleryLightboxDescription');
   var openOriginal = document.getElementById('galleryLightboxOpenOriginal');
-  if (!backdrop || !closeBtn || !prevBtn || !nextBtn || !image || !counter || !description || !openOriginal) return;
+  if (!backdrop || !closeBtn || !prevBtn || !nextBtn || !image || !counter || !openOriginal) return;
 
   var activeIndex = 0;
   var opened = false;
@@ -222,8 +246,10 @@
     image.src = full;
     image.alt = alt;
     counter.textContent = (activeIndex + 1) + ' / ' + links.length;
-    description.textContent = desc;
-    description.hidden = !desc;
+    if (description) {
+      description.textContent = desc;
+      description.hidden = !desc;
+    }
     openOriginal.href = full || '#';
   }
 
@@ -521,6 +547,7 @@
   var relatedFetchStarted = false;
 
   if (!slug || !section || !summary || !list || !window.fetch || !window.DOMParser) return;
+  applyNovelStatusBadgeDebug(document);
 
   function clean(value) {
     return String(value || '').trim();
@@ -806,6 +833,7 @@
         var current = bySlug[normalizeSlug(slug)];
         if (!current) return;
         mountHeroRelationshipBadges(current, bySlug);
+        applyNovelStatusBadgeDebug(heroMeta);
 
         var unlocked = localStorage.getItem(unlockedKey) === 'true';
         var related = Object.keys(bySlug)
@@ -866,6 +894,7 @@
           list.appendChild(li);
         });
 
+        applyNovelStatusBadgeDebug(section);
         section.hidden = false;
       })
       .catch(function() {

@@ -1,82 +1,82 @@
 :root,
 :root[data-theme="light"] {
-  --bg: #f5efe6;
-  --bg-2: #e7d8c3;
-  --surface: #fff8ee;
-  --surface-2: #f9edde;
-  --text: #2a1f18;
-  --muted: #786658;
-  --border: #d9c5af;
-  --link: #302319;
-  --accent: #9a5a3f;
-  --accent-strong: #7f4730;
-  --accent-soft: #efd7c3;
-  --accent-teal: #6d7f60;
-  --pill: #f1e4d5;
-  --pill-brd: #d7c0a5;
-  --pill-ok: #dfecd8;
-  --pill-ok-brd: #adc39e;
-  --pill-wip: #f8e8cf;
-  --pill-wip-brd: #dcb88a;
-  --btn-bg: #9a5a3f;
-  --btn-text: #fff6ee;
-  --btn-brd: #83462f;
-  --shadow-soft: 0 16px 36px rgba(70, 49, 31, 0.14);
-  --shadow-card: 0 12px 24px rgba(65, 44, 27, 0.11);
+  --bg: #eef4fb;
+  --bg-2: #dfe9f7;
+  --surface: #fbfdff;
+  --surface-2: #eef4fc;
+  --text: #142033;
+  --muted: #5d6f89;
+  --border: #ccdaea;
+  --link: #142033;
+  --accent: #4e7bd3;
+  --accent-strong: #315fb8;
+  --accent-soft: #dce8fb;
+  --accent-teal: #7ea8da;
+  --pill: #e7eff9;
+  --pill-brd: #cad8ea;
+  --pill-ok: #e7eff9;
+  --pill-ok-brd: #cad8ea;
+  --pill-wip: #e3edf9;
+  --pill-wip-brd: #b8cae4;
+  --btn-bg: #2f5ea8;
+  --btn-text: #f6f9ff;
+  --btn-brd: #244c8a;
+  --shadow-soft: 0 16px 36px rgba(34, 64, 116, 0.12);
+  --shadow-card: 0 12px 24px rgba(29, 54, 96, 0.1);
   color-scheme: light dark;
 }
 
 :root[data-theme="dark"] {
-  --bg: #17120f;
-  --bg-2: #211a15;
-  --surface: #221a15;
-  --surface-2: #2b211a;
-  --text: #f4e9dd;
-  --muted: #b8a391;
-  --border: #47372c;
-  --link: #f4e9dd;
-  --accent: #e2a888;
-  --accent-strong: #f1bea2;
-  --accent-soft: #443024;
-  --accent-teal: #8ba078;
-  --pill: #30261f;
-  --pill-brd: #5f4d40;
-  --pill-ok: #273725;
-  --pill-ok-brd: #496243;
-  --pill-wip: #42301f;
-  --pill-wip-brd: #7b5b39;
-  --btn-bg: #e2a888;
-  --btn-text: #2c1d13;
-  --btn-brd: #eab698;
-  --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.42);
-  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.35);
+  --bg: #0d1523;
+  --bg-2: #111c2d;
+  --surface: #121d30;
+  --surface-2: #16243a;
+  --text: #e7eefb;
+  --muted: #9fb1cb;
+  --border: #2a3a55;
+  --link: #e7eefb;
+  --accent: #8db0e8;
+  --accent-strong: #b0c8f2;
+  --accent-soft: #1d2b42;
+  --accent-teal: #5274a8;
+  --pill: #1d2a42;
+  --pill-brd: #334765;
+  --pill-ok: #1d2a42;
+  --pill-ok-brd: #334765;
+  --pill-wip: #22314b;
+  --pill-wip-brd: #415a82;
+  --btn-bg: #8db0e8;
+  --btn-text: #10203a;
+  --btn-brd: #a8c3f1;
+  --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.36);
+  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #17120f;
-    --bg-2: #211a15;
-    --surface: #221a15;
-    --surface-2: #2b211a;
-    --text: #f4e9dd;
-    --muted: #b8a391;
-    --border: #47372c;
-    --link: #f4e9dd;
-    --accent: #e2a888;
-    --accent-strong: #f1bea2;
-    --accent-soft: #443024;
-    --accent-teal: #8ba078;
-    --pill: #30261f;
-    --pill-brd: #5f4d40;
-    --pill-ok: #273725;
-    --pill-ok-brd: #496243;
-    --pill-wip: #42301f;
-    --pill-wip-brd: #7b5b39;
-    --btn-bg: #e2a888;
-    --btn-text: #2c1d13;
-    --btn-brd: #eab698;
-    --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.42);
-    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.35);
+    --bg: #0d1523;
+    --bg-2: #111c2d;
+    --surface: #121d30;
+    --surface-2: #16243a;
+    --text: #e7eefb;
+    --muted: #9fb1cb;
+    --border: #2a3a55;
+    --link: #e7eefb;
+    --accent: #8db0e8;
+    --accent-strong: #b0c8f2;
+    --accent-soft: #1d2b42;
+    --accent-teal: #5274a8;
+    --pill: #1d2a42;
+    --pill-brd: #334765;
+    --pill-ok: #1d2a42;
+    --pill-ok-brd: #334765;
+    --pill-wip: #22314b;
+    --pill-wip-brd: #415a82;
+    --btn-bg: #8db0e8;
+    --btn-text: #10203a;
+    --btn-brd: #a8c3f1;
+    --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.36);
+    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.28);
   }
 }
 
@@ -148,40 +148,54 @@ a {
   padding: 0 1.2rem;
 }
 
-header {
+.site-header {
   position: sticky;
   top: 0;
-  z-index: 20;
-  border-bottom: 1px solid color-mix(in oklab, var(--border), transparent 22%);
-  background: color-mix(in oklab, var(--bg), var(--surface) 80%);
-  -webkit-backdrop-filter: blur(12px) saturate(118%);
-  backdrop-filter: blur(12px) saturate(118%);
+  z-index: 30;
+  background: color-mix(in oklab, var(--bg), var(--surface) 46%);
+  border-bottom: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  padding: 0.85rem 0;
+  font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
 }
 
-.nav {
+.header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.88rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-family: "Merriweather", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
-.nav-title {
-  margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.45rem, 2.1vw, 1.8rem);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.nav-title a {
-  color: inherit;
-}
-
-.nav-actions {
+.crumbs {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.crumbs a {
+  color: var(--muted);
+}
+
+.crumbs a:hover {
+  color: var(--text);
+  text-decoration: none;
 }
 
 .pill-button {
@@ -218,26 +232,22 @@ header {
 }
 
 .theme-toggle {
-  display: inline-grid;
-  place-items: center;
-  width: 2.15rem;
-  height: 2.15rem;
-  border: 1px solid color-mix(in oklab, var(--border), var(--accent) 22%);
-  background: color-mix(in oklab, var(--surface), var(--accent-soft) 28%);
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: var(--text);
-  border-radius: 12px;
-  padding: 0;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+  transition: filter 0.2s ease;
 }
 
 .theme-toggle:hover {
-  transform: translateY(-1px) scale(1.02);
-  background: color-mix(in oklab, var(--surface), var(--accent-soft) 43%);
+  filter: brightness(1.05);
 }
 
 .theme-toggle:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--accent), transparent 25%);
+  outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
   outline-offset: 2px;
 }
 
@@ -687,6 +697,10 @@ main.container {
   align-items: center;
 }
 
+.meta-row[hidden] {
+  display: none;
+}
+
 .meta-row-extra .badge {
   font-size: 0.7rem;
 }
@@ -770,32 +784,84 @@ main.container {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.55rem;
 }
 
 .secret-btn {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--muted);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   font-size: 0.85rem;
-  opacity: 0.62;
   padding: 0.3rem 0.55rem;
   border-radius: 8px;
-  transition: opacity 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  transition: filter 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .secret-btn:hover {
-  opacity: 1;
+  filter: brightness(1.05);
   border-color: color-mix(in oklab, var(--border), var(--accent) 30%);
-  background: color-mix(in oklab, var(--surface), var(--accent-soft) 22%);
 }
 
 .secret-btn:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--accent), transparent 24%);
+  outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
   outline-offset: 2px;
-  opacity: 1;
+}
+
+.debug-tools {
+  position: relative;
+}
+
+.debug-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.32rem 0.62rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: "Roboto", system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+.debug-toggle:hover {
+  filter: brightness(1.05);
+}
+
+.debug-toggle:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--btn-brd), transparent 35%);
+  outline-offset: 2px;
+}
+
+.debug-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.55rem);
+  min-width: 220px;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.debug-panel[hidden] {
+  display: none;
+}
+
+.debug-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--text);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.debug-option input {
+  margin: 0;
 }
 
 @media (max-width: 719px) {
@@ -821,6 +887,12 @@ main.container {
 
   .footer-actions {
     justify-content: center;
+  }
+
+  .debug-panel {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
   }
 }
 

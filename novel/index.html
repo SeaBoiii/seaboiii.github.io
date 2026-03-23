@@ -7,23 +7,24 @@
    Available Novels
   </title>
   <link href="/favicon.ico" rel="icon"/>
+  <meta content="#eef4fb" name="theme-color"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;family=Merriweather:wght@300;700&amp;family=Roboto:wght@400;700&amp;display=swap" rel="stylesheet"/>
   <link href="/assets/css/novel-index.css" rel="stylesheet"/>
  </head>
  <body>
-  <header>
-   <div class="container nav">
-    <h1 class="nav-title">
-     <a href="/novel">
-      Aleem's Novels
-     </a>
-    </h1>
-    <div class="nav-actions">
-     <a class="pill-button" href="/">
-      Profile
-     </a>
+  <header class="site-header">
+   <div class="container header-content">
+    <a class="brand" href="/novel">
+     Aleem's Novels
+    </a>
+    <div class="header-right">
+     <nav class="crumbs">
+      <a href="/">
+       Profile
+      </a>
+     </nav>
      <button aria-label="Toggle theme" class="theme-toggle" id="themeToggle" type="button">
       🌙
      </button>
@@ -1032,6 +1033,19 @@
      </div>
      <div class="footer-actions">
       <div aria-live="polite" class="muted" id="resultsCount">
+      </div>
+      <div class="debug-tools" hidden="" id="debugTools">
+       <button aria-controls="debugSettingsPanel" aria-expanded="false" class="debug-toggle" id="debugSettingsToggle" type="button">
+        Debug
+       </button>
+       <div aria-hidden="true" class="debug-panel" hidden="" id="debugSettingsPanel" role="menu">
+        <label class="debug-option" for="debugHideCompleteStatus">
+         <input id="debugHideCompleteStatus" type="checkbox"/>
+         <span>
+          Hide complete status tags
+         </span>
+        </label>
+       </div>
       </div>
       <button aria-label="Unlock hidden novels" class="secret-btn" id="secretBtn" title="🔒" type="button">
        🔒

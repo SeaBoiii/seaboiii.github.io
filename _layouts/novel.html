@@ -28,6 +28,13 @@
 {% assign blurb = page.blurb %}
 {% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
 {% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
+{% assign gallery_has_descriptions = false %}
+{% if page.gallery and page.gallery.first and page.gallery.first.url %}
+  {% assign gallery_description_blob = page.gallery | map: 'description' | join: '' | strip %}
+  {% if gallery_description_blob != '' %}
+    {% assign gallery_has_descriptions = true %}
+  {% endif %}
+{% endif %}
 
 <header class="site-header">
   <div class="header-content">
@@ -255,7 +262,13 @@
 <section class="novel-gallery" aria-label="Gallery">
   <div class="novel-gallery-head">
     <h2>Gallery</h2>
-    <p class="small-note">Tap any image to open full size and read the scene note.</p>
+    <p class="small-note">
+      {% if gallery_has_descriptions %}
+        Tap any image to open full size and read the scene note.
+      {% else %}
+        Tap any image to open full size.
+      {% endif %}
+    </p>
   </div>
   <ul class="novel-gallery-grid">
     {{ gallery_markup }}
@@ -272,7 +285,9 @@
       <div class="gallery-lightbox-meta">
         <div class="gallery-lightbox-copy">
           <span id="galleryLightboxCounter" class="small-note"></span>
-          <p id="galleryLightboxDescription" class="gallery-lightbox-description" hidden></p>
+          {% if gallery_has_descriptions %}
+            <p id="galleryLightboxDescription" class="gallery-lightbox-description" hidden></p>
+          {% endif %}
         </div>
         <a id="galleryLightboxOpenOriginal" href="#" target="_blank" rel="noopener">Open full size</a>
       </div>

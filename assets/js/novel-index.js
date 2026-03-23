@@ -79,6 +79,10 @@
         var controlsActions = document.getElementById("controlsActions");
         var activeFilterChips = document.getElementById("activeFilterChips");
         var secretBtn = document.getElementById("secretBtn");
+        var debugTools = document.getElementById("debugTools");
+        var debugSettingsToggle = document.getElementById("debugSettingsToggle");
+        var debugSettingsPanel = document.getElementById("debugSettingsPanel");
+        var debugHideCompleteStatusInput = document.getElementById("debugHideCompleteStatus");
         if (
           !search ||
           !grid ||
@@ -98,11 +102,13 @@
         var activeSortFilter = "recent";
         var isFilterPanelOpen = false;
         var unlockedKey = "site:novels-unlocked";
+        var debugHideCompleteKey = "site:novels-debug-hide-complete-status";
         var uiStateKey = "site:novels-ui";
         var correctPassword = "seaboiii";
         var focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
         var lockIcon = String.fromCodePoint(128274);
         var unlockIcon = String.fromCodePoint(128275);
+        var isDebugPanelOpen = false;
 
         cards.forEach(function (card, idx) {
           card.dataset.initialIndex = String(idx);
@@ -201,6 +207,15 @@
           return localStorage.getItem(unlockedKey) === "true";
         }
 
+        function hideCompleteStatusEnabled() {
+          return localStorage.getItem(debugHideCompleteKey) === "true";
+        }
+
+        function setHideCompleteStatusEnabled(enabled) {
+          if (enabled) localStorage.setItem(debugHideCompleteKey, "true");
+          else localStorage.removeItem(debugHideCompleteKey);
+        }
+
         function optionLabel(select, value) {
           var label = "";
           Array.prototype.forEach.call(select.options, function (opt) {
@@ -278,6 +293,44 @@
           secretBtn.textContent = unlocked ? unlockIcon : lockIcon;
           secretBtn.title = unlocked ? unlockIcon : lockIcon;
           secretBtn.setAttribute("aria-label", unlocked ? "Hide hidden novels" : "Unlock hidden novels");
+          if (debugTools) debugTools.hidden = !unlocked;
+          if (!unlocked) {
+            setDebugPanelOpen(false);
+          }
+          syncDebugControls();
+        }
+
+        function setDebugPanelOpen(open) {
+          if (!debugSettingsPanel || !debugSettingsToggle || !debugTools || debugTools.hidden) {
+            isDebugPanelOpen = false;
+            return;
+          }
+          isDebugPanelOpen = !!open;
+          debugSettingsPanel.hidden = !isDebugPanelOpen;
+          debugSettingsPanel.setAttribute("aria-hidden", isDebugPanelOpen ? "false" : "true");
+          debugSettingsToggle.setAttribute("aria-expanded", isDebugPanelOpen ? "true" : "false");
+        }
+
+        function syncDebugControls() {
+          if (!debugHideCompleteStatusInput) return;
+          debugHideCompleteStatusInput.checked = hideCompleteStatusEnabled();
+        }
+
+        function applyStatusBadgeDebug() {
+          var hideComplete = hideCompleteStatusEnabled();
+          cards.forEach(function(card) {
+            Array.prototype.forEach.call(card.querySelectorAll(".badge.complete"), function(badge) {
+              badge.hidden = hideComplete;
+              badge.style.display = hideComplete ? "none" : "";
+            });
+
+            Array.prototype.forEach.call(card.querySelectorAll(".meta-row-status"), function(row) {
+              var hasVisible = Array.prototype.some.call(row.children, function(child) {
+                return child.nodeType === 1 && !child.hidden && child.style.display !== "none";
+              });
+              row.hidden = !hasVisible;
+            });
+          });
         }
 
         function clearAllFilters() {
@@ -559,6 +612,7 @@
         function update() {
           var visible = 0;
           sortCards();
+          applyStatusBadgeDebug();
           cards.forEach(function (card) {
             var show = shouldShow(card);
             card.style.display = show ? "flex" : "none";
@@ -675,6 +729,7 @@
             var isUnlocked = getUnlockedState();
             if (isUnlocked) {
               localStorage.removeItem(unlockedKey);
+              setDebugPanelOpen(false);
               syncSecretButton();
               update();
               return;
@@ -697,6 +752,11 @@
               setFilterPanelOpen(false, { restoreFocus: true });
             }
           }
+          if (isDebugPanelOpen && debugTools) {
+            if (!debugTools.contains(event.target)) {
+              setDebugPanelOpen(false);
+            }
+          }
         });
 
         document.addEventListener("keydown", function (event) {
@@ -709,6 +769,11 @@
           }
 
           if (event.key === "Escape") {
+            if (isDebugPanelOpen) {
+              event.preventDefault();
+              setDebugPanelOpen(false);
+              return;
+            }
             if (isFilterPanelOpen) {
               event.preventDefault();
               setFilterPanelOpen(false, { restoreFocus: true });
@@ -751,6 +816,19 @@
         });
 
         search.addEventListener("input", update);
+        if (debugSettingsToggle) {
+          debugSettingsToggle.addEventListener("click", function () {
+            if (debugTools && !debugTools.hidden) {
+              setDebugPanelOpen(!isDebugPanelOpen);
+            }
+          });
+        }
+        if (debugHideCompleteStatusInput) {
+          debugHideCompleteStatusInput.addEventListener("change", function () {
+            setHideCompleteStatusEnabled(!!debugHideCompleteStatusInput.checked);
+            applyStatusBadgeDebug();
+          });
+        }
         syncSecretButton();
 
         update();

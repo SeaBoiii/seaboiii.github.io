@@ -1,19 +1,19 @@
 
       :root {
-        --bg: #ffffff;
-        --text: #111111;
-        --muted: #666666;
-        --card: #ffffff;
-        --border: #e6e6e6;
-        --link: #111111;
-        --btn-bg: #111111;
-        --btn-text: #ffffff;
-        --btn-brd: #111111;
-        --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        --quote-bar: #b9c0cb;
-        --quote-bg: #f4f6f8;
-        --quote-text: #111111;
-        --quote-strong: #0b0d10;
+        --bg: #eef4fb;
+        --text: #142033;
+        --muted: #5d6f89;
+        --card: #fbfdff;
+        --border: #ccdaea;
+        --link: #142033;
+        --btn-bg: #2f5ea8;
+        --btn-text: #f6f9ff;
+        --btn-brd: #244c8a;
+        --shadow: 0 2px 8px rgba(29, 54, 96, 0.1);
+        --quote-bar: #7f9cc5;
+        --quote-bg: #f0f5fb;
+        --quote-text: #142033;
+        --quote-strong: #0b1930;
         --reader-font-scale: 1;
         --reader-line-height: 1.75;
         --reader-max-width: 800px;
@@ -23,54 +23,54 @@
 
       @media (prefers-color-scheme: dark) {
         :root {
-          --bg: #0b0e13;
-          --text: #e7eaf0;
-          --muted: #a8b2c1;
-          --card: #11151d;
-          --border: #253043;
-          --link: #e7eaf0;
-          --btn-bg: #e7eaf0;
-          --btn-text: #0b0e13;
-          --btn-brd: #e7eaf0;
-          --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-          --quote-bar: #5a6474;
-          --quote-bg: #0f141c;
-          --quote-text: #eef2f8;
+          --bg: #0d1523;
+          --text: #e7eefb;
+          --muted: #9fb1cb;
+          --card: #121d30;
+          --border: #2a3a55;
+          --link: #e7eefb;
+          --btn-bg: #8db0e8;
+          --btn-text: #10203a;
+          --btn-brd: #a8c3f1;
+          --shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+          --quote-bar: #5978a8;
+          --quote-bg: #111c2d;
+          --quote-text: #eef3fb;
           --quote-strong: #ffffff;
         }
       }
 
       :root[data-theme="light"] {
-        --bg: #ffffff;
-        --text: #111111;
-        --muted: #666666;
-        --card: #ffffff;
-        --border: #e6e6e6;
-        --link: #111111;
-        --btn-bg: #111111;
-        --btn-text: #ffffff;
-        --btn-brd: #111111;
-        --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        --quote-bar: #b9c0cb;
-        --quote-bg: #f4f6f8;
-        --quote-text: #111111;
-        --quote-strong: #0b0d10;
+        --bg: #eef4fb;
+        --text: #142033;
+        --muted: #5d6f89;
+        --card: #fbfdff;
+        --border: #ccdaea;
+        --link: #142033;
+        --btn-bg: #2f5ea8;
+        --btn-text: #f6f9ff;
+        --btn-brd: #244c8a;
+        --shadow: 0 2px 8px rgba(29, 54, 96, 0.1);
+        --quote-bar: #7f9cc5;
+        --quote-bg: #f0f5fb;
+        --quote-text: #142033;
+        --quote-strong: #0b1930;
       }
 
       :root[data-theme="dark"] {
-        --bg: #0b0e13;
-        --text: #e7eaf0;
-        --muted: #a8b2c1;
-        --card: #11151d;
-        --border: #253043;
-        --link: #e7eaf0;
-        --btn-bg: #e7eaf0;
-        --btn-text: #0b0e13;
-        --btn-brd: #e7eaf0;
-        --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        --quote-bar: #5a6474;
-        --quote-bg: #0f141c;
-        --quote-text: #eef2f8;
+        --bg: #0d1523;
+        --text: #e7eefb;
+        --muted: #9fb1cb;
+        --card: #121d30;
+        --border: #2a3a55;
+        --link: #e7eefb;
+        --btn-bg: #8db0e8;
+        --btn-text: #10203a;
+        --btn-brd: #a8c3f1;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+        --quote-bar: #5978a8;
+        --quote-bg: #111c2d;
+        --quote-text: #eef3fb;
         --quote-strong: #ffffff;
       }
 
@@ -126,7 +126,7 @@
       }
 
       .header-content {
-        max-width: 800px;
+        max-width: 1100px;
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -611,7 +611,7 @@
       }
 
       .mobile-chapter-nav .inner {
-        max-width: 800px;
+        max-width: 1100px;
         margin: 0 auto;
         padding: 0.5rem 0.9rem calc(0.5rem + env(safe-area-inset-bottom));
         display: grid;
