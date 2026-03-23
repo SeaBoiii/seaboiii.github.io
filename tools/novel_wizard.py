@@ -485,14 +485,15 @@ def _novel_slug_from_card_href(href: str) -> str:
         return ""
     return slugify(m.group(1))
 
-def _local_path_from_site_url(url: str) -> Optional[Path]:
+def _site_url_to_local_path(url: str) -> Optional[Path]:
     u = (url or "").strip()
-    if not u:
+    if not u or u.startswith(("http://", "https://")):
         return None
-    if u.startswith(("http://", "https://")):
-        return None
-    p = (REPO_ROOT / u.lstrip("/")) if u.startswith("/") else (REPO_ROOT / u)
-    return p if p.exists() else None
+    return (REPO_ROOT / u.lstrip("/")) if u.startswith("/") else (REPO_ROOT / u)
+
+def _local_path_from_site_url(url: str) -> Optional[Path]:
+    p = _site_url_to_local_path(url)
+    return p if p is not None and p.exists() else None
 
 def novel_card_preview_info(slug: str) -> dict:
     """
@@ -1015,45 +1016,204 @@ def _format_blurb_yaml_block(blurb: str) -> str:
     lines = text.splitlines() or ["A captivating story."]
     return "\n".join(f"  {line}" for line in lines)
 
-def _normalize_gallery_urls(value) -> list[str]:
+def _normalize_gallery_url(value: str) -> str:
+    url = str(value or "").strip().replace("\\", "/")
+    if not url:
+        return ""
+    if not url.startswith(("/", "http://", "https://")):
+        if url.lower().startswith("images/"):
+            url = "/" + url.lstrip("/")
+        else:
+            url = "/images/" + Path(url).name
+    return url
+
+def _normalize_gallery_description(value: str) -> str:
+    return normalize_smart_punctuation(str(value or "").strip())
+
+def _yaml_quote_string(value: str) -> str:
+    return json.dumps(str(value or ""), ensure_ascii=False)
+
+def _normalize_gallery_items(value) -> list[dict]:
     if value is None:
         return []
 
     raw_items = []
+    if isinstance(value, dict):
+        raw_items = [value]
     if isinstance(value, (list, tuple, set)):
         raw_items = list(value)
-    else:
+    elif raw_items == []:
         raw_items = str(value).splitlines()
 
     out = []
     seen = set()
     for raw in raw_items:
-        url = str(raw or "").strip().replace("\\", "/")
+        if isinstance(raw, dict):
+            url = _normalize_gallery_url(
+                raw.get("url")
+                or raw.get("image")
+                or raw.get("src")
+                or raw.get("path")
+                or ""
+            )
+            description = _normalize_gallery_description(
+                raw.get("description")
+                or raw.get("caption")
+                or raw.get("desc")
+                or ""
+            )
+        else:
+            url = _normalize_gallery_url(raw)
+            description = ""
         if not url:
             continue
-        if not url.startswith(("/", "http://", "https://")):
-            if url.lower().startswith("images/"):
-                url = "/" + url.lstrip("/")
-            else:
-                url = "/images/" + Path(url).name
         if url in seen:
             continue
         seen.add(url)
-        out.append(url)
+        out.append({"url": url, "description": description})
     return out
 
-def _format_gallery_yaml_block(gallery_urls: list[str]) -> str:
-    items = _normalize_gallery_urls(gallery_urls)
+def _normalize_gallery_urls(value) -> list[str]:
+    return [str(item.get("url") or "").strip() for item in _normalize_gallery_items(value) if str(item.get("url") or "").strip()]
+
+def _clone_gallery_editor_items(items) -> list[dict]:
+    cloned = []
+    for item in items or []:
+        if not isinstance(item, dict):
+            item = {"url": item}
+        cloned.append(
+            {
+                "url": _normalize_gallery_url(item.get("url") or ""),
+                "source_path": str(item.get("source_path") or "").strip(),
+                "description": _normalize_gallery_description(item.get("description") or ""),
+            }
+        )
+    return cloned
+
+def _gallery_metadata_signature(items) -> list[tuple[str, str]]:
+    normalized = _normalize_gallery_items(items)
+    return [(str(item.get("url") or ""), str(item.get("description") or "")) for item in normalized]
+
+def _gallery_item_display_name(item: dict) -> str:
+    source_path = str((item or {}).get("source_path") or "").strip()
+    if source_path:
+        return Path(source_path).name
+    url = _normalize_gallery_url((item or {}).get("url") or "")
+    return Path(url).name if url else "Untitled image"
+
+def _gallery_item_preview_text(description: str, fallback: str = "No scene description yet.") -> str:
+    text = _normalize_gallery_description(description)
+    if not text:
+        return fallback
+    if len(text) > 80:
+        return text[:77].rstrip() + "..."
+    return text
+
+def _extract_front_matter_field(fm_block: str, key: str) -> tuple[Optional[str], list[str]]:
+    lines = (fm_block or "").splitlines()
+    pattern = re.compile(rf"^\s*{re.escape(key)}\s*:\s*(.*)$")
+    for i, line in enumerate(lines):
+        m = pattern.match(line)
+        if not m:
+            continue
+        value = (m.group(1) or "").rstrip()
+        block_lines = []
+        j = i + 1
+        while j < len(lines):
+            nxt = lines[j]
+            if nxt.strip() and not nxt.startswith((" ", "\t")) and re.match(r"^[A-Za-z0-9_-]+\s*:\s*", nxt):
+                break
+            block_lines.append(nxt)
+            j += 1
+        return value, block_lines
+    return None, []
+
+def _yaml_parse_inline_string(value: str) -> str:
+    s = str(value or "").strip()
+    if not s:
+        return ""
+    if s.startswith('"') and s.endswith('"'):
+        try:
+            return str(json.loads(s))
+        except Exception:
+            return s[1:-1]
+    if s.startswith("'") and s.endswith("'"):
+        return s[1:-1].replace("''", "'")
+    return s
+
+def _parse_gallery_items_from_front_matter(fm_block: str) -> list[dict]:
+    value, block_lines = _extract_front_matter_field(fm_block, "gallery")
+    if value is None:
+        return []
+
+    if value in {"|", "|-", "|+", ">", ">-", ">+"}:
+        lines = []
+        for line in block_lines:
+            if line.startswith("  "):
+                lines.append(line[2:])
+            else:
+                lines.append(line.strip())
+        return _normalize_gallery_items("\n".join(lines).strip())
+
+    if value == "":
+        items = []
+        current = None
+        for raw_line in block_lines:
+            line = raw_line.rstrip()
+            if not line.strip():
+                continue
+
+            inline_map = re.match(r"^\s*-\s+url\s*:\s*(.+?)\s*$", line)
+            inline_scalar = re.match(r"^\s*-\s+(.+?)\s*$", line)
+            desc_match = re.match(r"^\s*description\s*:\s*(.+?)\s*$", line)
+
+            if inline_map:
+                if current and current.get("url"):
+                    items.append(current)
+                current = {
+                    "url": _yaml_parse_inline_string(inline_map.group(1)),
+                    "description": "",
+                }
+                continue
+
+            if desc_match and current is not None:
+                current["description"] = _yaml_parse_inline_string(desc_match.group(1))
+                continue
+
+            if inline_scalar:
+                token = inline_scalar.group(1)
+                if token.lower().startswith("description:"):
+                    continue
+                if current and current.get("url"):
+                    items.append(current)
+                current = {"url": _yaml_parse_inline_string(token), "description": ""}
+
+        if current and current.get("url"):
+            items.append(current)
+        return _normalize_gallery_items(items)
+
+    return _normalize_gallery_items(_yaml_parse_inline_string(value))
+
+def _format_gallery_yaml_block(gallery_items) -> str:
+    items = _normalize_gallery_items(gallery_items)
     if not items:
         return ""
-    lines = "\n".join(f"  {url}" for url in items)
-    return f"gallery: |-\n{lines}\n"
+    lines = ["gallery:"]
+    for item in items:
+        url = str(item.get("url") or "").strip()
+        if not url:
+            continue
+        lines.append(f"  - url: {_yaml_quote_string(url)}")
+        description = _normalize_gallery_description(item.get("description") or "")
+        if description:
+            lines.append(f"    description: {_yaml_quote_string(description)}")
+    return "\n".join(lines) + "\n"
 
 def build_index_md(
     slug: str,
     status: str = "Incomplete",
     blurb: str = "",
-    gallery_urls: Optional[list[str]] = None,
+    gallery_items = None,
     chapter_music_url: str = "",
     chapter_music_title: str = "",
     title: Optional[str] = None,
@@ -1063,7 +1223,7 @@ def build_index_md(
     body_text = body if body is not None else DEFAULT_NOVEL_INDEX_BODY
     body_text = body_text if body_text.endswith("\n") else body_text + "\n"
     blurb_yaml = _format_blurb_yaml_block(blurb)
-    gallery_yaml = _format_gallery_yaml_block(gallery_urls or [])
+    gallery_yaml = _format_gallery_yaml_block(gallery_items or [])
     chapter_music_url_yaml = _format_yaml_block_field("chapter_music_url", chapter_music_url)
     chapter_music_title_yaml = _format_yaml_block_field("chapter_music_title", chapter_music_title)
     return (
@@ -1323,6 +1483,87 @@ def copy_gallery_to_images(
         added_urls.append(url)
 
     return _normalize_gallery_urls(gallery_urls), _normalize_gallery_urls(added_urls), removed
+
+def remove_gallery_asset_variants(url: str) -> list[Path]:
+    base_path = _site_url_to_local_path(url)
+    if base_path is None:
+        return []
+
+    removed = []
+    candidates = [base_path]
+    if base_path.parent.exists():
+        candidates.extend(base_path.parent.glob(f"{base_path.stem}-*.jpg"))
+        candidates.extend(base_path.parent.glob(f"{base_path.stem}-*.webp"))
+
+    seen = set()
+    for candidate in candidates:
+        key = str(candidate).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            if candidate.exists() and candidate.is_file():
+                candidate.unlink()
+                removed.append(candidate)
+        except Exception:
+            pass
+    return removed
+
+def materialize_gallery_items_for_commit(
+    gallery_items,
+    slug: str,
+    existing_items = None,
+) -> tuple[list[dict], list[str], list[Path], Optional[str]]:
+    slug = slugify(slug)
+    working = _clone_gallery_editor_items(gallery_items)
+    existing = _normalize_gallery_items(existing_items)
+    existing_urls = {str(item.get("url") or "").strip() for item in existing if str(item.get("url") or "").strip()}
+    kept_existing_urls = {
+        str(item.get("url") or "").strip()
+        for item in working
+        if str(item.get("url") or "").strip() and not str(item.get("source_path") or "").strip()
+    }
+
+    for item in working:
+        source_path = str(item.get("source_path") or "").strip()
+        if not source_path:
+            continue
+        src = Path(source_path).expanduser()
+        if not src.exists() or not src.is_file():
+            return [], [], [], f"Gallery image not found: {source_path}"
+
+    removed = []
+    for url in sorted(existing_urls - kept_existing_urls):
+        removed.extend(remove_gallery_asset_variants(url))
+
+    IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    next_idx = _next_gallery_index(slug, sorted(kept_existing_urls))
+    final_items = []
+    added_urls = []
+
+    for item in working:
+        description = _normalize_gallery_description(item.get("description") or "")
+        source_path = str(item.get("source_path") or "").strip()
+        url = _normalize_gallery_url(item.get("url") or "")
+
+        if source_path:
+            src = Path(source_path).expanduser()
+            ext = src.suffix.lower() or ".png"
+            if ext not in SUPPORTED_COVER_EXTS:
+                ext = ".png"
+            idx = next_idx
+            while (IMAGES_DIR / f"{slug}-gallery-{idx}{ext}").exists():
+                idx += 1
+            next_idx = idx + 1
+            dst = IMAGES_DIR / f"{slug}-gallery-{idx}{ext}"
+            shutil.copyfile(src, dst)
+            url = f"/images/{dst.name}"
+            added_urls.append(url)
+
+        if url:
+            final_items.append({"url": url, "description": description})
+
+    return _normalize_gallery_items(final_items), _normalize_gallery_urls(added_urls), removed, None
 
 def generate_responsive_variants_for_site_images(site_urls: list[str]) -> tuple[list[Path], list[str]]:
     urls = _normalize_gallery_urls(site_urls)
@@ -2613,6 +2854,350 @@ class BulkReplaceDialog(tk.Toplevel):
             except Exception:
                 pass
 
+class GalleryEditorDialog(tk.Toplevel):
+    def __init__(self, parent, items, novel_title: str = ""):
+        super().__init__(parent)
+        self.parent = parent
+        self.items = _clone_gallery_editor_items(items)
+        self.result = None
+        self._selected_index = None
+        self._preview_image = None
+
+        title_suffix = f" - {novel_title.strip()}" if novel_title.strip() else ""
+        self.title(f"Gallery Manager{title_suffix}")
+        self.transient(parent)
+        self.geometry("940x560")
+        self.minsize(860, 500)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.protocol("WM_DELETE_WINDOW", self._cancel)
+
+        header = ttk.Frame(self, padding=(12, 12, 12, 0))
+        header.grid(row=0, column=0, sticky="we")
+        header.columnconfigure(0, weight=1)
+        ttk.Label(header, text="Manage gallery images and scene descriptions").grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            header,
+            text="Scene descriptions appear in the reader lightbox when someone opens an image.",
+            style="Hint.TLabel",
+        ).grid(row=1, column=0, sticky="w", pady=(4, 0))
+
+        toolbar = ttk.Frame(self, padding=(12, 10, 12, 0))
+        toolbar.grid(row=1, column=0, sticky="we")
+        self.btn_add = ttk.Button(toolbar, text="Add images...", command=self._add_images)
+        self.btn_add.pack(side="left")
+        self.btn_replace_all = ttk.Button(toolbar, text="Replace all...", command=lambda: self._add_images(replace_all=True))
+        self.btn_replace_all.pack(side="left", padx=(8, 0))
+        self.btn_remove = ttk.Button(toolbar, text="Remove selected", command=self._remove_selected)
+        self.btn_remove.pack(side="left", padx=(8, 0))
+        self.btn_clear = ttk.Button(toolbar, text="Clear all", command=self._clear_all)
+        self.btn_clear.pack(side="left", padx=(8, 0))
+        self.btn_move_up = ttk.Button(toolbar, text="Move up", command=lambda: self._move_selected(-1))
+        self.btn_move_up.pack(side="right")
+        self.btn_move_down = ttk.Button(toolbar, text="Move down", command=lambda: self._move_selected(1))
+        self.btn_move_down.pack(side="right", padx=(0, 8))
+
+        split = ttk.Panedwindow(self, orient="horizontal")
+        split.grid(row=2, column=0, sticky="nsew", padx=12, pady=(10, 0))
+
+        left = ttk.Frame(split)
+        left.columnconfigure(0, weight=1)
+        left.rowconfigure(1, weight=1)
+        split.add(left, weight=3)
+
+        ttk.Label(left, text="Gallery order").grid(row=0, column=0, sticky="w")
+        tree_wrap = ttk.Frame(left)
+        tree_wrap.grid(row=1, column=0, sticky="nsew", pady=(6, 0))
+        tree_wrap.columnconfigure(0, weight=1)
+        tree_wrap.rowconfigure(0, weight=1)
+
+        self.tree = ttk.Treeview(tree_wrap, columns=("image", "scene"), show="tree headings", selectmode="browse")
+        self.tree.heading("#0", text="#")
+        self.tree.heading("image", text="Image")
+        self.tree.heading("scene", text="Scene description")
+        self.tree.column("#0", width=42, anchor="center", stretch=False)
+        self.tree.column("image", width=220, anchor="w")
+        self.tree.column("scene", width=260, anchor="w")
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        self.tree.bind("<<TreeviewSelect>>", lambda _e: self._on_tree_select())
+        tree_scroll = ttk.Scrollbar(tree_wrap, orient="vertical", command=self.tree.yview)
+        tree_scroll.grid(row=0, column=1, sticky="ns")
+        self.tree.configure(yscrollcommand=tree_scroll.set)
+
+        right = ttk.Frame(split)
+        right.columnconfigure(0, weight=1)
+        right.rowconfigure(2, weight=1)
+        split.add(right, weight=4)
+
+        preview_frame = ttk.LabelFrame(right, text="Selected image", padding=(8, 6))
+        preview_frame.grid(row=0, column=0, sticky="we")
+        preview_frame.columnconfigure(1, weight=1)
+        self.preview_label = ttk.Label(preview_frame, text="No preview", anchor="center", justify="center")
+        self.preview_label.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
+        self.preview_title_var = tk.StringVar(value="No gallery image selected")
+        self.preview_note_var = tk.StringVar(value="Use Add images to start a gallery.")
+        ttk.Label(preview_frame, textvariable=self.preview_title_var).grid(row=0, column=1, sticky="w")
+        ttk.Label(preview_frame, textvariable=self.preview_note_var, wraplength=360).grid(row=1, column=1, sticky="w", pady=(6, 0))
+
+        ttk.Label(right, text="Scene description").grid(row=1, column=0, sticky="w", pady=(10, 0))
+        editor_frame = ttk.Frame(right)
+        editor_frame.grid(row=2, column=0, sticky="nsew", pady=(6, 0))
+        editor_frame.columnconfigure(0, weight=1)
+        editor_frame.rowconfigure(0, weight=1)
+        self.description_text = tk.Text(editor_frame, height=10, wrap="word", undo=True)
+        self.description_text.grid(row=0, column=0, sticky="nsew")
+        self.description_text.bind("<KeyRelease>", lambda _e: self._on_description_changed())
+        self.description_text.bind("<FocusOut>", lambda _e: self._on_description_changed())
+        desc_scroll = ttk.Scrollbar(editor_frame, orient="vertical", command=self.description_text.yview)
+        desc_scroll.grid(row=0, column=1, sticky="ns")
+        self.description_text.configure(yscrollcommand=desc_scroll.set)
+
+        ttk.Label(
+            right,
+            text="Tip: describe the key visual beat or atmosphere you want readers to notice.",
+            style="Hint.TLabel",
+        ).grid(row=3, column=0, sticky="w", pady=(8, 0))
+
+        buttons = ttk.Frame(self, padding=12)
+        buttons.grid(row=3, column=0, sticky="e")
+        ttk.Button(buttons, text="Cancel", command=self._cancel).pack(side="left")
+        ttk.Button(buttons, text="Save Gallery", style="Primary.TButton", command=self._save_and_close).pack(side="left", padx=(8, 0))
+
+        self._rebuild_tree()
+        self._refresh_button_state()
+        if self.items:
+            self._select_index(0)
+        else:
+            self._load_selected_item()
+
+        self.grab_set()
+        self.focus_set()
+
+    def _resolve_item_path(self, item: dict) -> Optional[Path]:
+        if not isinstance(item, dict):
+            return None
+        source_path = str(item.get("source_path") or "").strip()
+        if source_path:
+            path = Path(source_path).expanduser()
+            return path if path.exists() else None
+        return _local_path_from_site_url(str(item.get("url") or "").strip())
+
+    def _load_preview_image(self, path: Optional[Path], size: tuple[int, int] = (210, 260)):
+        if path is None:
+            return None, "No local image preview available."
+        if not path.exists():
+            return None, f"{path.name} is missing."
+        if _PILImage is None or _PILImageTk is None:
+            return None, f"{path.name}\nInstall pillow for gallery previews."
+        try:
+            with _PILImage.open(path) as im0:
+                im = im0.convert("RGB")
+                im.thumbnail(size)
+                return _PILImageTk.PhotoImage(im), path.name
+        except Exception as exc:
+            return None, f"{path.name}\nCould not load preview: {exc}"
+
+    def _rebuild_tree(self):
+        for item_id in self.tree.get_children():
+            self.tree.delete(item_id)
+
+        for idx, item in enumerate(self.items):
+            scene = _gallery_item_preview_text(item.get("description") or "")
+            self.tree.insert(
+                "",
+                "end",
+                iid=str(idx),
+                text=str(idx + 1),
+                values=(_gallery_item_display_name(item), scene),
+            )
+
+    def _refresh_tree_row(self, index: int):
+        if index < 0 or index >= len(self.items):
+            return
+        item = self.items[index]
+        if self.tree.exists(str(index)):
+            self.tree.item(
+                str(index),
+                text=str(index + 1),
+                values=(
+                    _gallery_item_display_name(item),
+                    _gallery_item_preview_text(item.get("description") or ""),
+                ),
+            )
+
+    def _persist_current_description(self):
+        if self._selected_index is None:
+            return
+        if not (0 <= self._selected_index < len(self.items)):
+            return
+        description = self.description_text.get("1.0", "end").strip()
+        self.items[self._selected_index]["description"] = _normalize_gallery_description(description)
+        self._refresh_tree_row(self._selected_index)
+
+    def _load_selected_item(self):
+        if self._selected_index is None or not (0 <= self._selected_index < len(self.items)):
+            self.preview_title_var.set("No gallery image selected")
+            self.preview_note_var.set("Use Add images to start a gallery.")
+            self.preview_label.configure(image="", text="No preview")
+            self._preview_image = None
+            self.description_text.configure(state="normal")
+            self.description_text.delete("1.0", "end")
+            self.description_text.configure(state="disabled")
+            self._refresh_button_state()
+            return
+
+        item = self.items[self._selected_index]
+        display_name = _gallery_item_display_name(item)
+        source_path = str(item.get("source_path") or "").strip()
+        url = str(item.get("url") or "").strip()
+        path = self._resolve_item_path(item)
+
+        self.preview_title_var.set(display_name)
+        if source_path:
+            note = f"New upload from {source_path}"
+        elif url:
+            note = f"Existing gallery image: {url}"
+        else:
+            note = "Gallery image"
+
+        photo, preview_note = self._load_preview_image(path)
+        if photo is not None:
+            self._preview_image = photo
+            self.preview_label.configure(image=photo, text="")
+        else:
+            self._preview_image = None
+            self.preview_label.configure(image="", text="No preview")
+        self.preview_note_var.set(f"{note}\n{preview_note}")
+
+        self.description_text.configure(state="normal")
+        self.description_text.delete("1.0", "end")
+        desc = str(item.get("description") or "")
+        if desc:
+            self.description_text.insert("1.0", desc)
+        self._refresh_button_state()
+
+    def _refresh_button_state(self):
+        has_items = bool(self.items)
+        has_selection = self._selected_index is not None and 0 <= self._selected_index < len(self.items)
+        if has_selection:
+            self.btn_remove.state(["!disabled"])
+            self.btn_move_up.state(["!disabled"] if self._selected_index > 0 else ["disabled"])
+            self.btn_move_down.state(["!disabled"] if self._selected_index < len(self.items) - 1 else ["disabled"])
+        else:
+            self.btn_remove.state(["disabled"])
+            self.btn_move_up.state(["disabled"])
+            self.btn_move_down.state(["disabled"])
+
+        if has_items:
+            self.btn_clear.state(["!disabled"])
+            self.btn_replace_all.state(["!disabled"])
+            self.description_text.configure(state="normal")
+        else:
+            self.btn_clear.state(["disabled"])
+            self.btn_replace_all.state(["!disabled"])
+
+    def _select_index(self, index: int):
+        if not self.items:
+            self._selected_index = None
+            self._load_selected_item()
+            return
+        index = max(0, min(index, len(self.items) - 1))
+        self.tree.selection_set(str(index))
+        self.tree.focus(str(index))
+        self.tree.see(str(index))
+        self._on_tree_select()
+
+    def _on_tree_select(self):
+        self._persist_current_description()
+        selection = self.tree.selection()
+        if not selection:
+            self._selected_index = None
+            self._load_selected_item()
+            return
+        try:
+            self._selected_index = int(selection[0])
+        except Exception:
+            self._selected_index = None
+        self._load_selected_item()
+
+    def _on_description_changed(self):
+        self._persist_current_description()
+
+    def _add_images(self, replace_all: bool = False):
+        paths = filedialog.askopenfilenames(
+            parent=self,
+            title="Choose gallery images",
+            filetypes=[("Images", "*.png;*.jpg;*.jpeg;*.webp;*.gif"), ("All files", "*.*")],
+        )
+        if not paths:
+            return
+
+        selected = [str(Path(p).expanduser()) for p in paths if str(p).strip()]
+        if not selected:
+            return
+
+        self._persist_current_description()
+        if replace_all and self.items:
+            if not messagebox.askyesno(
+                "Replace gallery",
+                "Replace the current gallery selection with these images?",
+                parent=self,
+            ):
+                return
+            self.items = []
+
+        for path in selected:
+            self.items.append({"url": "", "source_path": path, "description": ""})
+
+        self._rebuild_tree()
+        self._select_index(len(self.items) - len(selected))
+
+    def _remove_selected(self):
+        if self._selected_index is None or not (0 <= self._selected_index < len(self.items)):
+            return
+        self._persist_current_description()
+        old_index = self._selected_index
+        del self.items[old_index]
+        self._selected_index = None
+        self._rebuild_tree()
+        next_index = min(len(self.items) - 1, max(0, old_index))
+        if self.items:
+            self._select_index(next_index)
+        else:
+            self._load_selected_item()
+
+    def _clear_all(self):
+        if not self.items:
+            return
+        if not messagebox.askyesno("Clear gallery", "Remove every gallery image from this draft?", parent=self):
+            return
+        self.items = []
+        self._selected_index = None
+        self._rebuild_tree()
+        self._load_selected_item()
+
+    def _move_selected(self, offset: int):
+        if self._selected_index is None or not (0 <= self._selected_index < len(self.items)):
+            return
+        new_index = self._selected_index + int(offset)
+        if new_index < 0 or new_index >= len(self.items):
+            return
+        self._persist_current_description()
+        item = self.items.pop(self._selected_index)
+        self.items.insert(new_index, item)
+        self._selected_index = None
+        self._rebuild_tree()
+        self._select_index(new_index)
+
+    def _save_and_close(self):
+        self._persist_current_description()
+        self.result = _clone_gallery_editor_items(self.items)
+        self.destroy()
+
+    def _cancel(self):
+        self.result = None
+        self.destroy()
+
 # ---------- GUI ----------
 
 MODE_CREATE = "Create New"
@@ -2736,8 +3321,7 @@ def read_novel_index_metadata(slug: str) -> dict:
     if blurb:
         data["blurb"] = blurb
 
-    gallery_raw = fm.get("gallery")
-    data["gallery"] = _normalize_gallery_urls(gallery_raw)
+    data["gallery"] = _parse_gallery_items_from_front_matter(fm_block)
     data["chapter_music_url"] = _normalize_music_source_input(str(fm.get("chapter_music_url") or "").strip())
     data["chapter_music_title"] = str(fm.get("chapter_music_title") or "").strip()
 
@@ -2751,7 +3335,7 @@ def write_novel_index_metadata(
     title: str,
     status: str,
     blurb: str,
-    gallery_urls: Optional[list[str]] = None,
+    gallery_items = None,
     chapter_music_url: str = "",
     chapter_music_title: str = "",
 ) -> Path:
@@ -2763,15 +3347,15 @@ def write_novel_index_metadata(
         preferred_title=title or existing.get("title") or "",
     )
     normalized_gallery = (
-        _normalize_gallery_urls(gallery_urls)
-        if gallery_urls is not None
-        else _normalize_gallery_urls(existing.get("gallery"))
+        _normalize_gallery_items(gallery_items)
+        if gallery_items is not None
+        else _normalize_gallery_items(existing.get("gallery"))
     )
     md = build_index_md(
         slug=slug,
         status=_normalize_status_choice(status),
         blurb=blurb,
-        gallery_urls=normalized_gallery,
+        gallery_items=normalized_gallery,
         chapter_music_url=chapter_music_url,
         chapter_music_title=chapter_music_title,
         title=normalized_title,
@@ -3105,7 +3689,6 @@ class Wizard(tk.Tk):
         self.status_var = tk.StringVar(value="Complete")
         self.cover_var = tk.StringVar()
         self.blurb_var = tk.StringVar()
-        self.gallery_action_var = tk.StringVar(value=GALLERY_ACTION_KEEP)
         self.gallery_summary_var = tk.StringVar(value="No gallery images selected.")
         self.shared_music_source_var = tk.StringVar()
         self.shared_music_title_var = tk.StringVar()
@@ -3125,8 +3708,8 @@ class Wizard(tk.Tk):
         self.catalog = {}
         self._existing_slugs = []
         self._existing_chapter_entries = []
-        self.gallery_paths = []
-        self._existing_gallery_urls = []
+        self.gallery_items = []
+        self._existing_gallery_items = []
 
         # Chapters buffer: list of dict {order,title_var,text}
         self.chapter_tabs = []
@@ -3400,32 +3983,16 @@ class Wizard(tk.Tk):
         self.btn_browse = ttk.Button(form, text="Browse...", command=self._pick_cover)
         self.btn_browse.grid(row=4, column=3, sticky="e", pady=(8, 0))
 
-        self.lbl_gallery = ttk.Label(form, text="Gallery Images")
+        self.lbl_gallery = ttk.Label(form, text="Gallery")
         self.lbl_gallery.grid(row=5, column=0, sticky="w", pady=(8, 0))
         self.gallery_entry = ttk.Entry(form, textvariable=self.gallery_summary_var, state="readonly")
-        self.gallery_entry.grid(row=5, column=1, sticky="we", padx=(8, 8), pady=(8, 0))
+        self.gallery_entry.grid(row=5, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
         gallery_btns = ttk.Frame(form)
-        gallery_btns.grid(row=5, column=2, columnspan=2, sticky="e", pady=(8, 0))
-        self.btn_gallery_append = ttk.Button(
-            gallery_btns,
-            text="Append...",
-            command=lambda: self._pick_gallery_images(GALLERY_ACTION_APPEND),
-        )
-        self.btn_gallery_append.pack(side="left")
-        self.btn_gallery_replace = ttk.Button(
-            gallery_btns,
-            text="Replace...",
-            command=lambda: self._pick_gallery_images(GALLERY_ACTION_REPLACE),
-        )
-        self.btn_gallery_replace.pack(side="left", padx=(6, 0))
-        self.btn_gallery_remove = ttk.Button(
-            gallery_btns,
-            text="Remove all",
-            command=self._mark_gallery_remove_all,
-        )
-        self.btn_gallery_remove.pack(side="left", padx=(6, 0))
-        self.btn_gallery_clear = ttk.Button(gallery_btns, text="Clear", command=self._clear_gallery_selection)
-        self.btn_gallery_clear.pack(side="left", padx=(6, 0))
+        gallery_btns.grid(row=5, column=3, sticky="e", pady=(8, 0))
+        self.btn_gallery_manage = ttk.Button(gallery_btns, text="Manage...", command=self._open_gallery_manager)
+        self.btn_gallery_manage.pack(side="left")
+        self.btn_gallery_reset = ttk.Button(gallery_btns, text="Reset", command=self._reset_gallery_selection)
+        self.btn_gallery_reset.pack(side="left", padx=(6, 0))
 
         self.rel_frame = ttk.LabelFrame(form, text="Relationships", padding=(8, 6))
         self.rel_frame.grid(row=6, column=0, columnspan=4, sticky="we", pady=(10, 0))
@@ -3881,73 +4448,59 @@ class Wizard(tk.Tk):
                 pass
 
     def _refresh_gallery_summary(self):
-        mode = self.mode_var.get()
-        action = str(self.gallery_action_var.get() or GALLERY_ACTION_KEEP).strip().lower()
-        names = [Path(p).name for p in self.gallery_paths if str(p).strip()]
-        current_count = len(_normalize_gallery_urls(self._existing_gallery_urls))
+        total = len(self.gallery_items)
+        described = sum(1 for item in self.gallery_items if str(item.get("description") or "").strip())
+        missing = max(0, total - described)
 
-        if action == GALLERY_ACTION_REMOVE:
-            self.gallery_summary_var.set("Will remove all gallery images on commit.")
-            return
-
-        if names:
-            summary = ", ".join(names[:2])
-            if len(names) > 2:
-                summary += f" +{len(names) - 2} more"
-            if mode == MODE_EDIT:
-                if action == GALLERY_ACTION_APPEND:
-                    self.gallery_summary_var.set(f"Will append {len(names)} image(s): {summary}")
-                else:
-                    self.gallery_summary_var.set(f"Will replace with {len(names)} image(s): {summary}")
+        if total <= 0:
+            if self.mode_var.get() == MODE_EDIT and self._existing_gallery_items:
+                self.gallery_summary_var.set("Gallery will be cleared on save.")
             else:
-                self.gallery_summary_var.set(f"{len(names)} selected: {summary}")
+                self.gallery_summary_var.set("No gallery images selected.")
+            self._refresh_gallery_controls()
             return
 
-        if mode == MODE_EDIT and current_count > 0:
-            self.gallery_summary_var.set(
-                f"Current gallery: {current_count} image(s). No gallery action selected."
-            )
-            return
+        parts = [f"{total} image(s)", f"{described} with scene notes" if described else "no scene notes yet"]
+        if missing > 0:
+            parts.append(f"{missing} missing notes")
+        if self.mode_var.get() == MODE_EDIT and self._gallery_has_changes():
+            parts.append("changes pending")
+        self.gallery_summary_var.set(" | ".join(parts))
+        self._refresh_gallery_controls()
 
-        self.gallery_summary_var.set("No gallery images selected.")
+    def _gallery_has_changes(self) -> bool:
+        if any(str(item.get("source_path") or "").strip() for item in self.gallery_items):
+            return True
+        return _gallery_metadata_signature(self.gallery_items) != _gallery_metadata_signature(self._existing_gallery_items)
 
-    def _pick_gallery_images(self, action: str = GALLERY_ACTION_REPLACE):
-        paths = filedialog.askopenfilenames(
-            title="Choose gallery images",
-            filetypes=[("Images", "*.png;*.jpg;*.jpeg;*.webp;*.gif"), ("All files", "*.*")],
-        )
-        if not paths:
-            return
-        action_key = str(action or GALLERY_ACTION_REPLACE).strip().lower()
-        if action_key not in {GALLERY_ACTION_APPEND, GALLERY_ACTION_REPLACE}:
-            action_key = GALLERY_ACTION_REPLACE
-
-        selected = [str(Path(p).expanduser()) for p in paths if str(p).strip()]
-        if action_key == GALLERY_ACTION_APPEND and self.gallery_action_var.get() == GALLERY_ACTION_APPEND:
-            merged = []
-            seen = set()
-            for p in list(self.gallery_paths) + selected:
-                key = str(Path(p)).lower()
-                if key in seen:
-                    continue
-                seen.add(key)
-                merged.append(p)
-            self.gallery_paths = merged
+    def _refresh_gallery_controls(self):
+        has_items = bool(self.gallery_items)
+        has_existing = bool(self._existing_gallery_items)
+        if has_items or has_existing:
+            self.btn_gallery_reset.state(["!disabled"])
         else:
-            self.gallery_paths = selected
+            self.btn_gallery_reset.state(["disabled"])
 
-        self.gallery_action_var.set(action_key)
+    def _open_gallery_manager(self):
+        dialog = GalleryEditorDialog(
+            self,
+            items=self.gallery_items,
+            novel_title=self.title_var.get().strip() or pretty(self.slug_var.get() or self.existing_slug_var.get() or ""),
+        )
+        self.wait_window(dialog)
+        if dialog.result is None:
+            return
+        self.gallery_items = _clone_gallery_editor_items(dialog.result)
         self._refresh_gallery_summary()
+        self._queue_ui_state_save()
 
-    def _mark_gallery_remove_all(self):
-        self.gallery_paths = []
-        self.gallery_action_var.set(GALLERY_ACTION_REMOVE)
+    def _reset_gallery_selection(self):
+        if self.mode_var.get() == MODE_EDIT:
+            self.gallery_items = _clone_gallery_editor_items(self._existing_gallery_items)
+        else:
+            self.gallery_items = []
         self._refresh_gallery_summary()
-
-    def _clear_gallery_selection(self):
-        self.gallery_paths = []
-        self.gallery_action_var.set(GALLERY_ACTION_KEEP)
-        self._refresh_gallery_summary()
+        self._queue_ui_state_save()
 
     def _refresh_selected_cover_preview(self):
         if self.mode_var.get() != MODE_EDIT:
@@ -4070,9 +4623,8 @@ class Wizard(tk.Tk):
             self.status_var.set("Complete")
             self.cover_var.set("")
             self.blurb_var.set("")
-            self.gallery_action_var.set(GALLERY_ACTION_KEEP)
-            self.gallery_paths = []
-            self._existing_gallery_urls = []
+            self.gallery_items = []
+            self._existing_gallery_items = []
             self.shared_music_source_var.set("")
             self.shared_music_title_var.set("")
             self.hidden_var.set(False)
@@ -4086,7 +4638,6 @@ class Wizard(tk.Tk):
             self.spin_count.state(["!disabled"])
             self.btn_bulk.state(["!disabled"])
             self.btn_bulk_replace.state(["disabled"])
-            self.btn_gallery_remove.state(["disabled"])
 
             self.lbl_existing.grid_remove()
             self.existing_combo.grid_remove()
@@ -4109,7 +4660,6 @@ class Wizard(tk.Tk):
             if self._existing_slugs and not slugify(self.existing_slug_var.get()):
                 self.existing_slug_var.set(self._existing_slugs[0])
             self.btn_bulk_replace.state(["!disabled"])
-            self.btn_gallery_remove.state(["!disabled"])
             self._on_existing_selected()
 
         self.chapter_tabs = []
@@ -4151,9 +4701,8 @@ class Wizard(tk.Tk):
         self.blurb_var.set(str(idx_meta.get("blurb") or ""))
         self.hidden_var.set(bool(card_meta.get("hidden")))
         self.cover_var.set("")
-        self.gallery_action_var.set(GALLERY_ACTION_KEEP)
-        self.gallery_paths = []
-        self._existing_gallery_urls = _normalize_gallery_urls(idx_meta.get("gallery"))
+        self._existing_gallery_items = _clone_gallery_editor_items(idx_meta.get("gallery") or [])
+        self.gallery_items = _clone_gallery_editor_items(self._existing_gallery_items)
         self.shared_music_source_var.set(str(idx_meta.get("chapter_music_url") or ""))
         self.shared_music_title_var.set(str(idx_meta.get("chapter_music_title") or ""))
         self._refresh_gallery_summary()
@@ -4840,42 +5389,30 @@ class Wizard(tk.Tk):
             written += 1
 
         existing_idx_meta = read_novel_index_metadata(slug) if mode == MODE_EDIT else {"gallery": []}
-        gallery_urls = _normalize_gallery_urls(existing_idx_meta.get("gallery"))
-        gallery_uploaded_this_run = False
-        gallery_optimize_targets = []
-        gallery_action = (
-            str(self.gallery_action_var.get() or GALLERY_ACTION_KEEP).strip().lower()
-            if mode == MODE_EDIT
-            else (GALLERY_ACTION_REPLACE if self.gallery_paths else GALLERY_ACTION_KEEP)
+        gallery_source_items = _normalize_gallery_items(existing_idx_meta.get("gallery"))
+        gallery_items, gallery_optimize_targets, removed_gallery, gallery_err = materialize_gallery_items_for_commit(
+            self.gallery_items,
+            slug,
+            existing_items=gallery_source_items,
         )
+        if gallery_err:
+            messagebox.showerror("Gallery images", gallery_err)
+            return
 
-        if gallery_action == GALLERY_ACTION_REMOVE and mode == MODE_EDIT:
-            removed_gallery = remove_gallery_assets(slug)
-            for p in removed_gallery:
-                staged_paths.add(p)
-            gallery_urls = []
-        elif gallery_action in {GALLERY_ACTION_APPEND, GALLERY_ACTION_REPLACE} and self.gallery_paths:
-            gallery_urls, added_gallery_urls, removed_gallery = copy_gallery_to_images(
-                self.gallery_paths,
-                slug,
-                existing_urls=gallery_urls,
-                mode=gallery_action,
-            )
-            gallery_optimize_targets = list(added_gallery_urls) if gallery_action == GALLERY_ACTION_APPEND else list(gallery_urls)
-            gallery_uploaded_this_run = bool(gallery_optimize_targets)
-            for p in removed_gallery:
-                staged_paths.add(p)
-            for url in gallery_urls:
-                local = _local_path_from_site_url(url)
-                if local is not None:
-                    staged_paths.add(local)
+        gallery_uploaded_this_run = bool(gallery_optimize_targets)
+        for p in removed_gallery:
+            staged_paths.add(p)
+        for item in gallery_items:
+            local = _local_path_from_site_url(str(item.get("url") or ""))
+            if local is not None:
+                staged_paths.add(local)
 
         idx = write_novel_index_metadata(
             slug=slug,
             title=novel_title,
             status=self.status_var.get(),
             blurb=self.blurb_var.get(),
-            gallery_urls=gallery_urls,
+            gallery_items=gallery_items,
             chapter_music_url=shared_music_url,
             chapter_music_title=shared_music_title,
         )

@@ -186,8 +186,9 @@
   var nextBtn = lightbox.querySelector('[data-gallery-next]');
   var image = document.getElementById('galleryLightboxImage');
   var counter = document.getElementById('galleryLightboxCounter');
+  var description = document.getElementById('galleryLightboxDescription');
   var openOriginal = document.getElementById('galleryLightboxOpenOriginal');
-  if (!backdrop || !closeBtn || !prevBtn || !nextBtn || !image || !counter || !openOriginal) return;
+  if (!backdrop || !closeBtn || !prevBtn || !nextBtn || !image || !counter || !description || !openOriginal) return;
 
   var activeIndex = 0;
   var opened = false;
@@ -211,6 +212,7 @@
 
     var full = link.getAttribute('data-gallery-full') || link.getAttribute('href') || '';
     var alt = link.getAttribute('data-gallery-alt') || '';
+    var desc = link.getAttribute('data-gallery-description') || '';
     image.onerror = function() {
       var fallback = link.getAttribute('href') || full;
       if (!fallback) return;
@@ -220,6 +222,8 @@
     image.src = full;
     image.alt = alt;
     counter.textContent = (activeIndex + 1) + ' / ' + links.length;
+    description.textContent = desc;
+    description.hidden = !desc;
     openOriginal.href = full || '#';
   }
 

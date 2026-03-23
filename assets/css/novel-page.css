@@ -106,6 +106,8 @@ body.gallery-lightbox-open{overflow:hidden}
 .gallery-lightbox-nav:hover{filter:brightness(1.05)}
 .gallery-lightbox-nav:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .gallery-lightbox-meta{display:flex;justify-content:space-between;gap:.65rem;align-items:center;flex-wrap:wrap}
+.gallery-lightbox-copy{display:grid;gap:.35rem}
+.gallery-lightbox-description{margin:0;max-width:min(60ch,72vw);color:var(--text);line-height:1.45;white-space:pre-line}
 .chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
 .chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
 .chapter-tools input[type=search]:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
@@ -200,6 +202,8 @@ body.gallery-lightbox-open{overflow:hidden}
   .gallery-lightbox-nav.prev{left:.45rem}
   .gallery-lightbox-nav.next{right:.45rem}
   .gallery-lightbox-stage img{max-height:72vh}
+  .gallery-lightbox-copy{gap:.28rem}
+  .gallery-lightbox-description{max-width:none}
 }
 /* theme toggle */
 .theme-toggle{margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:.45rem .6rem;cursor:pointer;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
