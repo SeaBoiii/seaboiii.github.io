@@ -83,10 +83,10 @@ a:hover{text-decoration:underline}
 .novel-actions a:hover{filter:brightness(1.05)}
 .novel-actions a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
-.novel-gallery{margin:1rem 0 1.2rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card);content-visibility:auto;contain-intrinsic-size:420px}
+.novel-gallery{margin:1rem 0 1.2rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
 .novel-gallery-head{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.7rem;flex-wrap:wrap}
 .novel-gallery h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
-.novel-gallery-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.62rem}
+.novel-gallery-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.62rem;content-visibility:auto;contain-intrinsic-size:420px}
 .novel-gallery-item{min-width:0}
 .novel-gallery-link{display:block;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:color-mix(in oklab,var(--card),var(--bg) 26%);transition:transform .16s ease,box-shadow .16s ease}
 .novel-gallery-link:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.18);text-decoration:none}
