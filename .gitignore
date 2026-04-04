@@ -12,3 +12,4 @@ tetris/config.js
 tools/novel_wizard_state.json
 tools/novel_wizard_state.db
 tools/novel_wizard_state.db-*
+*.log
