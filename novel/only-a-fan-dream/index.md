@@ -5,6 +5,12 @@ novel: only-a-fan-dream
 status: Complete
 blurb: >-
   A fan met an idol, and it turns into a relationship?
+genre: >-
+  celebrity romance, fan-idol romance, contemporary romance
+tone: >-
+  dreamy, romantic, dramatic
+setting: >-
+  entertainment industry, fandom, modern city
 order: 0
 ---
 

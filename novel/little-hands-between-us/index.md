@@ -5,10 +5,16 @@ novel: little-hands-between-us
 status: Complete
 blurb: >-
   Bound together by loss and a child who needs them, two reluctant guardians slowly learn that healing—and love—can grow in the most unexpected family.
-gallery: |-
-  /images/little-hands-between-us-gallery-1.png
-  /images/little-hands-between-us-gallery-2.png
-  /images/little-hands-between-us-gallery-3.png
+genre: >-
+  family drama, contemporary romance, slow-burn romance
+tone: >-
+  tender, healing, domestic
+setting: >-
+  domestic life, family home, childcare
+gallery:
+  - url: "/images/little-hands-between-us-gallery-1.png"
+  - url: "/images/little-hands-between-us-gallery-2.png"
+  - url: "/images/little-hands-between-us-gallery-3.png"
 order: 0
 ---
 

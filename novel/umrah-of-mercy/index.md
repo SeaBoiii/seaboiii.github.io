@@ -5,6 +5,12 @@ novel: umrah-of-mercy
 status: Complete
 blurb: >-
   On a healing Umrah to escape heartbreak, Aleem is forced to walk beside the very woman who once broke him—until mercy teaches him that forgiveness isn’t always reunion, but the courage to choose love (or let go) with dignity.
+genre: >-
+  faith romance, second-chance romance, contemporary romance
+tone: >-
+  reflective, bittersweet, hopeful
+setting: >-
+  pilgrimage, sacred journey, modern day
 order: 0
 ---
 

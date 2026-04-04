@@ -47,6 +47,31 @@
 body{background:var(--bg); color:var(--text); margin:0; font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
 a{color:var(--link); text-decoration:none}
 a:hover{text-decoration:underline}
+main.container{padding-bottom:2rem}
+.skip-link{
+  position:absolute;
+  left:1rem;
+  top:-3rem;
+  z-index:1400;
+  padding:.65rem .85rem;
+  border-radius:10px;
+  background:var(--btn-bg);
+  color:var(--btn-text);
+  border:1px solid var(--btn-brd);
+  transition:top .18s ease;
+}
+.skip-link:focus{top:1rem;text-decoration:none}
+.sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
 
 /* Header styles */
 .site-header{position:sticky;top:0;z-index:10;background:color-mix(in oklab, var(--bg), var(--card) 40%);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);padding:.85rem 1.25rem;font-family:"Roboto",system-ui,-apple-system,Segoe UI,sans-serif}
@@ -83,6 +108,91 @@ a:hover{text-decoration:underline}
 .novel-actions a:hover{filter:brightness(1.05)}
 .novel-actions a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .novel-blurb{margin:.5rem 0 0;color:var(--muted);max-width:65ch}
+.section-kicker{
+  margin:0 0 .35rem;
+  color:color-mix(in oklab,var(--muted),var(--text) 15%);
+  font-size:.74rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.novel-progress{
+  display:grid;
+  gap:.95rem;
+  margin:0 0 1rem;
+  padding:1rem 1.05rem;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:linear-gradient(180deg,color-mix(in oklab,var(--card),var(--bg) 12%),var(--card));
+}
+.novel-progress-head{
+  display:flex;
+  justify-content:space-between;
+  gap:1rem;
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+.novel-progress-head h2{
+  margin:0;
+  font-size:1.05rem;
+  font-family:"Merriweather",serif;
+}
+.novel-progress-bar{
+  width:100%;
+  height:.7rem;
+  border-radius:999px;
+  overflow:hidden;
+  background:color-mix(in oklab,var(--border),transparent 30%);
+}
+.novel-progress-fill{
+  display:block;
+  width:100%;
+  height:100%;
+  transform-origin:left center;
+  transform:scaleX(0);
+  border-radius:inherit;
+  background:linear-gradient(90deg,var(--btn-bg),color-mix(in oklab,var(--btn-bg),white 20%));
+  transition:transform .22s ease;
+}
+.novel-progress-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:.7rem;
+}
+.novel-progress-stat{
+  display:grid;
+  gap:.2rem;
+  min-width:0;
+  padding:.75rem .8rem;
+  border:1px solid color-mix(in oklab,var(--border),transparent 10%);
+  border-radius:12px;
+  background:color-mix(in oklab,var(--card),var(--bg) 18%);
+}
+.novel-progress-label{
+  color:var(--muted);
+  font-size:.76rem;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.novel-progress-stat strong{
+  font-size:1rem;
+  line-height:1.3;
+  text-wrap:balance;
+}
+.chapter-section{display:grid;gap:.75rem;margin-bottom:1rem}
+.chapter-section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:1rem;
+  flex-wrap:wrap;
+}
+.chapter-section-head h2{
+  margin:0;
+  font-size:1.05rem;
+  font-family:"Merriweather",serif;
+}
 .novel-gallery{margin:1rem 0 1.2rem;padding:.95rem;border:1px solid var(--border);border-radius:12px;background:var(--card)}
 .novel-gallery-head{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.7rem;flex-wrap:wrap}
 .novel-gallery h2{margin:0;font-size:1.05rem;font-family:"Merriweather",serif}
@@ -108,14 +218,38 @@ body.gallery-lightbox-open{overflow:hidden}
 .gallery-lightbox-meta{display:flex;justify-content:space-between;gap:.65rem;align-items:center;flex-wrap:wrap}
 .gallery-lightbox-copy{display:grid;gap:.35rem}
 .gallery-lightbox-description{margin:0;max-width:min(60ch,72vw);color:var(--text);line-height:1.45;white-space:pre-line}
-.chapter-tools{display:flex;gap:.6rem;align-items:center;margin:1.5rem 0 .6rem}
-.chapter-tools input[type=search]{max-width:420px;width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text)}
+.chapter-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.75rem;align-items:center}
+.chapter-tools input[type=search]{max-width:100%;width:100%;padding:.7rem .78rem;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text)}
 .chapter-tools input[type=search]:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
+.chapter-tools-note{margin:.05rem 0 0}
+.chapter-view-filters{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end}
+.chapter-view-filter{
+  border:1px solid color-mix(in oklab,var(--border),var(--btn-brd) 18%);
+  border-radius:999px;
+  padding:.52rem .8rem;
+  background:color-mix(in oklab,var(--card),var(--bg) 18%);
+  color:var(--text);
+  cursor:pointer;
+  font-size:.84rem;
+  font-weight:600;
+  line-height:1;
+}
+.chapter-view-filter:hover{filter:brightness(1.03)}
+.chapter-view-filter:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
+.chapter-view-filter.is-active{
+  background:var(--btn-bg);
+  color:var(--btn-text);
+  border-color:var(--btn-brd);
+}
 .chapter-list{list-style:none;padding:0;margin:0;display:grid;gap:.4rem}
 .chapter-list li a{display:flex;gap:.6rem;align-items:center;padding:.6rem .7rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;background:var(--card)}
 .chapter-list li a:hover{background:color-mix(in oklab, var(--card), var(--text) 6%)}
 .chapter-list li a:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 .chapter-list li.last-read a{border-color:color-mix(in oklab, var(--btn-brd), var(--border) 45%);box-shadow:0 0 0 1px color-mix(in oklab, var(--btn-brd), transparent 65%) inset}
+.chapter-list li.in-progress a{
+  border-color:color-mix(in oklab, var(--btn-brd), var(--border) 60%);
+  background:color-mix(in oklab,var(--card),var(--btn-bg) 4%);
+}
 .chapter-list li.completed a{opacity:.86}
 .chapter-list li.completed a:hover{opacity:1}
 .chapter-list li.completed .chapter-no{color:color-mix(in oklab,var(--muted),var(--text) 18%)}
@@ -133,6 +267,24 @@ body.gallery-lightbox-open{overflow:hidden}
 .choice-epilogue-hint[hidden]{display:none}
 .chapter-no{font-variant-numeric:tabular-nums;color:var(--muted);min-width:7.4rem}
 .chapter-title{flex:1;min-width:0;display:flex;align-items:center;gap:.42rem;flex-wrap:wrap}
+.chapter-state{
+  font-size:.7rem;
+  line-height:1;
+  padding:.18rem .44rem;
+  border-radius:999px;
+  border:1px solid var(--pill-brd);
+  background:var(--pill);
+  color:var(--text);
+  white-space:nowrap;
+}
+.chapter-state.completed{
+  background:var(--pill-ok);
+  border-color:var(--pill-ok-brd);
+}
+.chapter-state.in-progress{
+  border-color:color-mix(in oklab, var(--btn-brd), var(--border) 42%);
+  background:color-mix(in oklab, var(--pill), var(--btn-bg) 10%);
+}
 .chapter-choice{
   font-size:.7rem;
   line-height:1;
@@ -193,8 +345,10 @@ body.gallery-lightbox-open{overflow:hidden}
     background:color-mix(in oklab, var(--card), var(--bg) 24%);
     border-radius:999px;
   }
-  .chapter-tools{flex-direction:column;align-items:stretch}
+  .chapter-tools{grid-template-columns:1fr}
+  .chapter-view-filters{justify-content:flex-start}
   .chapter-tools .small-note{font-size:.8rem}
+  .novel-progress-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .gallery-lightbox{padding:.6rem}
   .gallery-lightbox-dialog{width:min(100%,94vw);padding:.65rem}
   .gallery-lightbox-stage{grid-template-columns:1fr;gap:.5rem;min-height:unset}
@@ -210,7 +364,7 @@ body.gallery-lightbox-open{overflow:hidden}
 .theme-toggle:hover{filter:brightness(1.05)}
 .theme-toggle:focus-visible{outline:2px solid color-mix(in oklab,var(--btn-brd),transparent 35%);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){
-  .cover-popover,.related-card,.novel-gallery-link,.gallery-lightbox-close,.gallery-lightbox-nav,.theme-toggle,.novel-actions a{transition:none}
+  .cover-popover,.related-card,.novel-gallery-link,.gallery-lightbox-close,.gallery-lightbox-nav,.theme-toggle,.novel-actions a,.skip-link,.novel-progress-fill{transition:none}
   .related-card:hover{transform:none;box-shadow:none}
   .novel-gallery-link:hover{transform:none;box-shadow:none}
 }

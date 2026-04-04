@@ -5,6 +5,12 @@ novel: senior-i-m-serious
 status: Complete
 blurb: >-
   A careful senior who never believed in casual love finds his world quietly undone by a fearless freshman whose sincerity refuses to let him hide from the future.
+genre: >-
+  contemporary romance, campus romance, slow-burn romance
+tone: >-
+  tender, yearning, hopeful
+setting: >-
+  Singapore, university campus, modern day
 gallery:
   - url: "/images/senior-i-m-serious-gallery-1.png"
     description: "Saiful helping Xin Yue with her first day in University"

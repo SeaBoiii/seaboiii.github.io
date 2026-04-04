@@ -20,7 +20,11 @@
     />
     <link rel="stylesheet" href="{{ '/assets/css/novel-page.css' | relative_url }}" />
 </head>
-<body data-novel-slug="{{ page.novel | escape }}" data-index-url="{{ '/novel/index.html' | relative_url }}">
+<body
+  data-novel-slug="{{ page.novel | escape }}"
+  data-novel-title="{{ novel_display_title | escape }}"
+  data-index-url="{{ '/novel/index.html' | relative_url }}"
+>
 {% assign novel_slug = page.novel %}
 {% assign cover_url = page.cover | default: '/images/' | append: novel_slug | append: '-cover.png' %}
 {% assign cover_root = cover_url | replace: '.png', '' | replace: '.jpg', '' | replace: '.jpeg', '' | replace: '.webp', '' %}
@@ -28,6 +32,7 @@
 {% assign blurb = page.blurb %}
 {% assign pathprefix = '/novel/' | append: novel_slug | append: '/' %}
 {% assign items = site.pages | where_exp: 'p', 'p.url contains pathprefix' | where_exp: 'p', 'p.name != "index.md"' | sort: 'order' %}
+{% assign first = items | first %}
 {% assign gallery_has_descriptions = false %}
 {% if page.gallery and page.gallery.first and page.gallery.first.url %}
   {% assign gallery_description_blob = page.gallery | map: 'description' | join: '' | strip %}
@@ -36,6 +41,7 @@
   {% endif %}
 {% endif %}
 
+<a class="skip-link" href="#mainContent">Skip to chapter list</a>
 <header class="site-header">
   <div class="header-content">
     <a class="brand" href="{{ "/novel/" | relative_url }}">{{ site.title }}</a>
@@ -48,7 +54,7 @@
   </div>
 </header>
 
-<div class="container">
+<main id="mainContent" class="container">
 <div class="novel-hero">
   <div class="novel-hero-cover" tabindex="0">
     <picture>
@@ -105,7 +111,6 @@
     {% if blurb %}<p class="novel-blurb">{{ blurb }}</p>{% endif %}
 
     <div class="novel-actions">
-      {% assign first = items | first %}
       {% if first %}
         <a class="primary" id="startReading" href="{{ first.url | relative_url }}">Start reading</a>
       {% endif %}
@@ -114,6 +119,37 @@
     </div>
   </div>
 </div>
+
+<section class="novel-progress" aria-labelledby="novelProgressTitle">
+  <div class="novel-progress-head">
+    <div>
+      <p class="section-kicker">Reading progress</p>
+      <h2 id="novelProgressTitle">Pick up where you left off</h2>
+    </div>
+    <p id="novelProgressSummary" class="small-note">Your reading progress stays on this device.</p>
+  </div>
+  <div class="novel-progress-bar" aria-hidden="true">
+    <span id="novelProgressBar" class="novel-progress-fill"></span>
+  </div>
+  <div class="novel-progress-stats">
+    <div class="novel-progress-stat">
+      <span class="novel-progress-label">Completed</span>
+      <strong id="novelCompletedCount">0</strong>
+    </div>
+    <div class="novel-progress-stat">
+      <span class="novel-progress-label">In progress</span>
+      <strong id="novelInProgressCount">0</strong>
+    </div>
+    <div class="novel-progress-stat">
+      <span class="novel-progress-label">Remaining</span>
+      <strong id="novelRemainingCount">{{ items | size }}</strong>
+    </div>
+    <div class="novel-progress-stat">
+      <span class="novel-progress-label">Last stop</span>
+      <strong id="novelLastReadLabel">Not started yet</strong>
+    </div>
+  </div>
+</section>
 
 {% capture gallery_markup %}
   {% if page.gallery and page.gallery.first and page.gallery.first.url %}
@@ -242,10 +278,30 @@
 {% endcapture %}
 {% assign gallery_markup = gallery_markup | strip %}
 
-<div class="chapter-tools">
-  <input id="chapterSearch" type="search" placeholder="Search chapters and epilogues... (title, number, or letter)">
-  <span class="small-note">Tip: we'll remember your last chapter.</span>
+<section class="chapter-section" aria-labelledby="chapterListHeading">
+<div class="chapter-section-head">
+  <div>
+    <p class="section-kicker">Chapter list</p>
+    <h2 id="chapterListHeading">Browse chapters</h2>
+  </div>
+  <span id="chapterSearchStatus" class="small-note" role="status" aria-live="polite"></span>
 </div>
+<div class="chapter-tools">
+  <label class="sr-only" for="chapterSearch">Search chapters</label>
+  <input
+    id="chapterSearch"
+    type="search"
+    placeholder="Search chapters and epilogues... (title, number, or letter)"
+    aria-describedby="chapterSearchHelp chapterSearchStatus"
+  >
+  <div id="chapterViewFilters" class="chapter-view-filters" role="group" aria-label="Filter chapters by reading progress">
+    <button type="button" class="chapter-view-filter is-active" data-progress-filter="all" aria-pressed="true">All</button>
+    <button type="button" class="chapter-view-filter" data-progress-filter="unread" aria-pressed="false">Unread</button>
+    <button type="button" class="chapter-view-filter" data-progress-filter="in-progress" aria-pressed="false">In progress</button>
+    <button type="button" class="chapter-view-filter" data-progress-filter="completed" aria-pressed="false">Finished</button>
+  </div>
+</div>
+<p id="chapterSearchHelp" class="small-note chapter-tools-note">Tip: we'll remember your last chapter and let you filter by progress.</p>
 <p id="choiceEpilogueHint" class="choice-epilogue-hint" role="status" aria-live="polite" hidden></p>
 
 <ul id="chapterList" class="chapter-list">
@@ -265,6 +321,7 @@
   {% endfor %}
 </ul>
 <p id="chapterSearchEmpty" class="chapter-empty" role="status" aria-live="polite" hidden>No chapters match your search.</p>
+</section>
 
 {% if gallery_markup != '' %}
 <section class="novel-gallery" aria-label="Gallery">
@@ -310,7 +367,7 @@
   <ul id="relatedNovelsList" class="related-list"></ul>
 </section>
 
-</div>
+</main>
 <script defer src="{{ '/assets/js/novel-page.js' | relative_url }}"></script>
 </body>
 </html>

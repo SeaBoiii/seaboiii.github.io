@@ -5,6 +5,12 @@ novel: a-name-of-my-own
 status: Complete
 blurb: >-
   A chance to discover oneself...
+genre: >-
+  coming-of-age, identity drama, contemporary drama
+tone: >-
+  introspective, tender, hopeful
+setting: >-
+  modern day, personal journey, everyday life
 order: 0
 ---
 

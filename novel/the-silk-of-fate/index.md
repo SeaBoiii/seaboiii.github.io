@@ -5,6 +5,12 @@ novel: the-silk-of-fate
 status: Complete
 blurb: >-
   Bound by a red thread stretched across oceans and empires, a Majapahit prince and a Yuan princess must navigate faith, loyalty, and destiny in a world that forbids their love
+genre: >-
+  historical romance, cross-cultural romance, court drama
+tone: >-
+  sweeping, romantic, tragic
+setting: >-
+  historical Asia, Majapahit, Yuan empire
 order: 0
 ---
 

@@ -5,6 +5,12 @@ novel: two-seats-closer
 status: Complete
 blurb: >-
   Forced to balance love, ambition, and office politics, Faris and Jiawen discover that getting closer is easy—staying steady under pressure is the real test.
+genre: >-
+  workplace romance, contemporary romance, family drama
+tone: >-
+  warm, grounded, hopeful
+setting: >-
+  office life, modern city, family expectations
 order: 0
 ---
 

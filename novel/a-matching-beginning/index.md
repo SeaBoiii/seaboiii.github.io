@@ -5,6 +5,12 @@ novel: a-matching-beginning
 status: Complete
 blurb: >-
   He fell in love with her at first sight on Hari Raya afternoon, when a Korean woman in a green kebaya was asked to stand beside him in matching gold-threaded clothes—and years later, at their wedding reception, they would tell everyone that love had begun with a photograph they were never meant to take.
+genre: >-
+  contemporary romance, cross-cultural romance, family drama
+tone: >-
+  tender, romantic, hopeful
+setting: >-
+  Malaysia, family gathering, wedding
 gallery:
   - url: "/images/a-matching-beginning-gallery-1.png"
     description: "An unused cover concept where it shows a slightly more intimate scene"

@@ -5,6 +5,12 @@ novel: second-skin
 status: Complete
 blurb: >-
   A broke Tokyo salaryman buys a full-sensory deep-dive game to live as a breathtaking female avatar—until a hacker breaches his “safe” room and leaves a lingering afterimage that makes his real body feel like the wrong one.
+genre: >-
+  speculative thriller, identity drama, cyber thriller
+tone: >-
+  eerie, intimate, tense
+setting: >-
+  Tokyo, virtual world, near future
 order: 0
 ---
 

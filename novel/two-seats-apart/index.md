@@ -5,6 +5,12 @@ novel: two-seats-apart
 status: Complete
 blurb: >-
   Two colleagues who were never meant to cross the line discover that sometimes the smallest distance between two seats is the hardest one to keep.
+genre: >-
+  workplace romance, slow-burn romance, contemporary romance
+tone: >-
+  tender, restrained, slow-burn
+setting: >-
+  office life, modern city, everyday work
 order: 0
 ---
 

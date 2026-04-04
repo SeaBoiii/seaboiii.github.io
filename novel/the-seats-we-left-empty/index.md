@@ -5,6 +5,12 @@ novel: the-seats-we-left-empty
 status: Complete
 blurb: >-
   Reunited at a wedding by a seating chart that doesn’t care what they broke, Nadia and Rai must decide whether love deserves a second chance—or if some empty seats were left that way for a reason.
+genre: >-
+  second-chance romance, contemporary romance, family drama
+tone: >-
+  wistful, intimate, bittersweet
+setting: >-
+  modern city, wedding, reunion
 order: 0
 ---
 

@@ -5,6 +5,12 @@ novel: between-two-prayers
 status: Complete
 blurb: >-
   Between snowy Hokkaido confessions and quiet Singapore nights, Aleem—a steadfast Muslim man—and Belle—a tender-hearted Chinese woman—fall into a love that asks for patience, faith, and family, learning that the truest devotion is choosing each other gently, one prayer at a time.
+genre: >-
+  contemporary romance, faith romance, cross-cultural romance
+tone: >-
+  tender, reflective, hopeful
+setting: >-
+  Singapore, Hokkaido, family life
 order: 0
 ---
 

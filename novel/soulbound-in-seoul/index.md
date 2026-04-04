@@ -5,6 +5,12 @@ novel: soulbound-in-seoul
 status: Complete
 blurb: >-
   When Seoul becomes a living RPG, a feared two-person raid team must survive shifting identities and a bond that turns one choice into destiny—before the new world can claim them.
+genre: >-
+  urban fantasy, gaming fantasy, fantasy romance
+tone: >-
+  intense, tense, romantic
+setting: >-
+  Seoul, gaming world, transformed city
 order: 0
 ---
 

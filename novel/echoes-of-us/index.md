@@ -5,6 +5,12 @@ novel: echoes-of-us
 status: Complete
 blurb: >-
   ABIX journey as they have gone through echoes in each others current struggles and stories.
+genre: >-
+  ensemble drama, music-industry drama, contemporary drama
+tone: >-
+  emotional, dramatic, hopeful
+setting: >-
+  Seoul, entertainment industry, found family
 order: 0
 ---
 

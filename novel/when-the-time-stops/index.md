@@ -5,6 +5,12 @@ novel: when-the-time-stops
 status: Complete
 blurb: >-
   Once you stop looking for what you want, you'll find what you need.
+genre: >-
+  contemporary romance, slice-of-life romance, short story
+tone: >-
+  reflective, gentle, hopeful
+setting: >-
+  modern day, quiet moments, everyday life
 order: 0
 ---
 

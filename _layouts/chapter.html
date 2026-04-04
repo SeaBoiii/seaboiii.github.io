@@ -13,19 +13,49 @@
     />
     <link rel="stylesheet" href="{{ '/assets/css/chapter-page.css' | relative_url }}" />
   </head>
+  {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
+  {% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
+  {% assign novel_crumb_title = toc.Title | default: toc.title | default: page.novel | strip %}
+  {% assign chapter_heading = page.Title | default: page.title | strip %}
+  {% assign chapter_heading_downcase = chapter_heading | downcase %}
+  {% assign chapter_meta_label = '' %}
+  {% if chapter_heading_downcase contains 'epilogue' %}
+    {% assign chapter_meta_label = chapter_heading | split: ' - ' | first | split: ':' | first | strip %}
+  {% elsif page.order %}
+    {% assign chapter_meta_label = 'Chapter ' | append: page.order %}
+  {% endif %}
+  {% comment %}Build ordered list of chapter pages in this novel{% endcomment %}
+  {% assign siblings = site.pages
+    | where_exp: 'p', 'p.url contains pathprefix'
+    | where_exp: 'p', 'p.name != "index.md"'
+    | sort: 'order' %}
+  {% comment %}Find current page index{% endcomment %}
+  {% assign idx = -1 %}
+  {% for c in siblings %}
+    {% if c.url == page.url %}
+      {% assign idx = forloop.index0 %}
+    {% endif %}
+  {% endfor %}
+  {% assign count = siblings | size %}
+  {% assign chapter_position = idx | plus: 1 %}
+  {% comment %}Compute prev/next indices BEFORE indexing the array{% endcomment %}
+  {% assign prev_index = idx | minus: 1 %}
+  {% assign next_index = idx | plus: 1 %}
+  {% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
   <body
     data-novel="{{ page.novel | escape }}"
     data-chapter-order="{{ page.order | default: '' }}"
-    data-chapter-title="{{ page.Title | default: page.title | escape }}"
+    data-chapter-title="{{ chapter_heading | escape }}"
+    data-chapter-label="{{ chapter_meta_label | escape }}"
+    data-chapter-count="{{ count }}"
+    data-chapter-position="{{ chapter_position }}"
   >
-    {% assign pathprefix = '/novel/' | append: page.novel | append: '/' %}
-    {% assign toc = site.pages | where_exp: 'p', 'p.url == pathprefix' | first %}
-    {% assign novel_crumb_title = toc.Title | default: toc.title | default: page.novel | strip %}
     {% if novel_crumb_title == '' or novel_crumb_title == page.novel %}
       {% assign _crumb_words = page.novel | replace: '-', ' ' | replace: '_', ' ' | split: ' ' %}
       {% capture _crumb_from_slug %}{% for w in _crumb_words %}{% if w != '' %}{{ w | capitalize }}{% unless forloop.last %} {% endunless %}{% endif %}{% endfor %}{% endcapture %}
       {% assign novel_crumb_title = _crumb_from_slug | strip %}
     {% endif %}
+    <a class="skip-link" href="#mainContent">Skip to chapter</a>
     <header class="site-header">
       <div class="header-content">
         <a class="brand" href="{{ "/novel/" | relative_url }}">{{ site.title }}</a>
@@ -103,10 +133,37 @@
       </div>
     </header>
 
-    <main class="reader">
-      <article>
-        <h1>{{ page.Title | default: page.title }}</h1>
-        {% if page.order %}<div class="chapter-meta">Chapter {{ page.order }}</div>{% endif %}
+    <main id="mainContent" class="reader">
+      <article id="chapterContent">
+        <h1>{{ chapter_heading }}</h1>
+        {% if chapter_meta_label != '' %}<div class="chapter-meta">{{ chapter_meta_label }}</div>{% endif %}
+        <section class="chapter-overview" aria-labelledby="chapterOverviewTitle">
+          <div class="chapter-overview-copy">
+            <p class="chapter-overview-kicker">Reader guide</p>
+            <h2 id="chapterOverviewTitle">Settle in</h2>
+            <p id="chapterOverviewSummary" class="chapter-overview-summary">Your progress saves automatically on this device.</p>
+          </div>
+          <dl class="chapter-overview-stats">
+            <div class="chapter-overview-stat">
+              <dt>Position</dt>
+              <dd id="chapterPositionStat">
+                {% if idx >= 0 and count > 0 %}
+                  {{ chapter_position }} of {{ count }}
+                {% else %}
+                  Current chapter
+                {% endif %}
+              </dd>
+            </div>
+            <div class="chapter-overview-stat">
+              <dt>Estimated read</dt>
+              <dd id="chapterReadTimeStat">Calculating...</dd>
+            </div>
+            <div class="chapter-overview-stat">
+              <dt>Saved position</dt>
+              <dd id="chapterSavedProgressStat">Syncing...</dd>
+            </div>
+          </dl>
+        </section>
         {% assign shared_music_url = toc.chapter_music_url | default: '' | strip %}
         {% assign shared_music_title = toc.chapter_music_title | default: '' | strip %}
         {% assign chapter_music_mode = page.music_mode | default: '' | downcase | strip %}
@@ -153,26 +210,6 @@
         {% endif %}
         {{ content }}
       </article>
-
-{% comment %}Build ordered list of chapter pages in this novel{% endcomment %}
-{% assign siblings = site.pages
-  | where_exp: 'p', 'p.url contains pathprefix'
-  | where_exp: 'p', 'p.name != "index.md"'
-  | sort: 'order' %}
-
-{% comment %}Find current page index{% endcomment %}
-{% assign idx = -1 %}
-{% for c in siblings %}
-  {% if c.url == page.url %}
-    {% assign idx = forloop.index0 %}
-  {% endif %}
-{% endfor %}
-{% assign count = siblings | size %}
-
-{% comment %}Compute prev/next indices BEFORE indexing the array{% endcomment %}
-{% assign prev_index = idx | minus: 1 %}
-{% assign next_index = idx | plus: 1 %}
-{% assign toc_url = toc.url | default: pathprefix | append: 'index.html' %}
 
 <!--
 <section id="chapterCompletionPanel" class="chapter-complete" hidden aria-live="polite">
@@ -232,6 +269,7 @@
         {% endif %}
       </div>
     </nav>
+    <button id="backToTop" class="back-to-top" type="button" hidden aria-label="Back to top">Back to top</button>
 
     <script defer src="{{ '/assets/js/chapter-page.js' | relative_url }}"></script>
   </body>

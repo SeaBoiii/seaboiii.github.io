@@ -5,6 +5,12 @@ novel: the-time-we-were
 status: Complete
 blurb: >-
   A failed musician discovers a way to relive yesterday, hoping to win back the love he lost—only to confront the quiet cost of rewriting what was once real
+genre: >-
+  time-slip romance, contemporary romance, music drama
+tone: >-
+  wistful, melancholic, reflective
+setting: >-
+  modern day, music scene, repeating yesterday
 order: 0
 ---
 

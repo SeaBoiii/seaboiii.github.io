@@ -5,6 +5,12 @@ novel: when-the-door-opens
 status: Complete
 blurb: >-
   When a weary son returns to his mother’s home in Korea, he falls for the one woman he never should—his mother’s best friend—and what begins at the doorway as quiet longing becomes a love that risks breaking their home before it finally teaches them how to remake it.
+genre: >-
+  forbidden romance, family drama, contemporary romance
+tone: >-
+  yearning, tender, tense
+setting: >-
+  Korea, family home, domestic life
 order: 0
 ---
 

@@ -1,0 +1,443 @@
+Configuration file: C:/Users/seabo/Documents/GitHub/seaboiii.github.io/_config.yml
+            Source: C:/Users/seabo/Documents/GitHub/seaboiii.github.io
+       Destination: C:/Users/seabo/Documents/GitHub/seaboiii.github.io/_site
+ Incremental build: disabled. Enable with --incremental
+      Generating... 
+                    done in 33.782 seconds.
+ Auto-regeneration: enabled for 'C:/Users/seabo/Documents/GitHub/seaboiii.github.io'
+    Server address: http://127.0.0.1:4010/
+  Server running... press ctrl-c to stop.
+[2026-04-04 17:56:05] ERROR Errno::ECONNRESET: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:6 
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'IO#eof?'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'WEBrick::HTTPServer#run'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/server.rb:309:in 'block in WEBrick::GenericServer#start_thread'
+      Regenerating: 1 file(s) changed at 2026-04-04 17:56:05
+                    .codex-preview.out.log
+[2026-04-04 17:56:19] ERROR Errno::ECONNRESET: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:6 
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'IO#eof?'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'WEBrick::HTTPServer#run'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/server.rb:309:in 'block in WEBrick::GenericServer#start_thread'
+                    ...done in 35.6452916 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:56:41
+                    .codex-preview.out.log
+                    ...done in 21.767236 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:57:03
+                    .codex-preview.out.log
+                    ...done in 20.9308796 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:57:23
+                    .codex-preview.out.log
+                    ...done in 21.2111109 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:57:45
+                    .codex-preview.out.log
+                    ...done in 20.5644747 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:58:05
+                    .codex-preview.out.log
+                    ...done in 20.5329624 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:58:26
+                    .codex-preview.out.log
+                    ...done in 21.9261633 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:58:48
+                    .codex-preview.out.log
+                    ...done in 16.1214114 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:59:04
+                    .codex-preview.out.log
+                    ...done in 20.7319248 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:59:25
+                    .codex-preview.out.log
+                    ...done in 20.9753005 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 17:59:46
+                    .codex-preview.out.log
+                    ...done in 21.1372371 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:00:07
+                    .codex-preview.out.log
+                    ...done in 22.2776469 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:00:29
+                    .codex-preview.out.log
+                    ...done in 23.0477682 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:00:53
+                    .codex-preview.out.log
+                    ...done in 20.9434524 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:01:14
+                    .codex-preview.out.log
+                    ...done in 18.2292321 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:01:32
+                    .codex-preview.out.log
+                    ...done in 22.0702794 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:01:54
+                    .codex-preview.out.log
+                    ...done in 22.0358761 seconds.
+                    
+      Regenerating: 2 file(s) changed at 2026-04-04 18:02:16
+                    .codex-preview.out.log
+                    tools/novel_wizard_state.db
+                    ...done in 21.3403961 seconds.
+                    
+      Regenerating: 2 file(s) changed at 2026-04-04 18:02:37
+                    .codex-preview.out.log
+                    tools/novel_wizard_state.db
+                    ...done in 23.3611295 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:03:01
+                    .codex-preview.out.log
+                    ...done in 22.082607 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:03:23
+                    .codex-preview.out.log
+                    ...done in 22.1636552 seconds.
+                    
+      Regenerating: 4 file(s) changed at 2026-04-04 18:03:45
+                    .codex-preview.out.log
+                    tools/__pycache__/novel_wizard.cpython-314.pyc
+                    novel/index.html
+                    tools/novel_wizard.py
+[2026-04-04 18:04:06] ERROR Errno::ECONNRESET: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:7 
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'IO#eof?'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'WEBrick::HTTPServer#run'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/server.rb:309:in 'block in WEBrick::GenericServer#start_thread'
+                    ...done in 23.07495 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:04:08
+                    .codex-preview.out.log
+                    ...done in 21.5599537 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:04:30
+                    .codex-preview.out.log
+                    ...done in 23.3833145 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:04:53
+                    .codex-preview.out.log
+[2026-04-04 18:05:04] ERROR Errno::ECONNRESET: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:6 
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'IO#eof?'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'WEBrick::HTTPServer#run'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/server.rb:309:in 'block in WEBrick::GenericServer#start_thread'
+                    ...done in 22.9049488 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:05:16
+                    .codex-preview.out.log
+                    ...done in 22.7971088 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:05:39
+                    .codex-preview.out.log
+                    ...done in 21.3383418 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:06:01
+                    .codex-preview.out.log
+                    ...done in 18.6610839 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:06:19
+                    .codex-preview.out.log
+                    ...done in 23.2635865 seconds.
+                    
+      Regenerating: 2 file(s) changed at 2026-04-04 18:06:43
+                    .codex-preview.out.log
+                    tools/novel_wizard_state.db
+                    ...done in 24.3529764 seconds.
+                    
+      Regenerating: 2 file(s) changed at 2026-04-04 18:07:07
+                    .codex-preview.out.log
+                    tools/novel_wizard_state.db
+                    ...done in 23.4203634 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:07:31
+                    .codex-preview.out.log
+                    ...done in 23.798018 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:07:54
+                    .codex-preview.out.log
+                    ...done in 24.3572356 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:08:19
+                    .codex-preview.out.log
+                    ...done in 23.779673 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:08:43
+                    .codex-preview.out.log
+                    ...done in 23.2322366 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:09:06
+                    .codex-preview.out.log
+                    ...done in 22.5776688 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:09:29
+                    .codex-preview.out.log
+                    ...done in 22.5053237 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:09:51
+                    .codex-preview.out.log
+                    ...done in 22.5107329 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:10:14
+                    .codex-preview.out.log
+                    ...done in 22.6515595 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:10:36
+                    .codex-preview.out.log
+                    ...done in 22.8949902 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:10:59
+                    .codex-preview.out.log
+                    ...done in 23.4311249 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:11:23
+                    .codex-preview.out.log
+                    ...done in 23.3773719 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:11:46
+                    .codex-preview.out.log
+                    ...done in 23.477438 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:12:10
+                    .codex-preview.out.log
+                    ...done in 23.1416215 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:12:33
+                    .codex-preview.out.log
+                    ...done in 23.1859167 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:12:56
+                    .codex-preview.out.log
+                    ...done in 23.2374031 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:13:20
+                    .codex-preview.out.log
+                    ...done in 22.8254635 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:13:43
+                    .codex-preview.out.log
+                    ...done in 22.9245161 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:14:05
+                    .codex-preview.out.log
+                    ...done in 23.3510236 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:14:29
+                    .codex-preview.out.log
+                    ...done in 23.5845013 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:14:53
+                    .codex-preview.out.log
+                    ...done in 23.6147052 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:15:16
+                    .codex-preview.out.log
+                    ...done in 22.7917726 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:15:39
+                    .codex-preview.out.log
+                    ...done in 23.8632035 seconds.
+                    
+      Regenerating: 140 file(s) changed at 2026-04-04 18:16:03
+                    .codex-preview.out.log
+                    novel/index.html
+                    tools/novel_relationships.json
+                    tools/novel_wizard_state.db
+                    images/senior-i-m-serious-cover-320.jpg
+                    images/senior-i-m-serious-cover-320.webp
+                    images/senior-i-m-serious-cover-640.jpg
+                    images/senior-i-m-serious-cover-640.webp
+                    images/senior-i-m-serious-cover-960.jpg
+                    images/senior-i-m-serious-cover-960.webp
+                    images/senior-i-m-serious-cover.png
+                    images/senior-i-m-serious-gallery-1-320.jpg
+                    images/senior-i-m-serious-gallery-1-320.webp
+                    images/senior-i-m-serious-gallery-1-640.jpg
+                    images/senior-i-m-serious-gallery-1-640.webp
+                    images/senior-i-m-serious-gallery-1-960.jpg
+                    images/senior-i-m-serious-gallery-1-960.webp
+                    images/senior-i-m-serious-gallery-1.png
+                    images/senior-i-m-serious-gallery-10-320.jpg
+                    images/senior-i-m-serious-gallery-10-320.webp
+                    images/senior-i-m-serious-gallery-10-640.jpg
+                    images/senior-i-m-serious-gallery-10-640.webp
+                    images/senior-i-m-serious-gallery-10-960.jpg
+                    images/senior-i-m-serious-gallery-10-960.webp
+                    images/senior-i-m-serious-gallery-10.png
+                    images/senior-i-m-serious-gallery-11-320.jpg
+                    images/senior-i-m-serious-gallery-11-320.webp
+                    images/senior-i-m-serious-gallery-11-640.jpg
+                    images/senior-i-m-serious-gallery-11-640.webp
+                    images/senior-i-m-serious-gallery-11-960.jpg
+                    images/senior-i-m-serious-gallery-11-960.webp
+                    images/senior-i-m-serious-gallery-11.png
+                    images/senior-i-m-serious-gallery-12-320.jpg
+                    images/senior-i-m-serious-gallery-12-320.webp
+                    images/senior-i-m-serious-gallery-12-640.jpg
+                    images/senior-i-m-serious-gallery-12-640.webp
+                    images/senior-i-m-serious-gallery-12-960.jpg
+                    images/senior-i-m-serious-gallery-12-960.webp
+                    images/senior-i-m-serious-gallery-12.png
+                    images/senior-i-m-serious-gallery-13-320.jpg
+                    images/senior-i-m-serious-gallery-13-320.webp
+                    images/senior-i-m-serious-gallery-13-640.jpg
+                    images/senior-i-m-serious-gallery-13-640.webp
+                    images/senior-i-m-serious-gallery-13-960.jpg
+                    images/senior-i-m-serious-gallery-13-960.webp
+                    images/senior-i-m-serious-gallery-13.png
+                    images/senior-i-m-serious-gallery-14-320.jpg
+                    images/senior-i-m-serious-gallery-14-320.webp
+                    images/senior-i-m-serious-gallery-14-640.jpg
+                    images/senior-i-m-serious-gallery-14-640.webp
+                    images/senior-i-m-serious-gallery-14-960.jpg
+                    images/senior-i-m-serious-gallery-14-960.webp
+                    images/senior-i-m-serious-gallery-14.png
+                    images/senior-i-m-serious-gallery-15-320.jpg
+                    images/senior-i-m-serious-gallery-15-320.webp
+                    images/senior-i-m-serious-gallery-15-640.jpg
+                    images/senior-i-m-serious-gallery-15-640.webp
+                    images/senior-i-m-serious-gallery-15-960.jpg
+                    images/senior-i-m-serious-gallery-15-960.webp
+                    images/senior-i-m-serious-gallery-15.png
+                    images/senior-i-m-serious-gallery-16-320.jpg
+                    images/senior-i-m-serious-gallery-16-320.webp
+                    images/senior-i-m-serious-gallery-16-640.jpg
+                    images/senior-i-m-serious-gallery-16-640.webp
+                    images/senior-i-m-serious-gallery-16-960.jpg
+                    images/senior-i-m-serious-gallery-16-960.webp
+                    images/senior-i-m-serious-gallery-16.png
+                    images/senior-i-m-serious-gallery-2-320.jpg
+                    images/senior-i-m-serious-gallery-2-320.webp
+                    images/senior-i-m-serious-gallery-2-640.jpg
+                    images/senior-i-m-serious-gallery-2-640.webp
+                    images/senior-i-m-serious-gallery-2-960.jpg
+                    images/senior-i-m-serious-gallery-2-960.webp
+                    images/senior-i-m-serious-gallery-2.png
+                    images/senior-i-m-serious-gallery-3-320.jpg
+                    images/senior-i-m-serious-gallery-3-320.webp
+                    images/senior-i-m-serious-gallery-3-640.jpg
+                    images/senior-i-m-serious-gallery-3-640.webp
+                    images/senior-i-m-serious-gallery-3-960.jpg
+                    images/senior-i-m-serious-gallery-3-960.webp
+                    images/senior-i-m-serious-gallery-3.png
+                    images/senior-i-m-serious-gallery-4-320.jpg
+                    images/senior-i-m-serious-gallery-4-320.webp
+                    images/senior-i-m-serious-gallery-4-640.jpg
+                    images/senior-i-m-serious-gallery-4-640.webp
+                    images/senior-i-m-serious-gallery-4-960.jpg
+                    images/senior-i-m-serious-gallery-4-960.webp
+                    images/senior-i-m-serious-gallery-4.png
+                    images/senior-i-m-serious-gallery-5-320.jpg
+                    images/senior-i-m-serious-gallery-5-320.webp
+                    images/senior-i-m-serious-gallery-5-640.jpg
+                    images/senior-i-m-serious-gallery-5-640.webp
+                    images/senior-i-m-serious-gallery-5-960.jpg
+                    images/senior-i-m-serious-gallery-5-960.webp
+                    images/senior-i-m-serious-gallery-5.png
+                    images/senior-i-m-serious-gallery-6-320.jpg
+                    images/senior-i-m-serious-gallery-6-320.webp
+                    images/senior-i-m-serious-gallery-6-640.jpg
+                    images/senior-i-m-serious-gallery-6-640.webp
+                    images/senior-i-m-serious-gallery-6-960.jpg
+                    images/senior-i-m-serious-gallery-6-960.webp
+                    images/senior-i-m-serious-gallery-6.png
+                    images/senior-i-m-serious-gallery-7-320.jpg
+                    images/senior-i-m-serious-gallery-7-320.webp
+                    images/senior-i-m-serious-gallery-7-640.jpg
+                    images/senior-i-m-serious-gallery-7-640.webp
+                    images/senior-i-m-serious-gallery-7-960.jpg
+                    images/senior-i-m-serious-gallery-7-960.webp
+                    images/senior-i-m-serious-gallery-7.png
+                    images/senior-i-m-serious-gallery-8-320.jpg
+                    images/senior-i-m-serious-gallery-8-320.webp
+                    images/senior-i-m-serious-gallery-8-640.jpg
+                    images/senior-i-m-serious-gallery-8-640.webp
+                    images/senior-i-m-serious-gallery-8-960.jpg
+                    images/senior-i-m-serious-gallery-8-960.webp
+                    images/senior-i-m-serious-gallery-8.png
+                    images/senior-i-m-serious-gallery-9-320.jpg
+                    images/senior-i-m-serious-gallery-9-320.webp
+                    images/senior-i-m-serious-gallery-9-640.jpg
+                    images/senior-i-m-serious-gallery-9-640.webp
+                    images/senior-i-m-serious-gallery-9-960.jpg
+                    images/senior-i-m-serious-gallery-9-960.webp
+                    images/senior-i-m-serious-gallery-9.png
+                    novel/senior-i-m-serious/Chapter1.md
+                    novel/senior-i-m-serious/Chapter10.md
+                    novel/senior-i-m-serious/Chapter11.md
+                    novel/senior-i-m-serious/Chapter12.md
+                    novel/senior-i-m-serious/Chapter13.md
+                    novel/senior-i-m-serious/Chapter14.md
+                    novel/senior-i-m-serious/Chapter15.md
+                    novel/senior-i-m-serious/Chapter16.md
+                    novel/senior-i-m-serious/Chapter2.md
+                    novel/senior-i-m-serious/Chapter3.md
+                    novel/senior-i-m-serious/Chapter4.md
+                    novel/senior-i-m-serious/Chapter5.md
+                    novel/senior-i-m-serious/Chapter6.md
+                    novel/senior-i-m-serious/Chapter7.md
+                    novel/senior-i-m-serious/Chapter8.md
+                    novel/senior-i-m-serious/Chapter9.md
+                    novel/senior-i-m-serious/index.md
+                    ...done in 21.8701695 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:16:25
+                    .codex-preview.out.log
+                    ...done in 21.0287904 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:16:46
+                    .codex-preview.out.log
+                    ...done in 24.6955571 seconds.
+                    
+      Regenerating: 2 file(s) changed at 2026-04-04 18:17:11
+                    .codex-preview.out.log
+                    novel/senior-i-m-serious/index.md
+[2026-04-04 18:17:19] ERROR Errno::ECONNRESET: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:6 
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'IO#eof?'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'WEBrick::HTTPServer#run'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/server.rb:309:in 'block in WEBrick::GenericServer#start_thread'
+                    ...done in 24.3866348 seconds.
+                    
+      Regenerating: 2 file(s) changed at 2026-04-04 18:17:35
+                    .codex-preview.out.log
+                    novel/index.html
+[2026-04-04 18:17:52] ERROR Errno::ECONNRESET: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:6 
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'IO#eof?'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/httpserver.rb:82:in 'WEBrick::HTTPServer#run'
+	C:/Ruby34-x64/lib/ruby/gems/3.4.0/gems/webrick-1.9.2/lib/webrick/server.rb:309:in 'block in WEBrick::GenericServer#start_thread'
+                    ...done in 24.1471064 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:17:59
+                    .codex-preview.out.log
+                    ...done in 21.1396931 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:18:21
+                    .codex-preview.out.log
+                    ...done in 26.2650309 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:18:47
+                    .codex-preview.out.log
+                    ...done in 22.0427218 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:19:09
+                    .codex-preview.out.log
+                    ...done in 20.9944585 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:19:30
+                    .codex-preview.out.log
+                    ...done in 24.1136343 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:19:54
+                    .codex-preview.out.log
+                    ...done in 24.1713931 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:20:18
+                    .codex-preview.out.log
+                    ...done in 18.3373758 seconds.
+                    
+      Regenerating: 1 file(s) changed at 2026-04-04 18:20:37
+                    .codex-preview.out.log

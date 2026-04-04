@@ -5,6 +5,12 @@ novel: sheltered-walkways
 status: Complete
 blurb: >-
   In rain-soaked Singapore, rising actress Suyin and veteran host Adam are shoved into a viral “couple” narrative—until private rules, quiet suppers, and sheltered walkways become their refuge, and they choose a love built slowly, safely, and properly on their own terms.
+genre: >-
+  fake dating romance, celebrity romance, contemporary romance
+tone: >-
+  cozy, gentle, tender
+setting: >-
+  Singapore, entertainment industry, rainy city
 order: 0
 ---
 

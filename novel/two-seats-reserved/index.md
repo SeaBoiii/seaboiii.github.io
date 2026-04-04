@@ -5,6 +5,12 @@ novel: two-seats-reserved
 status: Complete
 blurb: >-
   In a glass-walled office and two worlds of family and faith, Faris and Jiawen choose each other—properly, publicly, and without erasure—until two seats become a home they’ve reserved with their own hands.
+genre: >-
+  workplace romance, faith romance, contemporary romance
+tone: >-
+  romantic, heartfelt, assured
+setting: >-
+  office life, family life, public commitment
 order: 0
 ---
 

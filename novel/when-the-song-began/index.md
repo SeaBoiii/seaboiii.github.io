@@ -5,6 +5,12 @@ novel: when-the-song-began
 status: Complete
 blurb: >-
   A gentle, cross-cultural story of two colleagues who discover something unexpected in a shared song—and slowly, in each other
+genre: >-
+  workplace romance, cross-cultural romance, contemporary romance
+tone: >-
+  gentle, warm, tender
+setting: >-
+  office life, modern day, shared music
 order: 0
 ---
 

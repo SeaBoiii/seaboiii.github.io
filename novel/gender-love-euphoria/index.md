@@ -5,6 +5,12 @@ novel: gender-love-euphoria
 status: Complete
 blurb: >-
   Two childhood rivals from a Malaysian kampung reunite at university under a fragile disguise, only to discover that love, identity, and euphoria were never meant to be separated.
+genre: >-
+  queer romance, coming-of-age, university romance
+tone: >-
+  tender, affirming, bittersweet
+setting: >-
+  Malaysia, university campus, modern day
 order: 0
 ---
 

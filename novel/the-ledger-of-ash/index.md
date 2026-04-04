@@ -5,6 +5,12 @@ novel: the-ledger-of-ash
 status: Complete
 blurb: >-
   A soot-born “utility” girl discovers she’s a weightwright—able to shift burden, bend gravity, and even make the world forget—then turns that quiet, overlooked power into a weapon against a guild that would rather burn truth than lose control.
+genre: >-
+  dark fantasy, rebellion fantasy, adventure fantasy
+tone: >-
+  gritty, defiant, atmospheric
+setting: >-
+  fantasy world, industrial city, guild world
 order: 0
 ---
 

@@ -25,12 +25,20 @@ function applyNovelStatusBadgeDebug(scope) {
 
 // Continue Reading + chapter progress UI (per novel)
 (function() {
-  var slug = (document.body && document.body.dataset && document.body.dataset.novelSlug) || '';
+  var bodyData = (document.body && document.body.dataset) || {};
+  var slug = bodyData.novelSlug || '';
   var lastUrlKey = 'novel:'+slug+':lastUrl';
   var stateKey = 'novel:'+slug+':state';
   var chaptersKey = 'novel:'+slug+':chapters';
+  var startBtn = document.getElementById('startReading');
   var continueBtn = document.getElementById('continueReading');
   var list = document.getElementById('chapterList');
+  var progressSummary = document.getElementById('novelProgressSummary');
+  var progressBar = document.getElementById('novelProgressBar');
+  var completedCountNode = document.getElementById('novelCompletedCount');
+  var inProgressCountNode = document.getElementById('novelInProgressCount');
+  var remainingCountNode = document.getElementById('novelRemainingCount');
+  var lastReadLabelNode = document.getElementById('novelLastReadLabel');
   var state = {};
   var chapters = {};
   var saved = '';
@@ -54,6 +62,45 @@ function applyNovelStatusBadgeDebug(scope) {
   function toFiniteNumber(value) {
     var n = parseFloat(value);
     return Number.isFinite(n) ? n : null;
+  }
+
+  function clamp(n, min, max) {
+    return Math.min(max, Math.max(min, n));
+  }
+
+  function normalizeRatio(value) {
+    var ratio = toFiniteNumber(value);
+    if (ratio == null) return null;
+    return clamp(ratio, 0, 1);
+  }
+
+  function extendProgress(target, source) {
+    if (!source || typeof source !== 'object') return target;
+    Object.keys(source).forEach(function(key) {
+      if (source[key] == null || source[key] === '') return;
+      target[key] = source[key];
+    });
+    return target;
+  }
+
+  function mergedProgressForPath(path) {
+    if (!path) return null;
+    var entry = {};
+    extendProgress(entry, chapters[path]);
+    if (state && normalizePath(state.lastUrl) === path) {
+      extendProgress(entry, state);
+    }
+    return Object.keys(entry).length ? entry : null;
+  }
+
+  function hasEntryProgress(entry) {
+    if (!entry) return false;
+    if (entry.completed) return true;
+    var ratio = normalizeRatio(entry.ratio);
+    var scroll = toFiniteNumber(entry.scrollY);
+    if (ratio != null && ratio >= 0.02) return true;
+    if (scroll != null && scroll >= 120) return true;
+    return false;
   }
 
   function getListItemByUrl(url) {
@@ -89,21 +136,10 @@ function applyNovelStatusBadgeDebug(scope) {
     var path = normalizePath(url);
     if (!path) return false;
 
-    var entry = chapters[path];
-    if (entry && entry.completed) return true;
-    if (entry) {
-      var entryRatio = toFiniteNumber(entry.ratio);
-      var entryScroll = toFiniteNumber(entry.scrollY);
-      if (entryRatio != null && entryRatio >= 0.02) return true;
-      if (entryScroll != null && entryScroll >= 120) return true;
-    }
+    var entry = mergedProgressForPath(path);
+    if (hasEntryProgress(entry)) return true;
 
     if (state && normalizePath(state.lastUrl) === path) {
-      if (state.completed) return true;
-      var stateRatio = toFiniteNumber(state.ratio);
-      var stateScroll = toFiniteNumber(state.scrollY);
-      if (stateRatio != null && stateRatio >= 0.02) return true;
-      if (stateScroll != null && stateScroll >= 120) return true;
       var lastOrder = parseInt(state.lastOrder, 10);
       var firstLi = list ? list.querySelector('li[data-url]') : null;
       var firstOrder = firstLi ? parseInt(firstLi.dataset.no, 10) : NaN;
@@ -113,6 +149,15 @@ function applyNovelStatusBadgeDebug(scope) {
     }
 
     return false;
+  }
+
+  function summarizeLastRead(li) {
+    if (!li) return 'Not started yet';
+    var title = String(li.dataset.rawTitle || li.dataset.title || '').trim();
+    var chapterNo = String(li.dataset.no || '').trim();
+    if (title) return title;
+    if (chapterNo) return 'Chapter ' + chapterNo;
+    return 'Not started yet';
   }
 
   try {
@@ -128,15 +173,16 @@ function applyNovelStatusBadgeDebug(scope) {
     saved = '';
   }
 
+  if (startBtn) {
+    startBtn.textContent = hasMeaningfulProgress(saved) ? 'Start from beginning' : 'Start reading';
+  }
+
   var resumeUrl = saved;
   if (saved) {
     var savedPath = normalizePath(saved);
-    var savedEntry = chapters[savedPath];
+    var savedEntry = mergedProgressForPath(savedPath);
     var savedLi = getListItemByUrl(saved);
     var isCompleted = !!(savedEntry && savedEntry.completed);
-    if (!isCompleted && state && state.lastUrl && normalizePath(state.lastUrl) === savedPath) {
-      isCompleted = !!state.completed;
-    }
     if (isCompleted && savedLi) {
       var nextLi = getNextListItem(savedLi);
       if (nextLi) {
@@ -148,19 +194,81 @@ function applyNovelStatusBadgeDebug(scope) {
     }
   }
 
-  if (!list) return;
+  if (!list) {
+    if (progressSummary) {
+      progressSummary.textContent = 'Start reading and we will track your place here.';
+    }
+    if (lastReadLabelNode && state && state.lastTitle) {
+      lastReadLabelNode.textContent = state.lastTitle;
+    }
+    return;
+  }
+
   var savedPath = normalizePath(saved);
   var lastReadItem = null;
-  list.querySelectorAll('li').forEach(function(li) {
+  var totalChapters = 0;
+  var completedCount = 0;
+  var inProgressCount = 0;
+  var progressUnits = 0;
+
+  list.querySelectorAll('li[data-url]').forEach(function(li) {
+    totalChapters += 1;
     var path = normalizePath(li.dataset.url);
-    var entry = chapters[path];
+    var entry = mergedProgressForPath(path);
+    var ratio = entry ? normalizeRatio(entry.ratio) : null;
+    var completed = !!(entry && entry.completed);
+    var progressState = 'unread';
+    if (completed) {
+      progressState = 'completed';
+      completedCount += 1;
+      progressUnits += 1;
+    } else if (hasEntryProgress(entry)) {
+      progressState = 'in-progress';
+      inProgressCount += 1;
+      progressUnits += ratio != null ? Math.max(0.08, Math.min(0.98, ratio)) : 0.12;
+    }
+
+    li.dataset.progressState = progressState;
+    if (ratio != null) {
+      li.dataset.progressRatio = String(ratio);
+      li.dataset.progressPercent = String(Math.round(ratio * 100));
+    } else {
+      delete li.dataset.progressRatio;
+      delete li.dataset.progressPercent;
+    }
+
     if (savedPath && path && path === savedPath) {
       li.classList.add('last-read');
       lastReadItem = li;
     }
-    if (!entry) return;
-    if (entry.completed) li.classList.add('completed');
+    li.classList.toggle('completed', completed);
+    li.classList.toggle('in-progress', progressState === 'in-progress');
   });
+
+  var remainingCount = Math.max(0, totalChapters - completedCount - inProgressCount);
+  if (progressBar) {
+    var ratio = totalChapters ? clamp(progressUnits / totalChapters, 0, 1) : 0;
+    progressBar.style.transform = 'scaleX(' + ratio + ')';
+  }
+  if (completedCountNode) completedCountNode.textContent = String(completedCount);
+  if (inProgressCountNode) inProgressCountNode.textContent = String(inProgressCount);
+  if (remainingCountNode) remainingCountNode.textContent = String(remainingCount);
+  if (lastReadLabelNode) {
+    lastReadLabelNode.textContent = lastReadItem ? summarizeLastRead(lastReadItem) : 'Not started yet';
+  }
+  if (progressSummary) {
+    if (!totalChapters) {
+      progressSummary.textContent = 'No chapters have been published yet.';
+    } else if (completedCount >= totalChapters) {
+      progressSummary.textContent = 'You have finished every chapter on this device.';
+    } else if (!completedCount && inProgressCount) {
+      progressSummary.textContent = 'You have ' + inProgressCount + ' chapter' + (inProgressCount === 1 ? '' : 's') + ' in progress on this device.';
+    } else if (completedCount || inProgressCount) {
+      progressSummary.textContent = completedCount + ' of ' + totalChapters + ' chapters finished on this device.';
+    } else {
+      progressSummary.textContent = 'Start reading and we will track your place here.';
+    }
+  }
 
   if (!lastReadItem || location.hash) return;
   var prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -480,9 +588,13 @@ function ensureGalleryLinkMedia(link) {
   var empty = document.getElementById('chapterSearchEmpty');
   var choiceHint = document.getElementById('choiceEpilogueHint');
   var continueBtn = document.getElementById('continueReading');
+  var statusNode = document.getElementById('chapterSearchStatus');
+  var progressFilters = Array.prototype.slice.call(document.querySelectorAll('[data-progress-filter]'));
+  var lastReadLabelNode = document.getElementById('novelLastReadLabel');
   if (!q || !list) return;
 
   var chapterItems = Array.prototype.slice.call(list.querySelectorAll('li[data-url]'));
+  var activeProgressFilter = 'all';
 
   function normalizePath(url) {
     if (!url) return '';
@@ -540,6 +652,29 @@ function ensureGalleryLinkMedia(link) {
     return value;
   }
 
+  function progressFilterLabel(value) {
+    if (value === 'unread') return 'Unread';
+    if (value === 'in-progress') return 'In progress';
+    if (value === 'completed') return 'Finished';
+    return 'All';
+  }
+
+  function createProgressBadge(li) {
+    var progressState = String(li.dataset.progressState || '').trim();
+    if (!progressState || progressState === 'unread') return null;
+
+    var badge = document.createElement('span');
+    badge.className = 'chapter-state ' + progressState;
+    if (progressState === 'completed') {
+      badge.textContent = 'Finished';
+      return badge;
+    }
+
+    var percent = parseInt(li.dataset.progressPercent, 10);
+    badge.textContent = Number.isFinite(percent) && percent > 0 ? (percent + '% read') : 'In progress';
+    return badge;
+  }
+
   var epilogueCount = 0;
   chapterItems.forEach(function(li) {
     var titleNode = li.querySelector('.chapter-title');
@@ -562,6 +697,7 @@ function ensureGalleryLinkMedia(link) {
     var displayTitle = cleaned || rawTitle;
     titleNode.textContent = displayTitle;
     li.dataset.title = displayTitle.toLowerCase();
+    li.dataset.displayTitle = displayTitle;
 
     var isEpilogue = li.dataset.isEpilogue === 'true';
     var marker = li.dataset.epilogueMarker || '';
@@ -582,12 +718,19 @@ function ensureGalleryLinkMedia(link) {
 
     noNode.textContent = label;
     li.dataset.displayLabel = label.toLowerCase();
+    li.dataset.displayLabelText = label;
 
     var isChoiceEnding = isEpilogue &&
       epilogueCount > 1 &&
       /^[A-Z]+$/.test(marker) &&
       !isRomanNumeralMarker(marker);
     li.dataset.choiceEnding = isChoiceEnding ? 'true' : 'false';
+
+    var progressBadge = createProgressBadge(li);
+    if (progressBadge) {
+      titleNode.appendChild(progressBadge);
+    }
+
     if (isChoiceEnding) {
       choiceMarkers.push(marker);
       var badge = document.createElement('span');
@@ -600,11 +743,19 @@ function ensureGalleryLinkMedia(link) {
       if (anchor) {
         anchor.setAttribute('aria-label', label + ': ' + displayTitle + '. Choice ending. Choose your desired ending path.');
       }
+    } else {
+      var defaultAnchor = li.querySelector('a');
+      if (defaultAnchor) {
+        defaultAnchor.setAttribute('aria-label', label + ': ' + displayTitle);
+      }
     }
 
     var searchText = [li.dataset.title, li.dataset.displayLabel, String(li.dataset.no || '')].join(' ').toLowerCase();
     if (isEpilogue) searchText += ' epilogue';
     if (isChoiceEnding) searchText += ' choice ending choose one';
+    if (li.dataset.progressState === 'completed') searchText += ' finished completed read';
+    if (li.dataset.progressState === 'in-progress') searchText += ' in progress reading unfinished';
+    if (li.dataset.progressState === 'unread') searchText += ' unread not started';
     li.dataset.search = searchText;
   });
 
@@ -632,7 +783,7 @@ function ensureGalleryLinkMedia(link) {
     });
     if (!matched) return;
 
-    var displayLabel = String(matched.dataset.displayLabel || '').trim();
+    var displayLabel = String(matched.dataset.displayLabelText || matched.dataset.displayLabel || '').trim();
     if (!displayLabel) return;
     var text = 'Continue ' + displayLabel.replace(/\s+/g, ' ');
     continueBtn.textContent = text;
@@ -640,18 +791,70 @@ function ensureGalleryLinkMedia(link) {
   }
   refreshContinueLabel();
 
+  function refreshLastReadLabel() {
+    if (!lastReadLabelNode) return;
+    var matched = null;
+    chapterItems.forEach(function(li) {
+      if (!matched && li.classList.contains('last-read')) matched = li;
+    });
+    if (!matched) return;
+
+    var displayLabel = String(matched.dataset.displayLabelText || '').trim();
+    var displayTitle = String(matched.dataset.displayTitle || '').trim();
+    if (!displayLabel && !displayTitle) return;
+
+    lastReadLabelNode.textContent = displayTitle
+      ? (displayLabel + ' - ' + displayTitle)
+      : displayLabel;
+  }
+  refreshLastReadLabel();
+
+  function setActiveProgressFilter(nextValue) {
+    activeProgressFilter = nextValue || 'all';
+    progressFilters.forEach(function(button) {
+      var isActive = button.getAttribute('data-progress-filter') === activeProgressFilter;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    applyChapterFilter();
+  }
+
+  function matchesProgressFilter(li) {
+    if (activeProgressFilter === 'all') return true;
+    return String(li.dataset.progressState || 'unread') === activeProgressFilter;
+  }
+
+  function updateSearchStatus(visibleCount, totalCount) {
+    if (!statusNode) return;
+    var query = q.value.trim();
+    var message = 'Showing ' + visibleCount + ' of ' + totalCount + ' chapters';
+    if (activeProgressFilter !== 'all') {
+      message += ' in ' + progressFilterLabel(activeProgressFilter).toLowerCase();
+    }
+    if (query) {
+      message += ' matching "' + query + '"';
+    }
+    statusNode.textContent = message;
+  }
+
   function applyChapterFilter() {
     var v = q.value.trim().toLowerCase();
     var visible = 0;
     chapterItems.forEach(function(li) {
-      var hit = !v || String(li.dataset.search || '').includes(v);
-      li.style.display = hit ? '' : 'none';
+      var hit = (!v || String(li.dataset.search || '').includes(v)) && matchesProgressFilter(li);
+      li.hidden = !hit;
       if (hit) visible += 1;
     });
     if (empty) empty.hidden = visible !== 0;
+    updateSearchStatus(visible, chapterItems.length);
   }
 
   q.addEventListener('input', applyChapterFilter);
+  progressFilters.forEach(function(button) {
+    button.addEventListener('click', function() {
+      setActiveProgressFilter(button.getAttribute('data-progress-filter'));
+    });
+  });
   applyChapterFilter();
 })();
 

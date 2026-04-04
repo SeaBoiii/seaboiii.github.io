@@ -318,6 +318,150 @@
         });
       })();
 
+      // Chapter overview stats: chapter position, estimated reading time, and saved progress.
+      (function () {
+        var bodyData = (document.body && document.body.dataset) || {};
+        var article = document.getElementById("chapterContent");
+        var summaryNode = document.getElementById("chapterOverviewSummary");
+        var positionNode = document.getElementById("chapterPositionStat");
+        var readTimeNode = document.getElementById("chapterReadTimeStat");
+        var savedProgressNode = document.getElementById("chapterSavedProgressStat");
+        if (!article || !readTimeNode || !savedProgressNode) return;
+
+        function clamp(n, min, max) {
+          return Math.min(max, Math.max(min, n));
+        }
+
+        function docHeight() {
+          var d = document.documentElement;
+          var b = document.body;
+          return Math.max(
+            d ? d.scrollHeight : 0,
+            d ? d.offsetHeight : 0,
+            b ? b.scrollHeight : 0,
+            b ? b.offsetHeight : 0
+          );
+        }
+
+        function viewportHeight() {
+          return window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+        }
+
+        function collectReadableText() {
+          var pieces = [];
+          Array.prototype.forEach.call(
+            article.querySelectorAll("p, li, blockquote p, h2, h3, h4"),
+            function (node) {
+              if (!node || !node.textContent) return;
+              if (node.closest(".chapter-overview") || node.closest(".chapter-audio")) return;
+              pieces.push(node.textContent);
+            }
+          );
+          return pieces.join(" ");
+        }
+
+        function estimateReadTime(words) {
+          var minutes = Math.max(1, Math.round(words / 230));
+          return minutes + " min read";
+        }
+
+        function currentProgressLabel() {
+          var y = window.scrollY || window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0;
+          var vh = viewportHeight();
+          var dh = docHeight();
+          var maxScroll = Math.max(0, dh - vh);
+          if (maxScroll <= 0) return "Short chapter";
+
+          var ratio = clamp(y / maxScroll, 0, 1);
+          var remaining = Math.max(0, dh - (y + vh));
+          var completed = remaining <= Math.max(64, vh * 0.03);
+          if (completed) return "Finished";
+          if (ratio >= 0.02) return Math.max(1, Math.round(ratio * 100)) + "% through";
+          return "At the beginning";
+        }
+
+        var wordCount = (collectReadableText().match(/\S+/g) || []).length;
+        readTimeNode.textContent = estimateReadTime(wordCount);
+
+        var chapterLabel = String(bodyData.chapterLabel || "").trim();
+        var chapterPosition = parseInt(bodyData.chapterPosition, 10);
+        var chapterCount = parseInt(bodyData.chapterCount, 10);
+        if (
+          positionNode &&
+          Number.isFinite(chapterPosition) &&
+          Number.isFinite(chapterCount) &&
+          chapterPosition > 0 &&
+          chapterCount > 0
+        ) {
+          positionNode.textContent = chapterPosition + " of " + chapterCount;
+        }
+        if (summaryNode) {
+          if (
+            chapterLabel &&
+            Number.isFinite(chapterPosition) &&
+            Number.isFinite(chapterCount) &&
+            chapterPosition > 0 &&
+            chapterCount > 0
+          ) {
+            summaryNode.textContent =
+              chapterLabel + " - " + chapterPosition + " of " + chapterCount + ". Your progress saves automatically on this device.";
+          } else if (chapterLabel) {
+            summaryNode.textContent = chapterLabel + ". Your progress saves automatically on this device.";
+          }
+        }
+
+        var pendingFrame = false;
+        function renderSavedProgress() {
+          pendingFrame = false;
+          savedProgressNode.textContent = currentProgressLabel();
+        }
+
+        function scheduleSavedProgressRender() {
+          if (pendingFrame) return;
+          pendingFrame = true;
+          requestAnimationFrame(renderSavedProgress);
+        }
+
+        scheduleSavedProgressRender();
+        window.addEventListener("scroll", scheduleSavedProgressRender, { passive: true });
+        window.addEventListener("resize", scheduleSavedProgressRender);
+        window.addEventListener("load", scheduleSavedProgressRender, { once: true });
+        setTimeout(scheduleSavedProgressRender, 250);
+        setTimeout(scheduleSavedProgressRender, 800);
+      })();
+
+      // Back-to-top button for longer chapters.
+      (function () {
+        var button = document.getElementById("backToTop");
+        if (!button) return;
+
+        var prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var pendingFrame = false;
+
+        function renderVisibility() {
+          pendingFrame = false;
+          button.hidden = (window.scrollY || window.pageYOffset || 0) < 560;
+        }
+
+        function scheduleVisibilityRender() {
+          if (pendingFrame) return;
+          pendingFrame = true;
+          requestAnimationFrame(renderVisibility);
+        }
+
+        button.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: prefersReducedMotion ? "auto" : "smooth"
+          });
+        });
+
+        scheduleVisibilityRender();
+        window.addEventListener("scroll", scheduleVisibilityRender, { passive: true });
+        window.addEventListener("resize", scheduleVisibilityRender);
+        window.addEventListener("load", scheduleVisibilityRender, { once: true });
+      })();
+
       // Resolve chapter soundtrack URLs into direct audio or provider embeds.
       (function () {
         var section = document.querySelector(".chapter-audio[data-music-src]");

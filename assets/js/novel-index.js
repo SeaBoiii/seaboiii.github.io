@@ -449,15 +449,37 @@
           var parts = [];
           var titleNode = card.querySelector(".novel-title");
           var titleText = (card.dataset.title || (titleNode && titleNode.textContent) || "").trim();
+          var blurbText = (card.dataset.blurb || "").trim();
+          var genreText = (card.dataset.genre || "").trim();
+          var toneText = (card.dataset.tone || "").trim();
+          var settingText = (card.dataset.setting || "").trim();
           var status = (card.dataset.status || "").trim();
           var seriesId = (card.dataset.series || "").trim();
           var seriesLabel = seriesLabelFromCard(card);
           var relation = (card.dataset.relation || "").trim();
           var relatedTo = (card.dataset.relatedTo || "").trim();
           var order = (card.dataset.order || "").trim();
+          var chapterCount = (card.dataset.chapterCount || "").trim();
+          var epilogueCount = (card.dataset.epilogueCount || "").trim();
+          var galleryCount = (card.dataset.galleryCount || "").trim();
+          var hasSharedMusic = card.dataset.hasSharedMusic === "true";
+          var hasGallery = card.dataset.hasGallery === "true";
           var hidden = card.dataset.hidden === "true";
 
           if (titleText) parts.push(titleText);
+          if (blurbText) parts.push(blurbText);
+          if (genreText) {
+            parts.push(genreText);
+            parts.push("genre " + genreText);
+          }
+          if (toneText) {
+            parts.push(toneText);
+            parts.push("tone " + toneText);
+          }
+          if (settingText) {
+            parts.push(settingText);
+            parts.push("setting " + settingText);
+          }
           if (status) parts.push(status);
           if (seriesId) parts.push(seriesId.replace(/[-_]+/g, " "));
           if (seriesLabel) parts.push(seriesLabel);
@@ -467,7 +489,36 @@
             parts.push("book " + order);
             parts.push("order " + order);
           }
+          if (chapterCount) {
+            parts.push(chapterCount + " chapters");
+            parts.push("chapter count " + chapterCount);
+          }
+          if (epilogueCount) {
+            parts.push(epilogueCount + " epilogues");
+            parts.push("epilogue count " + epilogueCount);
+          }
+          if (galleryCount) {
+            parts.push("gallery " + galleryCount);
+            parts.push(galleryCount + " gallery images");
+          }
+          if (hasGallery) parts.push("has gallery");
+          if (hasSharedMusic) parts.push("shared soundtrack chapter music");
           if (hidden) parts.push("hidden");
+
+          var blurbNode = card.querySelector(".novel-card-blurb");
+          if (blurbNode && blurbNode.textContent) parts.push(blurbNode.textContent);
+
+          Array.prototype.forEach.call(card.querySelectorAll(".novel-stat"), function (stat) {
+            var statText = (stat.textContent || "").trim();
+            if (statText) parts.push(statText);
+          });
+
+          Array.prototype.forEach.call(card.querySelectorAll(".novel-discovery-chip"), function (chip) {
+            var chipText = (chip.textContent || "").trim();
+            var chipTitle = (chip.getAttribute("title") || "").trim();
+            if (chipText) parts.push(chipText);
+            if (chipTitle) parts.push(chipTitle);
+          });
 
           Array.prototype.forEach.call(card.querySelectorAll(".novel-meta .badge"), function (badge) {
             var badgeText = (badge.textContent || "").trim();

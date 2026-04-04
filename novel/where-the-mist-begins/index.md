@@ -5,6 +5,12 @@ novel: where-the-mist-begins
 status: Complete
 blurb: >-
   On a fog-laced summit in Vietnam, Aleem—always the careful one—meets Dasha, a fearless solo traveller, and what begins as a fleeting encounter becomes a quiet promise to stop running and choose love properly, even across distance.
+genre: >-
+  travel romance, cross-cultural romance, contemporary romance
+tone: >-
+  atmospheric, tender, hopeful
+setting: >-
+  Vietnam, travel, mountain landscape
 order: 0
 ---
 

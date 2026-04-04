@@ -5,6 +5,12 @@ novel: i-m-dating-my-anonymous-enemy
 status: Complete
 blurb: >-
   In Seoul’s neon underworld, an investigative blogger who swore to unmask the infamous K-pop dating leaker falls for her “safe” fake boyfriend—only to discover he’s the very ghost she’s been hunting, and loving him might cost her everything she believes in.
+genre: >-
+  celebrity romance, mystery romance, fake dating romance
+tone: >-
+  tense, romantic, suspenseful
+setting: >-
+  Seoul, entertainment industry, digital media
 order: 0
 ---
 

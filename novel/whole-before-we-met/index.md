@@ -5,6 +5,12 @@ novel: whole-before-we-met
 status: Complete
 blurb: >-
   Two people already rich in friendship and selfhood—Kira with her girls and Aleem with his bros—fall into a gentle, unhurried love that doesn’t rescue them from loneliness, but chooses them anyway, whole before they ever met.
+genre: >-
+  friends-to-lovers, contemporary romance, slice-of-life romance
+tone: >-
+  tender, grounded, wholesome
+setting: >-
+  Singapore, friend group, everyday city
 order: 0
 ---
 

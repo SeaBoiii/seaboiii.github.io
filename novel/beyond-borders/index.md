@@ -5,6 +5,12 @@ novel: beyond-borders
 status: Complete
 blurb: >-
   Lost in Jeonju and found by a woman the world once claimed, Aleem discovers that love isn’t a spectacle—it’s a steady hand in his pocket, a choice made properly, and a forever that begins where they first got lost.
+genre: >-
+  contemporary romance, cross-cultural romance, travel romance
+tone: >-
+  tender, reflective, hopeful
+setting: >-
+  Korea, Jeonju, travel
 order: 0
 ---
 

@@ -5,6 +5,12 @@ novel: still-my-favourite-song
 status: Complete
 blurb: >-
   A reclusive billionaire who’d always loved an overlooked K-pop idol from the shadows finds her struggling in a failing café after disbandment—and by choosing hands over money, he helps her rebuild her life, her voice and a love neither of them expected.
+genre: >-
+  celebrity romance, contemporary romance, healing romance
+tone: >-
+  tender, dreamy, hopeful
+setting: >-
+  Seoul, cafe life, entertainment industry
 order: 0
 ---
 

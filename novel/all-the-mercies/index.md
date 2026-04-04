@@ -5,6 +5,12 @@ novel: all-the-mercies
 status: Complete
 blurb: >-
   When Isabelle’s future shatters overnight, she expects to drown in the quiet aftermath—until Aleem, her steadfast friend, keeps showing up with a kind of care that never asks to be repaid, and as grief turns to love, they must learn how to build a life that honours faith, family, and the mercy of staying without taking.
+genre: >-
+  contemporary romance, faith romance, family drama
+tone: >-
+  tender, healing, hopeful
+setting: >-
+  Singapore, family life, domestic life
 order: 0
 ---
 

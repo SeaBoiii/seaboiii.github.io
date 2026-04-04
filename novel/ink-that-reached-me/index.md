@@ -5,6 +5,12 @@ novel: ink-that-reached-me
 status: Complete
 blurb: >-
   When a modern woman finds her life entwined with a Sengoku retainer through a mysterious notebook, she must uncover whether ink alone was enough to rewrite fate across centuries.
+genre: >-
+  historical romance, fantasy romance, time-slip romance
+tone: >-
+  wistful, atmospheric, tender
+setting: >-
+  historical Asia, modern day, notebook magic
 order: 0
 ---
 

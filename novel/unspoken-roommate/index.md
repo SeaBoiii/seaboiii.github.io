@@ -5,6 +5,12 @@ novel: unspoken-roommate
 status: Complete
 blurb: >-
   A roommate, a friend's sister... What if these boundaries were crossed?
+genre: >-
+  roommate romance, forbidden romance, contemporary romance
+tone: >-
+  intimate, yearning, tense
+setting: >-
+  domestic life, shared apartment, modern day
 order: 0
 ---
 

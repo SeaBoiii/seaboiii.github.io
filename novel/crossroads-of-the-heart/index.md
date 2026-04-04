@@ -5,6 +5,12 @@ novel: crossroads-of-the-heart
 status: Complete
 blurb: >-
   A romantic tale of 2 colleagues — exploring faith, heartbreak, and love.
+genre: >-
+  contemporary romance, workplace romance, faith romance
+tone: >-
+  tender, heartfelt, bittersweet
+setting: >-
+  Singapore, office life, modern day
 order: 0
 ---
 

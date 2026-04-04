@@ -476,6 +476,98 @@ def relationship_badges_for_slug(slug: str) -> list[dict]:
 
     return badges
 
+def _chapter_entry_is_epilogue(entry: dict) -> bool:
+    if not isinstance(entry, dict):
+        return False
+
+    title = str(entry.get("title") or "").strip()
+    if re.match(r"(?i)^\s*epilogue\b", title):
+        return True
+
+    path = entry.get("path")
+    stem = ""
+    if isinstance(path, Path):
+        stem = path.stem
+    elif path:
+        stem = Path(str(path)).stem
+    return bool(re.match(r"(?i)^epilogue(?:[\s._-]|$)", stem))
+
+DISCOVERY_METADATA_FIELDS = ("genre", "tone", "setting")
+DISCOVERY_METADATA_LABELS = {
+    "genre": "Genre",
+    "tone": "Tone",
+    "setting": "Setting",
+}
+
+def _normalize_discovery_metadata_item(value: str) -> str:
+    text = normalize_smart_punctuation(str(value or "").strip())
+    text = re.sub(r"\s+", " ", text)
+    return text.strip(" ,;|/")
+
+def _parse_discovery_metadata_values(value) -> list[str]:
+    if value is None:
+        return []
+
+    raw_items = []
+    if isinstance(value, (list, tuple, set)):
+        raw_items = list(value)
+    else:
+        raw_items = re.split(r"[\n\r,;|]+", _yaml_parse_inline_string(str(value or "")))
+
+    out = []
+    seen = set()
+    for raw in raw_items:
+        item = _normalize_discovery_metadata_item(raw)
+        if not item:
+            continue
+        key = item.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(item)
+    return out
+
+def _discovery_metadata_text(value) -> str:
+    return ", ".join(_parse_discovery_metadata_values(value))
+
+def _format_discovery_metadata_field(key: str, value) -> str:
+    return _format_yaml_block_field(key, _discovery_metadata_text(value))
+
+def novel_card_rich_metadata(slug: str) -> dict:
+    slug = slugify(slug)
+    index_meta = read_novel_index_metadata(slug)
+    chapter_entries = load_existing_chapter_entries(slug)
+
+    chapter_count = 0
+    epilogue_count = 0
+    for entry in chapter_entries:
+        if _chapter_entry_is_epilogue(entry):
+            epilogue_count += 1
+        else:
+            chapter_count += 1
+
+    gallery_items = _normalize_gallery_items(index_meta.get("gallery") or [])
+    shared_music_url = _normalize_music_source_input(str(index_meta.get("chapter_music_url") or "").strip())
+    blurb = normalize_smart_punctuation(str(index_meta.get("blurb") or "").strip())
+    genre_tags = _parse_discovery_metadata_values(index_meta.get("genre") or "")
+    tone_tags = _parse_discovery_metadata_values(index_meta.get("tone") or "")
+    setting_tags = _parse_discovery_metadata_values(index_meta.get("setting") or "")
+
+    return {
+        "title": str(index_meta.get("title") or pretty(slug)).strip() or pretty(slug),
+        "blurb": blurb,
+        "genre": ", ".join(genre_tags),
+        "genre_tags": genre_tags,
+        "tone": ", ".join(tone_tags),
+        "tone_tags": tone_tags,
+        "setting": ", ".join(setting_tags),
+        "setting_tags": setting_tags,
+        "chapter_count": int(chapter_count),
+        "epilogue_count": int(epilogue_count),
+        "gallery_count": len(gallery_items),
+        "has_shared_music": bool(shared_music_url),
+    }
+
 def _novel_slug_from_card_href(href: str) -> str:
     h = (href or "").strip()
     if not h:
@@ -562,7 +654,7 @@ def novel_card_preview_info(slug: str) -> dict:
 
 def sync_relationship_badges_in_novels_index() -> dict:
     """
-    Rebuild each novel card's relationship badges + data-* attrs from the registry.
+    Rebuild each novel card's rich metadata, relationship badges, and data-* attrs.
     Status/Hidden badges are preserved canonically from card data attributes.
     """
     if _BeautifulSoup is None:
@@ -599,9 +691,58 @@ def sync_relationship_badges_in_novels_index() -> dict:
         cards_touched += 1
 
         before = str(card)
+        rich_meta = novel_card_rich_metadata(slug)
         rel_entry = relationship_entry_for_slug(slug)
+        title_text = str(rich_meta.get("title") or pretty(slug)).strip() or pretty(slug)
+        blurb_text = str(rich_meta.get("blurb") or "").strip()
+        genre_text = str(rich_meta.get("genre") or "").strip()
+        genre_tags = list(rich_meta.get("genre_tags") or [])
+        tone_text = str(rich_meta.get("tone") or "").strip()
+        tone_tags = list(rich_meta.get("tone_tags") or [])
+        setting_text = str(rich_meta.get("setting") or "").strip()
+        setting_tags = list(rich_meta.get("setting_tags") or [])
+        chapter_count = int(rich_meta.get("chapter_count") or 0)
+        epilogue_count = int(rich_meta.get("epilogue_count") or 0)
+        gallery_count = int(rich_meta.get("gallery_count") or 0)
+        has_shared_music = bool(rich_meta.get("has_shared_music"))
 
         # Sync relationship data-* attrs
+        card["data-title"] = title_text.lower()
+        if blurb_text:
+            card["data-blurb"] = blurb_text
+        else:
+            card.attrs.pop("data-blurb", None)
+        if genre_text:
+            card["data-genre"] = genre_text
+        else:
+            card.attrs.pop("data-genre", None)
+        if tone_text:
+            card["data-tone"] = tone_text
+        else:
+            card.attrs.pop("data-tone", None)
+        if setting_text:
+            card["data-setting"] = setting_text
+        else:
+            card.attrs.pop("data-setting", None)
+        if chapter_count > 0:
+            card["data-chapter-count"] = str(chapter_count)
+        else:
+            card.attrs.pop("data-chapter-count", None)
+        if epilogue_count > 0:
+            card["data-epilogue-count"] = str(epilogue_count)
+        else:
+            card.attrs.pop("data-epilogue-count", None)
+        if gallery_count > 0:
+            card["data-gallery-count"] = str(gallery_count)
+            card["data-has-gallery"] = "true"
+        else:
+            card.attrs.pop("data-gallery-count", None)
+            card.attrs.pop("data-has-gallery", None)
+        if has_shared_music:
+            card["data-has-shared-music"] = "true"
+        else:
+            card.attrs.pop("data-has-shared-music", None)
+
         if rel_entry.get("series_id"):
             card["data-series"] = str(rel_entry.get("series_id"))
         else:
@@ -628,13 +769,35 @@ def sync_relationship_badges_in_novels_index() -> dict:
         status_text = "Complete" if status_class == "complete" else "Incomplete"
         hidden = str(card.get("data-hidden") or "").strip().lower() == "true"
 
+        if a is not None:
+            a["aria-label"] = title_text
+
+        title_node = card.find(class_="novel-title")
+        if title_node is None:
+            if a is None:
+                cards_skipped += 1
+                continue
+            title_node = soup.new_tag("h2", attrs={"class": "novel-title"})
+            picture = a.find("picture")
+            fallback_img = a.find("img")
+            if picture is not None:
+                picture.insert_after(title_node)
+            elif fallback_img is not None:
+                fallback_img.insert_after(title_node)
+            else:
+                a.insert(0, title_node)
+        title_node.string = title_text
+
+        image_tag = card.find("img")
+        if image_tag is not None:
+            image_tag["alt"] = title_text
+
         meta = card.find(class_="novel-meta")
         if meta is None:
             if a is None:
                 cards_skipped += 1
                 continue
             meta = soup.new_tag("div", attrs={"class": "novel-meta"})
-            title_node = a.find(class_="novel-title")
             if title_node is not None:
                 title_node.insert_after(meta)
             else:
@@ -642,15 +805,73 @@ def sync_relationship_badges_in_novels_index() -> dict:
         else:
             meta["class"] = ["novel-meta"]
 
-        # Canonical rebuild of meta badges with grouped rows:
-        # status row first, then relationship/hidden tags row.
+        # Canonical rebuild of card metadata with grouped rows:
+        # incomplete status row first, then blurb, discovery chips, stats, then relationship/hidden tags row.
         meta.clear()
 
-        status_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-status"]})
-        status_badge = soup.new_tag("span", attrs={"class": ["badge", status_class]})
-        status_badge.string = status_text
-        status_row.append(status_badge)
-        meta.append(status_row)
+        if status_class == "incomplete":
+            status_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-status"]})
+            status_badge = soup.new_tag("span", attrs={"class": ["badge", status_class]})
+            status_badge.string = status_text
+            status_row.append(status_badge)
+            meta.append(status_row)
+
+        if blurb_text:
+            blurb_node = soup.new_tag("p", attrs={"class": "novel-card-blurb"})
+            blurb_node.string = blurb_text
+            meta.append(blurb_node)
+
+        discovery_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-discovery"]})
+
+        def _append_discovery_chip(kind: str, value: str):
+            label = str(value or "").strip()
+            if not label:
+                return
+            classes = ["novel-discovery-chip", f"novel-discovery-chip-{kind}"]
+            chip = soup.new_tag("span", attrs={"class": classes})
+            chip["title"] = f"{DISCOVERY_METADATA_LABELS.get(kind, pretty(kind))}: {label}"
+            chip.string = label
+            discovery_row.append(chip)
+
+        for tag in genre_tags:
+            _append_discovery_chip("genre", tag)
+        for tag in tone_tags:
+            _append_discovery_chip("tone", tag)
+        for tag in setting_tags:
+            _append_discovery_chip("setting", tag)
+
+        if discovery_row.contents:
+            meta.append(discovery_row)
+
+        stats_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-stats"]})
+
+        def _append_stat(text: str, extra_class: str = ""):
+            label = str(text or "").strip()
+            if not label:
+                return
+            classes = ["novel-stat"]
+            if extra_class:
+                classes.append(extra_class)
+            stat_tag = soup.new_tag("span", attrs={"class": classes})
+            stat_tag.string = label
+            stats_row.append(stat_tag)
+
+        if chapter_count > 0:
+            _append_stat(f"{chapter_count} chapter" + ("" if chapter_count == 1 else "s"), "chapters")
+        elif epilogue_count > 0:
+            _append_stat("Epilogue only", "chapters")
+
+        if epilogue_count > 0:
+            _append_stat(f"{epilogue_count} epilogue" + ("" if epilogue_count == 1 else "s"), "epilogues")
+
+        if gallery_count > 0:
+            _append_stat(f"Gallery {gallery_count}", "gallery")
+
+        if has_shared_music:
+            _append_stat("Shared soundtrack", "soundtrack")
+
+        if stats_row.contents:
+            meta.append(stats_row)
 
         extra_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-extra"]})
 
@@ -1213,6 +1434,9 @@ def build_index_md(
     slug: str,
     status: str = "Incomplete",
     blurb: str = "",
+    genre: str = "",
+    tone: str = "",
+    setting: str = "",
     gallery_items = None,
     chapter_music_url: str = "",
     chapter_music_title: str = "",
@@ -1223,6 +1447,9 @@ def build_index_md(
     body_text = body if body is not None else DEFAULT_NOVEL_INDEX_BODY
     body_text = body_text if body_text.endswith("\n") else body_text + "\n"
     blurb_yaml = _format_blurb_yaml_block(blurb)
+    genre_yaml = _format_discovery_metadata_field("genre", genre)
+    tone_yaml = _format_discovery_metadata_field("tone", tone)
+    setting_yaml = _format_discovery_metadata_field("setting", setting)
     gallery_yaml = _format_gallery_yaml_block(gallery_items or [])
     chapter_music_url_yaml = _format_yaml_block_field("chapter_music_url", chapter_music_url)
     chapter_music_title_yaml = _format_yaml_block_field("chapter_music_title", chapter_music_title)
@@ -1234,6 +1461,9 @@ def build_index_md(
         f"status: {status}\n"
         f"blurb: >-\n"
         f"{blurb_yaml}\n"
+        f"{genre_yaml}"
+        f"{tone_yaml}"
+        f"{setting_yaml}"
         f"{gallery_yaml}"
         f"{chapter_music_url_yaml}"
         f"{chapter_music_title_yaml}"
@@ -1653,6 +1883,12 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
         rel_badges.append(f'''                <span class="badge"{title_attr}>{label}</span>\n''')
     rel_badges_html = "".join(rel_badges)
     extra_badges_html = rel_badges_html + hidden_badge
+    status_row_html = (
+        f'''              <div class="meta-row meta-row-status">\n'''
+        f'''                <span class="badge {status_class}">{status_text}</span>\n'''
+        f'''              </div>\n'''
+    ) if status_class == "incomplete" else ""
+
     extra_row_html = (
         f'''              <div class="meta-row meta-row-extra">\n'''
         f'''{extra_badges_html}'''
@@ -1668,9 +1904,7 @@ def append_card_to_novels_index(novel_title: str, slug: str, cover_rel: str, sta
         f'''            <img src="{safe_cover}" alt="{safe_title}" loading="lazy" />\n'''
         f'''            <h2 class="novel-title">{safe_title}</h2>\n'''
         f'''            <div class="novel-meta">\n'''
-        f'''              <div class="meta-row meta-row-status">\n'''
-        f'''                <span class="badge {status_class}">{status_text}</span>\n'''
-        f'''              </div>\n'''
+        f'''{status_row_html}'''
         f'''{extra_row_html}'''
         f'''            </div>\n'''
         f'''          </a>\n'''
@@ -3297,6 +3531,9 @@ def read_novel_index_metadata(slug: str) -> dict:
         "title": pretty(slug),
         "status": "Incomplete",
         "blurb": "",
+        "genre": "",
+        "tone": "",
+        "setting": "",
         "gallery": [],
         "chapter_music_url": "",
         "chapter_music_title": "",
@@ -3321,6 +3558,11 @@ def read_novel_index_metadata(slug: str) -> dict:
     if blurb:
         data["blurb"] = blurb
 
+    for key in DISCOVERY_METADATA_FIELDS:
+        value = _discovery_metadata_text(fm.get(key) or "")
+        if value:
+            data[key] = value
+
     data["gallery"] = _parse_gallery_items_from_front_matter(fm_block)
     data["chapter_music_url"] = _normalize_music_source_input(str(fm.get("chapter_music_url") or "").strip())
     data["chapter_music_title"] = str(fm.get("chapter_music_title") or "").strip()
@@ -3335,6 +3577,9 @@ def write_novel_index_metadata(
     title: str,
     status: str,
     blurb: str,
+    genre: str = "",
+    tone: str = "",
+    setting: str = "",
     gallery_items = None,
     chapter_music_url: str = "",
     chapter_music_title: str = "",
@@ -3355,6 +3600,9 @@ def write_novel_index_metadata(
         slug=slug,
         status=_normalize_status_choice(status),
         blurb=blurb,
+        genre=genre,
+        tone=tone,
+        setting=setting,
         gallery_items=normalized_gallery,
         chapter_music_url=chapter_music_url,
         chapter_music_title=chapter_music_title,
@@ -3689,6 +3937,9 @@ class Wizard(tk.Tk):
         self.status_var = tk.StringVar(value="Complete")
         self.cover_var = tk.StringVar()
         self.blurb_var = tk.StringVar()
+        self.genre_var = tk.StringVar()
+        self.tone_var = tk.StringVar()
+        self.setting_var = tk.StringVar()
         self.gallery_summary_var = tk.StringVar(value="No gallery images selected.")
         self.shared_music_source_var = tk.StringVar()
         self.shared_music_title_var = tk.StringVar()
@@ -3976,26 +4227,48 @@ class Wizard(tk.Tk):
         self.blurb_entry = ttk.Entry(form, textvariable=self.blurb_var)
         self.blurb_entry.grid(row=3, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(8, 0))
 
+        self.discovery_frame = ttk.LabelFrame(form, text="Landing Page Chips", padding=(8, 6))
+        self.discovery_frame.grid(row=4, column=0, columnspan=4, sticky="we", pady=(10, 0))
+        self.discovery_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(self.discovery_frame, text="Genre").grid(row=0, column=0, sticky="w")
+        self.genre_entry = ttk.Entry(self.discovery_frame, textvariable=self.genre_var)
+        self.genre_entry.grid(row=0, column=1, sticky="we", padx=(8, 0))
+
+        ttk.Label(self.discovery_frame, text="Tone").grid(row=1, column=0, sticky="w", pady=(6, 0))
+        self.tone_entry = ttk.Entry(self.discovery_frame, textvariable=self.tone_var)
+        self.tone_entry.grid(row=1, column=1, sticky="we", padx=(8, 0), pady=(6, 0))
+
+        ttk.Label(self.discovery_frame, text="Setting").grid(row=2, column=0, sticky="w", pady=(6, 0))
+        self.setting_entry = ttk.Entry(self.discovery_frame, textvariable=self.setting_var)
+        self.setting_entry.grid(row=2, column=1, sticky="we", padx=(8, 0), pady=(6, 0))
+
+        ttk.Label(
+            self.discovery_frame,
+            text="Use comma-separated chips and try to reuse shared catalog terms, for example: contemporary romance, bittersweet, Singapore.",
+            style="Hint.TLabel",
+        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(8, 0))
+
         self.lbl_cover = ttk.Label(form, text="Cover Image")
-        self.lbl_cover.grid(row=4, column=0, sticky="w", pady=(8, 0))
+        self.lbl_cover.grid(row=5, column=0, sticky="w", pady=(8, 0))
         self.cover_entry = ttk.Entry(form, textvariable=self.cover_var)
-        self.cover_entry.grid(row=4, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
+        self.cover_entry.grid(row=5, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
         self.btn_browse = ttk.Button(form, text="Browse...", command=self._pick_cover)
-        self.btn_browse.grid(row=4, column=3, sticky="e", pady=(8, 0))
+        self.btn_browse.grid(row=5, column=3, sticky="e", pady=(8, 0))
 
         self.lbl_gallery = ttk.Label(form, text="Gallery")
-        self.lbl_gallery.grid(row=5, column=0, sticky="w", pady=(8, 0))
+        self.lbl_gallery.grid(row=6, column=0, sticky="w", pady=(8, 0))
         self.gallery_entry = ttk.Entry(form, textvariable=self.gallery_summary_var, state="readonly")
-        self.gallery_entry.grid(row=5, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
+        self.gallery_entry.grid(row=6, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
         gallery_btns = ttk.Frame(form)
-        gallery_btns.grid(row=5, column=3, sticky="e", pady=(8, 0))
+        gallery_btns.grid(row=6, column=3, sticky="e", pady=(8, 0))
         self.btn_gallery_manage = ttk.Button(gallery_btns, text="Manage...", command=self._open_gallery_manager)
         self.btn_gallery_manage.pack(side="left")
         self.btn_gallery_reset = ttk.Button(gallery_btns, text="Reset", command=self._reset_gallery_selection)
         self.btn_gallery_reset.pack(side="left", padx=(6, 0))
 
         self.rel_frame = ttk.LabelFrame(form, text="Relationships", padding=(8, 6))
-        self.rel_frame.grid(row=6, column=0, columnspan=4, sticky="we", pady=(10, 0))
+        self.rel_frame.grid(row=7, column=0, columnspan=4, sticky="we", pady=(10, 0))
         self.rel_frame.columnconfigure(1, weight=1)
         self.rel_frame.columnconfigure(3, weight=1)
 
@@ -4028,10 +4301,10 @@ class Wizard(tk.Tk):
             form,
             text="Related slug is searchable. Type a few letters to narrow likely novels.",
             style="Hint.TLabel",
-        ).grid(row=7, column=0, columnspan=4, sticky="w", pady=(8, 0))
+        ).grid(row=8, column=0, columnspan=4, sticky="w", pady=(8, 0))
 
         self.music_frame = ttk.LabelFrame(form, text="Chapter Music", padding=(8, 6))
-        self.music_frame.grid(row=8, column=0, columnspan=4, sticky="we", pady=(10, 0))
+        self.music_frame.grid(row=9, column=0, columnspan=4, sticky="we", pady=(10, 0))
         self.music_frame.columnconfigure(1, weight=1)
         self.music_frame.columnconfigure(2, weight=1)
 
@@ -4623,6 +4896,9 @@ class Wizard(tk.Tk):
             self.status_var.set("Complete")
             self.cover_var.set("")
             self.blurb_var.set("")
+            self.genre_var.set("")
+            self.tone_var.set("")
+            self.setting_var.set("")
             self.gallery_items = []
             self._existing_gallery_items = []
             self.shared_music_source_var.set("")
@@ -4699,6 +4975,9 @@ class Wizard(tk.Tk):
         self.title_var.set(loaded_title.strip())
         self.status_var.set(_normalize_status_choice(str(idx_meta.get("status") or card_meta.get("status") or "Incomplete")))
         self.blurb_var.set(str(idx_meta.get("blurb") or ""))
+        self.genre_var.set(str(idx_meta.get("genre") or ""))
+        self.tone_var.set(str(idx_meta.get("tone") or ""))
+        self.setting_var.set(str(idx_meta.get("setting") or ""))
         self.hidden_var.set(bool(card_meta.get("hidden")))
         self.cover_var.set("")
         self._existing_gallery_items = _clone_gallery_editor_items(idx_meta.get("gallery") or [])
@@ -5412,6 +5691,9 @@ class Wizard(tk.Tk):
             title=novel_title,
             status=self.status_var.get(),
             blurb=self.blurb_var.get(),
+            genre=self.genre_var.get(),
+            tone=self.tone_var.get(),
+            setting=self.setting_var.get(),
             gallery_items=gallery_items,
             chapter_music_url=shared_music_url,
             chapter_music_title=shared_music_title,

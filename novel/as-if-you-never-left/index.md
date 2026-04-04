@@ -5,6 +5,12 @@ novel: as-if-you-never-left
 status: Complete
 blurb: >-
   A man haunted by loss begins to heal when a familiar presence reenters his life, blurring the lines between memory, love, and letting go
+genre: >-
+  contemporary romance, grief drama, magical realism
+tone: >-
+  wistful, haunting, tender
+setting: >-
+  modern day, domestic life, memory-haunted home
 order: 0
 ---
 

@@ -5,6 +5,12 @@ novel: under-my-protection
 status: Complete
 blurb: >-
   He was assigned to protect her—but the closer he gets, the more dangerous the truth becomes, because the woman he’s sworn to guard may be the only one who can bring down everything he was trained to defend.
+genre: >-
+  romantic suspense, bodyguard romance, contemporary romance
+tone: >-
+  tense, protective, cinematic
+setting: >-
+  modern city, high-security world, hidden danger
 order: 0
 ---
 

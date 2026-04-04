@@ -5,6 +5,12 @@ novel: the-cinder-crown
 status: Complete
 blurb: >-
   He brought Elara back from death by tearing the world’s magic apart—only for her to wake in a sunlit garden floating over nothingness, where love isn’t a rescue anymore, but the price they must learn to live with.
+genre: >-
+  fantasy romance, dark fantasy, tragic romance
+tone: >-
+  aching, mythic, atmospheric
+setting: >-
+  fantasy world, floating garden, ruined world
 order: 0
 ---
 

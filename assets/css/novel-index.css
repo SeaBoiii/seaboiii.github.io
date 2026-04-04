@@ -691,6 +691,18 @@ main.container {
   padding: 0.16rem 0.1rem 0.04rem;
 }
 
+.novel-card-blurb {
+  margin: 0.04rem 0 0;
+  color: color-mix(in oklab, var(--muted), var(--text) 10%);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-wrap: pretty;
+}
+
 .meta-row {
   display: flex;
   gap: 0.42rem;
@@ -700,6 +712,14 @@ main.container {
 
 .meta-row[hidden] {
   display: none;
+}
+
+.meta-row-stats {
+  gap: 0.36rem;
+}
+
+.meta-row-discovery {
+  gap: 0.34rem;
 }
 
 .meta-row-extra .badge {
@@ -740,6 +760,54 @@ main.container {
 .badge.incomplete {
   background: var(--pill-wip);
   border-color: var(--pill-wip-brd);
+}
+
+.novel-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.18;
+  padding: 0.26rem 0.54rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--border), var(--accent) 18%);
+  background: color-mix(in oklab, var(--surface), var(--accent-soft) 24%);
+  color: color-mix(in oklab, var(--accent-strong), var(--text) 35%);
+  white-space: nowrap;
+}
+
+.novel-card[data-series] .novel-stat {
+  border-color: color-mix(in oklab, var(--series-border, var(--border)) 44%, var(--border));
+}
+
+.novel-discovery-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.18;
+  padding: 0.24rem 0.52rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--border), var(--accent) 16%);
+  background: color-mix(in oklab, var(--surface), var(--accent-soft) 14%);
+  color: color-mix(in oklab, var(--text), var(--muted) 16%);
+}
+
+.novel-discovery-chip-genre {
+  background: color-mix(in oklab, var(--surface), #f3bf6f 26%);
+  border-color: color-mix(in oklab, var(--border), #d08a19 32%);
+}
+
+.novel-discovery-chip-tone {
+  background: color-mix(in oklab, var(--surface), #87abc8 26%);
+  border-color: color-mix(in oklab, var(--border), #4f7ea6 28%);
+}
+
+.novel-discovery-chip-setting {
+  background: color-mix(in oklab, var(--surface), #8ab08f 24%);
+  border-color: color-mix(in oklab, var(--border), #5e8b66 26%);
 }
 
 .novel-empty-state {

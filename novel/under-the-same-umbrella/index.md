@@ -5,6 +5,12 @@ novel: under-the-same-umbrella
 status: Complete
 blurb: >-
   When a quiet Singaporean cybersecurity student and a poised Japanese exchange student fake a relationship to satisfy watchful eyes—parents, sponsors, and a rumor page—their borrowed shelter under one umbrella starts to feel dangerously like home.
+genre: >-
+  fake dating romance, campus romance, contemporary romance
+tone: >-
+  gentle, cozy, slow-burn
+setting: >-
+  Singapore, university campus, rainy city
 order: 0
 ---
 

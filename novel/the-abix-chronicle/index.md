@@ -5,6 +5,12 @@ novel: the-abix-chronicle
 status: Complete
 blurb: >-
   Embark on an unforgettable journey through the twists and turns of The Abix Chronicle.
+genre: >-
+  ensemble drama, music-industry drama, friendship drama
+tone: >-
+  dramatic, emotional, uplifting
+setting: >-
+  Seoul, entertainment industry, found family
 order: 0
 ---
 

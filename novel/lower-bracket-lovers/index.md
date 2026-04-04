@@ -5,6 +5,12 @@ novel: lower-bracket-lovers
 status: Complete
 blurb: >-
   A broke Filipino pro and a rich Indonesian influencer fall in love through late-night Mobile Legends—then gamble everything on a lower-bracket miracle where winning isn’t just for the trophy, but for the right to choose each other.
+genre: >-
+  gaming romance, contemporary romance, cross-cultural romance
+tone: >-
+  playful, energetic, heartfelt
+setting: >-
+  Southeast Asia, gaming world, online gaming
 order: 0
 ---
 
