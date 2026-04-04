@@ -49,7 +49,7 @@
     </div>
     <div class="controls">
      <div class="controls-top">
-      <input class="search" id="novelSearch" placeholder="Search title, series, status, or relation" type="search"/>
+      <input class="search" id="novelSearch" placeholder="Search title, blurb, genre, tone, setting, series, or relation" type="search"/>
       <button aria-controls="filterPanel" aria-expanded="false" class="filter-toggle" id="filterToggle" type="button">
        Filters
       </button>
@@ -131,7 +131,7 @@
   </section>
   <main class="container">
    <ul class="novel-grid" id="novelGrid">
-    <li class="novel-card" data-order="1" data-series="red-string" data-status="complete" data-title="crossroads of the heart">
+    <li class="novel-card" data-blurb="A romantic tale of 2 colleagues -- exploring faith, heartbreak, and love." data-chapter-count="15" data-genre="contemporary romance, workplace romance, faith romance" data-order="1" data-series="red-string" data-setting="Singapore, office life, modern day" data-status="complete" data-title="crossroads of the heart" data-tone="tender, heartfelt, bittersweet">
      <a aria-label="Crossroads of the Heart" href="/novel/crossroads-of-the-heart/">
       <picture>
        <source srcset="/images/crossroads-of-the-heart-cover-320.webp 320w, /images/crossroads-of-the-heart-cover-640.webp 640w, /images/crossroads-of-the-heart-cover-960.webp 960w" type="image/webp"/>
@@ -141,9 +141,41 @@
        Crossroads of the Heart
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A romantic tale of 2 colleagues -- exploring faith, heartbreak, and love.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: workplace romance">
+         workplace romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: faith romance">
+         faith romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: heartfelt">
+         heartfelt
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: bittersweet">
+         bittersweet
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: office life">
+         office life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -157,7 +189,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="1" data-series="abix-series" data-status="complete" data-title="the abix chronicle">
+    <li class="novel-card" data-blurb="Embark on an unforgettable journey through the twists and turns of The Abix Chronicle." data-chapter-count="29" data-genre="ensemble drama, music-industry drama, friendship drama" data-order="1" data-series="abix-series" data-setting="Seoul, entertainment industry, found family" data-status="complete" data-title="the abix chronicle" data-tone="dramatic, emotional, uplifting">
      <a aria-label="The ABIX Chronicle" href="/novel/the-abix-chronicle/">
       <picture>
        <source srcset="/images/the-abix-chronicle-cover-320.webp 320w, /images/the-abix-chronicle-cover-640.webp 640w, /images/the-abix-chronicle-cover-960.webp 960w" type="image/webp"/>
@@ -167,9 +199,41 @@
        The ABIX Chronicle
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Embark on an unforgettable journey through the twists and turns of The Abix Chronicle.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: ensemble drama">
+         ensemble drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: music-industry drama">
+         music-industry drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: friendship drama">
+         friendship drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: dramatic">
+         dramatic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: emotional">
+         emotional
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: uplifting">
+         uplifting
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: found family">
+         found family
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         29 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -183,7 +247,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="2" data-related-to="the-abix-chronicle" data-relation="sequel" data-series="abix-series" data-status="complete" data-title="echoes of us">
+    <li class="novel-card" data-blurb="ABIX journey as they have gone through echoes in each others current struggles and stories." data-chapter-count="40" data-genre="ensemble drama, music-industry drama, contemporary drama" data-order="2" data-related-to="the-abix-chronicle" data-relation="sequel" data-series="abix-series" data-setting="Seoul, entertainment industry, found family" data-status="complete" data-title="echoes of us" data-tone="emotional, dramatic, hopeful">
      <a aria-label="Echoes of Us" href="/novel/echoes-of-us/">
       <picture>
        <source srcset="/images/echoes-of-us-cover-320.webp 320w, /images/echoes-of-us-cover-640.webp 640w, /images/echoes-of-us-cover-960.webp 960w" type="image/webp"/>
@@ -193,9 +257,41 @@
        Echoes of Us
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        ABIX journey as they have gone through echoes in each others current struggles and stories.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: ensemble drama">
+         ensemble drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: music-industry drama">
+         music-industry drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary drama">
+         contemporary drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: emotional">
+         emotional
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: dramatic">
+         dramatic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: found family">
+         found family
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         40 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -212,7 +308,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="2" data-related-to="crossroads-of-the-heart" data-relation="prequel" data-series="red-string" data-status="complete" data-title="the silk of fate">
+    <li class="novel-card" data-blurb="Bound by a red thread stretched across oceans and empires, a Majapahit prince and a Yuan princess must navigate faith, loyalty, and destiny in a world that forbids their love" data-chapter-count="50" data-genre="historical romance, cross-cultural romance, court drama" data-order="2" data-related-to="crossroads-of-the-heart" data-relation="prequel" data-series="red-string" data-setting="historical Asia, Majapahit, Yuan empire" data-status="complete" data-title="the silk of fate" data-tone="sweeping, romantic, tragic">
      <a aria-label="The Silk of Fate" href="/novel/the-silk-of-fate/">
       <picture>
        <source srcset="/images/the-silk-of-fate-cover-320.webp 320w, /images/the-silk-of-fate-cover-640.webp 640w, /images/the-silk-of-fate-cover-960.webp 960w" type="image/webp"/>
@@ -222,9 +318,41 @@
        The Silk of Fate
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Bound by a red thread stretched across oceans and empires, a Majapahit prince and a Yuan princess must navigate faith, loyalty, and destiny in a world that forbids their love
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: historical romance">
+         historical romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: court drama">
+         court drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: sweeping">
+         sweeping
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tragic">
+         tragic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: historical Asia">
+         historical Asia
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Majapahit">
+         Majapahit
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Yuan empire">
+         Yuan empire
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         50 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -241,7 +369,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="as if you never left">
+    <li class="novel-card" data-blurb="A man haunted by loss begins to heal when a familiar presence reenters his life, blurring the lines between memory, love, and letting go" data-chapter-count="8" data-epilogue-count="2" data-genre="contemporary romance, grief drama, magical realism" data-setting="modern day, domestic life, memory-haunted home" data-status="complete" data-title="as if you never left" data-tone="wistful, haunting, tender">
      <a aria-label="As If You Never Left" href="/novel/as-if-you-never-left/">
       <picture>
        <source srcset="/images/as-if-you-never-left-cover-320.webp 320w, /images/as-if-you-never-left-cover-640.webp 640w, /images/as-if-you-never-left-cover-960.webp 960w" type="image/webp"/>
@@ -251,15 +379,50 @@
        As If You Never Left
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A man haunted by loss begins to heal when a familiar presence reenters his life, blurring the lines between memory, love, and letting go
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: grief drama">
+         grief drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: magical realism">
+         magical realism
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: wistful">
+         wistful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: haunting">
+         haunting
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: domestic life">
+         domestic life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: memory-haunted home">
+         memory-haunted home
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         8 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         2 epilogues
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="the time we were">
+    <li class="novel-card" data-blurb="A failed musician discovers a way to relive yesterday, hoping to win back the love he lost--only to confront the quiet cost of rewriting what was once real" data-chapter-count="8" data-genre="time-slip romance, contemporary romance, music drama" data-setting="modern day, music scene, repeating yesterday" data-status="complete" data-title="the time we were" data-tone="wistful, melancholic, reflective">
      <a aria-label="The Time We Were" href="/novel/the-time-we-were/">
       <picture>
        <source srcset="/images/the-time-we-were-cover-320.webp 320w, /images/the-time-we-were-cover-640.webp 640w, /images/the-time-we-were-cover-960.webp 960w" type="image/webp"/>
@@ -269,15 +432,47 @@
        The Time We Were
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A failed musician discovers a way to relive yesterday, hoping to win back the love he lost--only to confront the quiet cost of rewriting what was once real
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: time-slip romance">
+         time-slip romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: music drama">
+         music drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: wistful">
+         wistful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: melancholic">
+         melancholic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: reflective">
+         reflective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: music scene">
+         music scene
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: repeating yesterday">
+         repeating yesterday
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         8 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="when the song began">
+    <li class="novel-card" data-blurb="A gentle, cross-cultural story of two colleagues who discover something unexpected in a shared song--and slowly, in each other" data-chapter-count="15" data-genre="workplace romance, cross-cultural romance, contemporary romance" data-setting="office life, modern day, shared music" data-status="complete" data-title="when the song began" data-tone="gentle, warm, tender">
      <a aria-label="When the Song Began" href="/novel/when-the-song-began/">
       <picture>
        <source srcset="/images/when-the-song-began-cover-320.webp 320w, /images/when-the-song-began-cover-640.webp 640w, /images/when-the-song-began-cover-960.webp 960w" type="image/webp"/>
@@ -287,15 +482,47 @@
        When the Song Began
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A gentle, cross-cultural story of two colleagues who discover something unexpected in a shared song--and slowly, in each other
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: workplace romance">
+         workplace romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: gentle">
+         gentle
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: warm">
+         warm
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: office life">
+         office life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: shared music">
+         shared music
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="unspoken roommate">
+    <li class="novel-card" data-blurb="A roommate, a friend's sister... What if these boundaries were crossed?" data-chapter-count="12" data-epilogue-count="1" data-genre="roommate romance, forbidden romance, contemporary romance" data-setting="domestic life, shared apartment, modern day" data-status="complete" data-title="unspoken roommate" data-tone="intimate, yearning, tense">
      <a aria-label="Unspoken Roommate" href="/novel/unspoken-roommate/">
       <picture>
        <source srcset="/images/unspoken-roommate-cover-320.webp 320w, /images/unspoken-roommate-cover-640.webp 640w, /images/unspoken-roommate-cover-960.webp 960w" type="image/webp"/>
@@ -305,15 +532,50 @@
        Unspoken Roommate
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A roommate, a friend's sister... What if these boundaries were crossed?
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: roommate romance">
+         roommate romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: forbidden romance">
+         forbidden romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intimate">
+         intimate
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: yearning">
+         yearning
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: domestic life">
+         domestic life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: shared apartment">
+         shared apartment
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         12 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="a name of my own">
+    <li class="novel-card" data-blurb="A chance to discover oneself..." data-chapter-count="11" data-epilogue-count="1" data-genre="coming-of-age, identity drama, contemporary drama" data-setting="modern day, personal journey, everyday life" data-status="complete" data-title="a name of my own" data-tone="introspective, tender, hopeful">
      <a aria-label="A Name of My Own" href="/novel/a-name-of-my-own/">
       <picture>
        <source srcset="/images/a-name-of-my-own-cover-320.webp 320w, /images/a-name-of-my-own-cover-640.webp 640w, /images/a-name-of-my-own-cover-960.webp 960w" type="image/webp"/>
@@ -323,15 +585,50 @@
        A Name of My Own
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A chance to discover oneself...
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: coming-of-age">
+         coming-of-age
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: identity drama">
+         identity drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary drama">
+         contemporary drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: introspective">
+         introspective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: personal journey">
+         personal journey
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: everyday life">
+         everyday life
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         11 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="only a fan's dream">
+    <li class="novel-card" data-blurb="A fan met an idol, and it turns into a relationship?" data-chapter-count="47" data-genre="celebrity romance, fan-idol romance, contemporary romance" data-setting="entertainment industry, fandom, modern city" data-status="complete" data-title="only a fan's dream" data-tone="dreamy, romantic, dramatic">
      <a aria-label="Only a Fan's Dream" href="/novel/only-a-fan-dream/">
       <picture>
        <source srcset="/images/only-a-fan-dream-cover-320.webp 320w, /images/only-a-fan-dream-cover-640.webp 640w, /images/only-a-fan-dream-cover-960.webp 960w" type="image/webp"/>
@@ -341,15 +638,47 @@
        Only a Fan's Dream
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A fan met an idol, and it turns into a relationship?
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: celebrity romance">
+         celebrity romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fan-idol romance">
+         fan-idol romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: dreamy">
+         dreamy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: dramatic">
+         dramatic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: fandom">
+         fandom
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         47 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="beyond borders">
+    <li class="novel-card" data-blurb="Lost in Jeonju and found by a woman the world once claimed, Aleem discovers that love isn't a spectacle--it's a steady hand in his pocket, a choice made properly, and a forever that begins where they first got lost." data-chapter-count="10" data-epilogue-count="4" data-genre="contemporary romance, cross-cultural romance, travel romance" data-setting="Korea, Jeonju, travel" data-status="complete" data-title="beyond borders" data-tone="tender, reflective, hopeful">
      <a aria-label="Beyond Borders" href="/novel/beyond-borders/">
       <picture>
        <source srcset="/images/beyond-borders-cover-320.webp 320w, /images/beyond-borders-cover-640.webp 640w, /images/beyond-borders-cover-960.webp 960w" type="image/webp"/>
@@ -359,15 +688,50 @@
        Beyond Borders
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Lost in Jeonju and found by a woman the world once claimed, Aleem discovers that love isn't a spectacle--it's a steady hand in his pocket, a choice made properly, and a forever that begins where they first got lost.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: travel romance">
+         travel romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: reflective">
+         reflective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Korea">
+         Korea
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Jeonju">
+         Jeonju
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: travel">
+         travel
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         4 epilogues
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="still my favourite song">
+    <li class="novel-card" data-blurb="A reclusive billionaire who'd always loved an overlooked K-pop idol from the shadows finds her struggling in a failing café after disbandment--and by choosing hands over money, he helps her rebuild her life, her voice and a love neither of them expected." data-chapter-count="13" data-genre="celebrity romance, contemporary romance, healing romance" data-setting="Seoul, cafe life, entertainment industry" data-status="complete" data-title="still my favourite song" data-tone="tender, dreamy, hopeful">
      <a aria-label="Still My Favourite Song" href="/novel/still-my-favourite-song/">
       <picture>
        <source srcset="/images/still-my-favourite-song-cover-320.webp 320w, /images/still-my-favourite-song-cover-640.webp 640w, /images/still-my-favourite-song-cover-960.webp 960w" type="image/webp"/>
@@ -377,15 +741,47 @@
        Still My Favourite Song
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A reclusive billionaire who'd always loved an overlooked K-pop idol from the shadows finds her struggling in a failing café after disbandment--and by choosing hands over money, he helps her rebuild her life, her voice and a love neither of them expected.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: celebrity romance">
+         celebrity romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: healing romance">
+         healing romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: dreamy">
+         dreamy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: cafe life">
+         cafe life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         13 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="when the time stops">
+    <li class="novel-card" data-blurb="Once you stop looking for what you want, you'll find what you need." data-chapter-count="1" data-genre="contemporary romance, slice-of-life romance, short story" data-setting="modern day, quiet moments, everyday life" data-status="complete" data-title="when the time stops" data-tone="reflective, gentle, hopeful">
      <a aria-label="When the Time Stops" href="/novel/when-the-time-stops/">
       <picture>
        <source srcset="/images/when-the-time-stops-cover-320.webp 320w, /images/when-the-time-stops-cover-640.webp 640w, /images/when-the-time-stops-cover-960.webp 960w" type="image/webp"/>
@@ -395,15 +791,47 @@
        When the Time Stops
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Once you stop looking for what you want, you'll find what you need.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: slice-of-life romance">
+         slice-of-life romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: short story">
+         short story
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: reflective">
+         reflective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: gentle">
+         gentle
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: quiet moments">
+         quiet moments
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: everyday life">
+         everyday life
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         1 chapter
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="whole before we met">
+    <li class="novel-card" data-blurb="Two people already rich in friendship and selfhood--Kira with her girls and Aleem with his bros--fall into a gentle, unhurried love that doesn't rescue them from loneliness, but chooses them anyway, whole before they ever met." data-chapter-count="14" data-epilogue-count="1" data-genre="friends-to-lovers, contemporary romance, slice-of-life romance" data-setting="Singapore, friend group, everyday city" data-status="complete" data-title="whole before we met" data-tone="tender, grounded, wholesome">
      <a aria-label="Whole Before We Met" href="/novel/whole-before-we-met/">
       <picture>
        <source srcset="/images/whole-before-we-met-cover-320.webp 320w, /images/whole-before-we-met-cover-640.webp 640w, /images/whole-before-we-met-cover-960.webp 960w" type="image/webp"/>
@@ -413,15 +841,50 @@
        Whole Before We Met
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Two people already rich in friendship and selfhood--Kira with her girls and Aleem with his bros--fall into a gentle, unhurried love that doesn't rescue them from loneliness, but chooses them anyway, whole before they ever met.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: friends-to-lovers">
+         friends-to-lovers
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: slice-of-life romance">
+         slice-of-life romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: grounded">
+         grounded
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: wholesome">
+         wholesome
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: friend group">
+         friend group
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: everyday city">
+         everyday city
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         14 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="umrah of mercy">
+    <li class="novel-card" data-blurb="On a healing Umrah to escape heartbreak, Aleem is forced to walk beside the very woman who once broke him--until mercy teaches him that forgiveness isn't always reunion, but the courage to choose love (or let go) with dignity." data-chapter-count="10" data-epilogue-count="2" data-genre="faith romance, second-chance romance, contemporary romance" data-setting="pilgrimage, sacred journey, modern day" data-status="complete" data-title="umrah of mercy" data-tone="reflective, bittersweet, hopeful">
      <a aria-label="Umrah of Mercy" href="/novel/umrah-of-mercy/">
       <picture>
        <source srcset="/images/umrah-of-mercy-cover-320.webp 320w, /images/umrah-of-mercy-cover-640.webp 640w, /images/umrah-of-mercy-cover-960.webp 960w" type="image/webp"/>
@@ -431,15 +894,50 @@
        Umrah of Mercy
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        On a healing Umrah to escape heartbreak, Aleem is forced to walk beside the very woman who once broke him--until mercy teaches him that forgiveness isn't always reunion, but the courage to choose love (or let go) with dignity.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: faith romance">
+         faith romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: second-chance romance">
+         second-chance romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: reflective">
+         reflective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: bittersweet">
+         bittersweet
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: pilgrimage">
+         pilgrimage
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: sacred journey">
+         sacred journey
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         2 epilogues
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-hidden="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-status="complete" data-title="between two prayers">
+    <li class="novel-card" data-blurb="Between snowy Hokkaido confessions and quiet Singapore nights, Aleem--a steadfast Muslim man--and Belle--a tender-hearted Chinese woman--fall into a love that asks for patience, faith, and family, learning that the truest devotion is choosing each other gently, one prayer at a time." data-chapter-count="50" data-epilogue-count="1" data-genre="contemporary romance, faith romance, cross-cultural romance" data-hidden="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-setting="Singapore, Hokkaido, family life" data-status="complete" data-title="between two prayers" data-tone="tender, reflective, hopeful">
      <a aria-label="Between Two Prayers" href="/novel/between-two-prayers/">
       <picture>
        <source srcset="/images/between-two-prayers-cover-320.webp 320w, /images/between-two-prayers-cover-640.webp 640w, /images/between-two-prayers-cover-960.webp 960w" type="image/webp"/>
@@ -449,9 +947,44 @@
        Between Two Prayers
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Between snowy Hokkaido confessions and quiet Singapore nights, Aleem--a steadfast Muslim man--and Belle--a tender-hearted Chinese woman--fall into a love that asks for patience, faith, and family, learning that the truest devotion is choosing each other gently, one prayer at a time.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: faith romance">
+         faith romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: reflective">
+         reflective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Hokkaido">
+         Hokkaido
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family life">
+         family life
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         50 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -468,7 +1001,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-hidden="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-status="complete" data-title="all the mercies">
+    <li class="novel-card" data-blurb="When Isabelle's future shatters overnight, she expects to drown in the quiet aftermath--until Aleem, her steadfast friend, keeps showing up with a kind of care that never asks to be repaid, and as grief turns to love, they must learn how to build a life that honours faith, family, and the mercy of staying without taking." data-chapter-count="54" data-genre="contemporary romance, faith romance, family drama" data-hidden="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-setting="Singapore, family life, domestic life" data-status="complete" data-title="all the mercies" data-tone="tender, healing, hopeful">
      <a aria-label="All the Mercies" href="/novel/all-the-mercies/">
       <picture>
        <source srcset="/images/all-the-mercies-cover-320.webp 320w, /images/all-the-mercies-cover-640.webp 640w, /images/all-the-mercies-cover-960.webp 960w" type="image/webp"/>
@@ -478,9 +1011,41 @@
        All the Mercies
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        When Isabelle's future shatters overnight, she expects to drown in the quiet aftermath--until Aleem, her steadfast friend, keeps showing up with a kind of care that never asks to be repaid, and as grief turns to love, they must learn how to build a life that honours faith, family, and the mercy of staying without taking.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: faith romance">
+         faith romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: family drama">
+         family drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: healing">
+         healing
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family life">
+         family life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: domestic life">
+         domestic life
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         54 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -497,7 +1062,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="where the mist begins">
+    <li class="novel-card" data-blurb="On a fog-laced summit in Vietnam, Aleem--always the careful one--meets Dasha, a fearless solo traveller, and what begins as a fleeting encounter becomes a quiet promise to stop running and choose love properly, even across distance." data-chapter-count="8" data-genre="travel romance, cross-cultural romance, contemporary romance" data-setting="Vietnam, travel, mountain landscape" data-status="complete" data-title="where the mist begins" data-tone="atmospheric, tender, hopeful">
      <a aria-label="Where the Mist Begins" href="/novel/where-the-mist-begins/">
       <picture>
        <source srcset="/images/where-the-mist-begins-cover-320.webp 320w, /images/where-the-mist-begins-cover-640.webp 640w, /images/where-the-mist-begins-cover-960.webp 960w" type="image/webp"/>
@@ -507,15 +1072,47 @@
        Where the Mist Begins
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        On a fog-laced summit in Vietnam, Aleem--always the careful one--meets Dasha, a fearless solo traveller, and what begins as a fleeting encounter becomes a quiet promise to stop running and choose love properly, even across distance.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: travel romance">
+         travel romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: atmospheric">
+         atmospheric
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Vietnam">
+         Vietnam
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: travel">
+         travel
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: mountain landscape">
+         mountain landscape
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         8 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="sheltered walkways">
+    <li class="novel-card" data-blurb='In rain-soaked Singapore, rising actress Suyin and veteran host Adam are shoved into a viral "couple" narrative--until private rules, quiet suppers, and sheltered walkways become their refuge, and they choose a love built slowly, safely, and properly on their own terms.' data-chapter-count="10" data-genre="fake dating romance, celebrity romance, contemporary romance" data-setting="Singapore, entertainment industry, rainy city" data-status="complete" data-title="sheltered walkways" data-tone="cozy, gentle, tender">
      <a aria-label="Sheltered Walkways" href="/novel/sheltered-walkways/">
       <picture>
        <source srcset="/images/sheltered-walkways-cover-320.webp 320w, /images/sheltered-walkways-cover-640.webp 640w, /images/sheltered-walkways-cover-960.webp 960w" type="image/webp"/>
@@ -525,15 +1122,47 @@
        Sheltered Walkways
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        In rain-soaked Singapore, rising actress Suyin and veteran host Adam are shoved into a viral "couple" narrative--until private rules, quiet suppers, and sheltered walkways become their refuge, and they choose a love built slowly, safely, and properly on their own terms.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fake dating romance">
+         fake dating romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: celebrity romance">
+         celebrity romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: cozy">
+         cozy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: gentle">
+         gentle
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: rainy city">
+         rainy city
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="soulbound in seoul">
+    <li class="novel-card" data-blurb="When Seoul becomes a living RPG, a feared two-person raid team must survive shifting identities and a bond that turns one choice into destiny--before the new world can claim them." data-chapter-count="10" data-epilogue-count="1" data-genre="urban fantasy, gaming fantasy, fantasy romance" data-setting="Seoul, gaming world, transformed city" data-status="complete" data-title="soulbound in seoul" data-tone="intense, tense, romantic">
      <a aria-label="Soulbound in Seoul" href="/novel/soulbound-in-seoul/">
       <picture>
        <source srcset="/images/soulbound-in-seoul-cover-320.webp 320w, /images/soulbound-in-seoul-cover-640.webp 640w, /images/soulbound-in-seoul-cover-960.webp 960w" type="image/webp"/>
@@ -543,15 +1172,50 @@
        Soulbound in Seoul
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        When Seoul becomes a living RPG, a feared two-person raid team must survive shifting identities and a bond that turns one choice into destiny--before the new world can claim them.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: urban fantasy">
+         urban fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: gaming fantasy">
+         gaming fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fantasy romance">
+         fantasy romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intense">
+         intense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: gaming world">
+         gaming world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: transformed city">
+         transformed city
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="the ledger of ash">
+    <li class="novel-card" data-blurb="A soot-born &quot;utility&quot; girl discovers she's a weightwright--able to shift burden, bend gravity, and even make the world forget--then turns that quiet, overlooked power into a weapon against a guild that would rather burn truth than lose control." data-chapter-count="20" data-genre="dark fantasy, rebellion fantasy, adventure fantasy" data-setting="fantasy world, industrial city, guild world" data-status="complete" data-title="the ledger of ash" data-tone="gritty, defiant, atmospheric">
      <a aria-label="The Ledger of Ash" href="/novel/the-ledger-of-ash/">
       <picture>
        <source srcset="/images/the-ledger-of-ash-cover-320.webp 320w, /images/the-ledger-of-ash-cover-640.webp 640w, /images/the-ledger-of-ash-cover-960.webp 960w" type="image/webp"/>
@@ -561,15 +1225,47 @@
        The Ledger of Ash
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A soot-born "utility" girl discovers she's a weightwright--able to shift burden, bend gravity, and even make the world forget--then turns that quiet, overlooked power into a weapon against a guild that would rather burn truth than lose control.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: dark fantasy">
+         dark fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: rebellion fantasy">
+         rebellion fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: adventure fantasy">
+         adventure fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: gritty">
+         gritty
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: defiant">
+         defiant
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: atmospheric">
+         atmospheric
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: fantasy world">
+         fantasy world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: industrial city">
+         industrial city
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: guild world">
+         guild world
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         20 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="gender, love, euphoria">
+    <li class="novel-card" data-blurb="Two childhood rivals from a Malaysian kampung reunite at university under a fragile disguise, only to discover that love, identity, and euphoria were never meant to be separated." data-chapter-count="12" data-genre="queer romance, coming-of-age, university romance" data-setting="Malaysia, university campus, modern day" data-status="complete" data-title="gender, love, euphoria" data-tone="tender, affirming, bittersweet">
      <a aria-label="Gender, Love, Euphoria" href="/novel/gender-love-euphoria/">
       <picture>
        <source srcset="/images/gender-love-euphoria-cover-320.webp 320w, /images/gender-love-euphoria-cover-640.webp 640w, /images/gender-love-euphoria-cover-960.webp 960w" type="image/webp"/>
@@ -579,15 +1275,47 @@
        Gender, Love, Euphoria
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Two childhood rivals from a Malaysian kampung reunite at university under a fragile disguise, only to discover that love, identity, and euphoria were never meant to be separated.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: queer romance">
+         queer romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: coming-of-age">
+         coming-of-age
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: university romance">
+         university romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: affirming">
+         affirming
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: bittersweet">
+         bittersweet
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Malaysia">
+         Malaysia
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: university campus">
+         university campus
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         12 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="1" data-series="two-seats" data-status="complete" data-title="two seats apart">
+    <li class="novel-card" data-blurb="Two colleagues who were never meant to cross the line discover that sometimes the smallest distance between two seats is the hardest one to keep." data-chapter-count="10" data-genre="workplace romance, slow-burn romance, contemporary romance" data-order="1" data-series="two-seats" data-setting="office life, modern city, everyday work" data-status="complete" data-title="two seats apart" data-tone="tender, restrained, slow-burn">
      <a aria-label="Two Seats Apart" href="/novel/two-seats-apart/">
       <picture>
        <source srcset="/images/two-seats-apart-cover-320.webp 320w, /images/two-seats-apart-cover-640.webp 640w, /images/two-seats-apart-cover-960.webp 960w" type="image/webp"/>
@@ -597,9 +1325,41 @@
        Two Seats Apart
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Two colleagues who were never meant to cross the line discover that sometimes the smallest distance between two seats is the hardest one to keep.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: workplace romance">
+         workplace romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: slow-burn romance">
+         slow-burn romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: restrained">
+         restrained
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: slow-burn">
+         slow-burn
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: office life">
+         office life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: everyday work">
+         everyday work
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -613,7 +1373,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="ink that reached me">
+    <li class="novel-card" data-blurb="When a modern woman finds her life entwined with a Sengoku retainer through a mysterious notebook, she must uncover whether ink alone was enough to rewrite fate across centuries." data-chapter-count="20" data-genre="historical romance, fantasy romance, time-slip romance" data-setting="historical Asia, modern day, notebook magic" data-status="complete" data-title="ink that reached me" data-tone="wistful, atmospheric, tender">
      <a aria-label="Ink That Reached Me" href="/novel/ink-that-reached-me/">
       <picture>
        <source srcset="/images/ink-that-reached-me-cover-320.webp 320w, /images/ink-that-reached-me-cover-640.webp 640w, /images/ink-that-reached-me-cover-960.webp 960w" type="image/webp"/>
@@ -623,15 +1383,47 @@
        Ink That Reached Me
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        When a modern woman finds her life entwined with a Sengoku retainer through a mysterious notebook, she must uncover whether ink alone was enough to rewrite fate across centuries.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: historical romance">
+         historical romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fantasy romance">
+         fantasy romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: time-slip romance">
+         time-slip romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: wistful">
+         wistful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: atmospheric">
+         atmospheric
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: historical Asia">
+         historical Asia
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern day">
+         modern day
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: notebook magic">
+         notebook magic
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         20 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="2" data-related-to="two-seats-apart" data-relation="sequel" data-series="two-seats" data-status="complete" data-title="two seats closer">
+    <li class="novel-card" data-blurb="Forced to balance love, ambition, and office politics, Faris and Jiawen discover that getting closer is easy--staying steady under pressure is the real test." data-chapter-count="10" data-genre="workplace romance, contemporary romance, family drama" data-order="2" data-related-to="two-seats-apart" data-relation="sequel" data-series="two-seats" data-setting="office life, modern city, family expectations" data-status="complete" data-title="two seats closer" data-tone="warm, grounded, hopeful">
      <a aria-label="Two Seats Closer" href="/novel/two-seats-closer/">
       <picture>
        <source srcset="/images/two-seats-closer-cover-320.webp 320w, /images/two-seats-closer-cover-640.webp 640w, /images/two-seats-closer-cover-960.webp 960w" type="image/webp"/>
@@ -641,9 +1433,41 @@
        Two Seats Closer
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Forced to balance love, ambition, and office politics, Faris and Jiawen discover that getting closer is easy--staying steady under pressure is the real test.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: workplace romance">
+         workplace romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: family drama">
+         family drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: warm">
+         warm
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: grounded">
+         grounded
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: office life">
+         office life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family expectations">
+         family expectations
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -660,7 +1484,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="shards of winterlight">
+    <li class="novel-card" data-blurb="Bound by ice and separated by worlds, Sylra and Kaelen must rewrite the very laws of reality to turn a fleeting winter miracle into a forever home." data-chapter-count="13" data-epilogue-count="1" data-genre="fantasy romance, portal fantasy, adventure fantasy" data-setting="fantasy world, winter landscape, magical kingdoms" data-status="complete" data-title="shards of winterlight" data-tone="atmospheric, hopeful, lyrical">
      <a aria-label="Shards of Winterlight" href="/novel/shards-of-winterlight/">
       <picture>
        <source srcset="/images/shards-of-winterlight-cover-320.webp 320w, /images/shards-of-winterlight-cover-640.webp 640w, /images/shards-of-winterlight-cover-960.webp 960w" type="image/webp"/>
@@ -670,15 +1494,50 @@
        Shards of Winterlight
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Bound by ice and separated by worlds, Sylra and Kaelen must rewrite the very laws of reality to turn a fleeting winter miracle into a forever home.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fantasy romance">
+         fantasy romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: portal fantasy">
+         portal fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: adventure fantasy">
+         adventure fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: atmospheric">
+         atmospheric
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: lyrical">
+         lyrical
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: fantasy world">
+         fantasy world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: winter landscape">
+         winter landscape
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: magical kingdoms">
+         magical kingdoms
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         13 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="3" data-related-to="two-seats-closer" data-relation="sequel" data-series="two-seats" data-status="complete" data-title="two seats reserved">
+    <li class="novel-card" data-blurb="In a glass-walled office and two worlds of family and faith, Faris and Jiawen choose each other--properly, publicly, and without erasure--until two seats become a home they've reserved with their own hands." data-chapter-count="10" data-epilogue-count="3" data-genre="workplace romance, faith romance, contemporary romance" data-order="3" data-related-to="two-seats-closer" data-relation="sequel" data-series="two-seats" data-setting="office life, family life, public commitment" data-status="complete" data-title="two seats reserved" data-tone="romantic, heartfelt, assured">
      <a aria-label="Two Seats Reserved" href="/novel/two-seats-reserved/">
       <picture>
        <source srcset="/images/two-seats-reserved-cover-320.webp 320w, /images/two-seats-reserved-cover-640.webp 640w, /images/two-seats-reserved-cover-960.webp 960w" type="image/webp"/>
@@ -688,9 +1547,44 @@
        Two Seats Reserved
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        In a glass-walled office and two worlds of family and faith, Faris and Jiawen choose each other--properly, publicly, and without erasure--until two seats become a home they've reserved with their own hands.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: workplace romance">
+         workplace romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: faith romance">
+         faith romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: heartfelt">
+         heartfelt
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: assured">
+         assured
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: office life">
+         office life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family life">
+         family life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: public commitment">
+         public commitment
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         3 epilogues
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -707,7 +1601,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="lower bracket lovers">
+    <li class="novel-card" data-blurb="A broke Filipino pro and a rich Indonesian influencer fall in love through late-night Mobile Legends--then gamble everything on a lower-bracket miracle where winning isn't just for the trophy, but for the right to choose each other." data-chapter-count="10" data-epilogue-count="1" data-genre="gaming romance, contemporary romance, cross-cultural romance" data-setting="Southeast Asia, gaming world, online gaming" data-status="complete" data-title="lower bracket lovers" data-tone="playful, energetic, heartfelt">
      <a aria-label="Lower Bracket Lovers" href="/novel/lower-bracket-lovers/">
       <picture>
        <source srcset="/images/lower-bracket-lovers-cover-320.webp 320w, /images/lower-bracket-lovers-cover-640.webp 640w, /images/lower-bracket-lovers-cover-960.webp 960w" type="image/webp"/>
@@ -717,15 +1611,50 @@
        Lower Bracket Lovers
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A broke Filipino pro and a rich Indonesian influencer fall in love through late-night Mobile Legends--then gamble everything on a lower-bracket miracle where winning isn't just for the trophy, but for the right to choose each other.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: gaming romance">
+         gaming romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: playful">
+         playful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: energetic">
+         energetic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: heartfelt">
+         heartfelt
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Southeast Asia">
+         Southeast Asia
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: gaming world">
+         gaming world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: online gaming">
+         online gaming
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="the seats we left empty">
+    <li class="novel-card" data-blurb="Reunited at a wedding by a seating chart that doesn't care what they broke, Nadia and Rai must decide whether love deserves a second chance--or if some empty seats were left that way for a reason." data-chapter-count="10" data-genre="second-chance romance, contemporary romance, family drama" data-setting="modern city, wedding, reunion" data-status="complete" data-title="the seats we left empty" data-tone="wistful, intimate, bittersweet">
      <a aria-label="The Seats We Left Empty" href="/novel/the-seats-we-left-empty/">
       <picture>
        <source srcset="/images/the-seats-we-left-empty-cover-320.webp 320w, /images/the-seats-we-left-empty-cover-640.webp 640w, /images/the-seats-we-left-empty-cover-960.webp 960w" type="image/webp"/>
@@ -735,15 +1664,47 @@
        The Seats We Left Empty
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Reunited at a wedding by a seating chart that doesn't care what they broke, Nadia and Rai must decide whether love deserves a second chance--or if some empty seats were left that way for a reason.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: second-chance romance">
+         second-chance romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: family drama">
+         family drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: wistful">
+         wistful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intimate">
+         intimate
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: bittersweet">
+         bittersweet
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: wedding">
+         wedding
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: reunion">
+         reunion
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="under the same umbrella">
+    <li class="novel-card" data-blurb="When a quiet Singaporean cybersecurity student and a poised Japanese exchange student fake a relationship to satisfy watchful eyes--parents, sponsors, and a rumor page--their borrowed shelter under one umbrella starts to feel dangerously like home." data-chapter-count="10" data-genre="fake dating romance, campus romance, contemporary romance" data-setting="Singapore, university campus, rainy city" data-status="complete" data-title="under the same umbrella" data-tone="gentle, cozy, slow-burn">
      <a aria-label="Under the Same Umbrella" href="/novel/under-the-same-umbrella/">
       <picture>
        <source srcset="/images/under-the-same-umbrella-cover-320.webp 320w, /images/under-the-same-umbrella-cover-640.webp 640w, /images/under-the-same-umbrella-cover-960.webp 960w" type="image/webp"/>
@@ -753,9 +1714,41 @@
        Under the Same Umbrella
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        When a quiet Singaporean cybersecurity student and a poised Japanese exchange student fake a relationship to satisfy watchful eyes--parents, sponsors, and a rumor page--their borrowed shelter under one umbrella starts to feel dangerously like home.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fake dating romance">
+         fake dating romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: campus romance">
+         campus romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: gentle">
+         gentle
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: cozy">
+         cozy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: slow-burn">
+         slow-burn
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: university campus">
+         university campus
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: rainy city">
+         rainy city
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
         </span>
        </div>
       </div>
@@ -774,7 +1767,7 @@
       </button>
      </div>
     </li>
-    <li class="novel-card" data-status="complete" data-title="the warmth you asked for">
+    <li class="novel-card" data-blurb="Six months into a relationship that feels quietly perfect, Ethan begins changing in ways he can't explain--until a hidden truth turns every act of care into betrayal, and he must fight to reclaim his body and his story before someone else rewrites both." data-chapter-count="20" data-epilogue-count="2" data-gallery-count="3" data-genre="speculative thriller, psychological thriller, relationship drama" data-has-gallery="true" data-setting="domestic life, modern city, body-altering mystery" data-status="complete" data-title="the warmth you asked for" data-tone="eerie, intimate, suspenseful">
      <a aria-label="The Warmth You Asked For" href="/novel/the-warmth-you-asked-for/">
       <picture>
        <source srcset="/images/the-warmth-you-asked-for-cover-320.webp 320w, /images/the-warmth-you-asked-for-cover-640.webp 640w, /images/the-warmth-you-asked-for-cover-960.webp 960w" type="image/webp"/>
@@ -784,15 +1777,53 @@
        The Warmth You Asked For
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Six months into a relationship that feels quietly perfect, Ethan begins changing in ways he can't explain--until a hidden truth turns every act of care into betrayal, and he must fight to reclaim his body and his story before someone else rewrites both.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: speculative thriller">
+         speculative thriller
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: psychological thriller">
+         psychological thriller
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: relationship drama">
+         relationship drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: eerie">
+         eerie
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intimate">
+         intimate
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: suspenseful">
+         suspenseful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: domestic life">
+         domestic life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: body-altering mystery">
+         body-altering mystery
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         20 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         2 epilogues
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 3
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="i'm dating my anonymous enemy">
+    <li class="novel-card" data-blurb="In Seoul's neon underworld, an investigative blogger who swore to unmask the infamous K-pop dating leaker falls for her &quot;safe&quot; fake boyfriend--only to discover he's the very ghost she's been hunting, and loving him might cost her everything she believes in." data-chapter-count="10" data-epilogue-count="1" data-genre="celebrity romance, mystery romance, fake dating romance" data-setting="Seoul, entertainment industry, digital media" data-status="complete" data-title="i'm dating my anonymous enemy" data-tone="tense, romantic, suspenseful">
      <a aria-label="I'm Dating My Anonymous Enemy" href="/novel/i-m-dating-my-anonymous-enemy/">
       <picture>
        <source srcset="/images/i-m-dating-my-anonymous-enemy-cover-320.webp 320w, /images/i-m-dating-my-anonymous-enemy-cover-640.webp 640w, /images/i-m-dating-my-anonymous-enemy-cover-960.webp 960w" type="image/webp"/>
@@ -802,15 +1833,50 @@
        I'm Dating My Anonymous Enemy
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        In Seoul's neon underworld, an investigative blogger who swore to unmask the infamous K-pop dating leaker falls for her "safe" fake boyfriend--only to discover he's the very ghost she's been hunting, and loving him might cost her everything she believes in.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: celebrity romance">
+         celebrity romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: mystery romance">
+         mystery romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fake dating romance">
+         fake dating romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: suspenseful">
+         suspenseful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: digital media">
+         digital media
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="until the lights go quiet">
+    <li class="novel-card" data-blurb="Two K-pop idols--raised as &quot;sisters&quot; under nine-member spotlights--reach contract's end and choose a quiet, unlabelled life together, refusing to let the industry own the meaning of their love when the lights finally go quiet." data-chapter-count="15" data-epilogue-count="1" data-genre="queer romance, celebrity romance, contemporary drama" data-setting="Seoul, entertainment industry, post-idol life" data-status="complete" data-title="until the lights go quiet" data-tone="intimate, soft, bittersweet">
      <a aria-label="Until the Lights Go Quiet" href="/novel/until-the-lights-go-quiet/">
       <picture>
        <source srcset="/images/until-the-lights-go-quiet-cover-320.webp 320w, /images/until-the-lights-go-quiet-cover-640.webp 640w, /images/until-the-lights-go-quiet-cover-960.webp 960w" type="image/webp"/>
@@ -820,15 +1886,50 @@
        Until the Lights Go Quiet
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Two K-pop idols--raised as "sisters" under nine-member spotlights--reach contract's end and choose a quiet, unlabelled life together, refusing to let the industry own the meaning of their love when the lights finally go quiet.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: queer romance">
+         queer romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: celebrity romance">
+         celebrity romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary drama">
+         contemporary drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intimate">
+         intimate
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: soft">
+         soft
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: bittersweet">
+         bittersweet
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: entertainment industry">
+         entertainment industry
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: post-idol life">
+         post-idol life
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="the cinder crown">
+    <li class="novel-card" data-blurb="He brought Elara back from death by tearing the world's magic apart--only for her to wake in a sunlit garden floating over nothingness, where love isn't a rescue anymore, but the price they must learn to live with." data-chapter-count="12" data-epilogue-count="1" data-genre="fantasy romance, dark fantasy, tragic romance" data-setting="fantasy world, floating garden, ruined world" data-status="complete" data-title="the cinder crown" data-tone="aching, mythic, atmospheric">
      <a aria-label="The Cinder Crown" href="/novel/the-cinder-crown/">
       <picture>
        <source srcset="/images/the-cinder-crown-cover-320.webp 320w, /images/the-cinder-crown-cover-640.webp 640w, /images/the-cinder-crown-cover-960.webp 960w" type="image/webp"/>
@@ -838,15 +1939,50 @@
        The Cinder Crown
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        He brought Elara back from death by tearing the world's magic apart--only for her to wake in a sunlit garden floating over nothingness, where love isn't a rescue anymore, but the price they must learn to live with.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fantasy romance">
+         fantasy romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: dark fantasy">
+         dark fantasy
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: tragic romance">
+         tragic romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: aching">
+         aching
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: mythic">
+         mythic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: atmospheric">
+         atmospheric
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: fantasy world">
+         fantasy world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: floating garden">
+         floating garden
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: ruined world">
+         ruined world
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         12 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="1" data-relation="original" data-series="secondskin" data-status="complete" data-title="second skin">
+    <li class="novel-card" data-blurb='A broke Tokyo salaryman buys a full-sensory deep-dive game to live as a breathtaking female avatar--until a hacker breaches his "safe" room and leaves a lingering afterimage that makes his real body feel like the wrong one.' data-chapter-count="15" data-genre="speculative thriller, identity drama, cyber thriller" data-order="1" data-relation="original" data-series="secondskin" data-setting="Tokyo, virtual world, near future" data-status="complete" data-title="second skin" data-tone="eerie, intimate, tense">
      <a aria-label="Second Skin" href="/novel/second-skin/">
       <picture>
        <source srcset="/images/second-skin-cover-320.webp 320w, /images/second-skin-cover-640.webp 640w, /images/second-skin-cover-960.webp 960w" type="image/webp"/>
@@ -856,9 +1992,41 @@
        Second Skin
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        A broke Tokyo salaryman buys a full-sensory deep-dive game to live as a breathtaking female avatar--until a hacker breaches his "safe" room and leaves a lingering afterimage that makes his real body feel like the wrong one.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: speculative thriller">
+         speculative thriller
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: identity drama">
+         identity drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cyber thriller">
+         cyber thriller
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: eerie">
+         eerie
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intimate">
+         intimate
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Tokyo">
+         Tokyo
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: virtual world">
+         virtual world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: near future">
+         near future
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -875,7 +2043,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-status="complete" data-title="redstone between us">
+    <li class="novel-card" data-blurb="Aleem, a grounded, logical Singaporean (ABIX's steady chaos-brain) meets a &quot;girl&quot; on a Minecraft survival server and becomes her survival mate. Night after night, their pixel world turns into a sanctuary--until voice chat becomes confession, and confession becomes a video call… where &quot;Sharon&quot; is revealed to be Myoui Mina. Now their romance isn't just long-distance--it's high-risk, high-stakes, and built on the fragile trust between a fan and the woman behind an idol." data-chapter-count="15" data-epilogue-count="1" data-gallery-count="7" data-genre="fan-idol romance, gaming romance, contemporary romance" data-has-gallery="true" data-related-to="the-abix-chronicle" data-relation="spin-off" data-series="abix-series" data-setting="gaming world, Singapore, Seoul" data-status="complete" data-title="redstone between us" data-tone="intimate, romantic, high-stakes">
      <a aria-label="Redstone Between Us" href="/novel/redstone-between-us/">
       <picture>
        <source srcset="/images/redstone-between-us-cover-320.webp 320w, /images/redstone-between-us-cover-640.webp 640w, /images/redstone-between-us-cover-960.webp 960w" type="image/webp"/>
@@ -885,9 +2053,47 @@
        Redstone Between Us
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Aleem, a grounded, logical Singaporean (ABIX's steady chaos-brain) meets a "girl" on a Minecraft survival server and becomes her survival mate. Night after night, their pixel world turns into a sanctuary--until voice chat becomes confession, and confession becomes a video call… where "Sharon" is revealed to be Myoui Mina. Now their romance isn't just long-distance--it's high-risk, high-stakes, and built on the fragile trust between a fan and the woman behind an idol.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: fan-idol romance">
+         fan-idol romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: gaming romance">
+         gaming romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: intimate">
+         intimate
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: high-stakes">
+         high-stakes
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: gaming world">
+         gaming world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Singapore">
+         Singapore
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Seoul">
+         Seoul
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 7
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -901,7 +2107,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-order="2" data-related-to="second-skin" data-relation="sequel" data-series="secondskin" data-status="complete" data-title="second skin - keyhole protocol">
+    <li class="novel-card" data-blurb="When a deep-dive game leaves Haruto's body, voice, and future feeling more real in the mirror than in his own skin, he must outwit the predator hiding inside the system before the life he chooses for himself is rewritten as someone else's design." data-chapter-count="15" data-gallery-count="1" data-genre="speculative thriller, cyber thriller, identity drama" data-has-gallery="true" data-order="2" data-related-to="second-skin" data-relation="sequel" data-series="secondskin" data-setting="Tokyo, virtual world, near future" data-status="complete" data-title="second skin - keyhole protocol" data-tone="eerie, tense, urgent">
      <a aria-label="Second Skin - Keyhole Protocol" href="/novel/second-skin-keyhole-protocol/">
       <picture>
        <source srcset="/images/second-skin-keyhole-protocol-cover-320.webp 320w, /images/second-skin-keyhole-protocol-cover-640.webp 640w, /images/second-skin-keyhole-protocol-cover-960.webp 960w" type="image/webp"/>
@@ -911,9 +2117,44 @@
        Second Skin - Keyhole Protocol
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        When a deep-dive game leaves Haruto's body, voice, and future feeling more real in the mirror than in his own skin, he must outwit the predator hiding inside the system before the life he chooses for himself is rewritten as someone else's design.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: speculative thriller">
+         speculative thriller
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cyber thriller">
+         cyber thriller
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: identity drama">
+         identity drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: eerie">
+         eerie
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: urgent">
+         urgent
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Tokyo">
+         Tokyo
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: virtual world">
+         virtual world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: near future">
+         near future
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 1
         </span>
        </div>
        <div class="meta-row meta-row-extra">
@@ -930,7 +2171,7 @@
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="under my protection">
+    <li class="novel-card" data-blurb="He was assigned to protect her--but the closer he gets, the more dangerous the truth becomes, because the woman he's sworn to guard may be the only one who can bring down everything he was trained to defend." data-chapter-count="20" data-genre="romantic suspense, bodyguard romance, contemporary romance" data-setting="modern city, high-security world, hidden danger" data-status="complete" data-title="under my protection" data-tone="tense, protective, cinematic">
      <a aria-label="Under My Protection" href="/novel/under-my-protection/">
       <picture>
        <source srcset="/images/under-my-protection-cover-320.webp 320w, /images/under-my-protection-cover-640.webp 640w, /images/under-my-protection-cover-960.webp 960w" type="image/webp"/>
@@ -940,15 +2181,47 @@
        Under My Protection
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        He was assigned to protect her--but the closer he gets, the more dangerous the truth becomes, because the woman he's sworn to guard may be the only one who can bring down everything he was trained to defend.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: romantic suspense">
+         romantic suspense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: bodyguard romance">
+         bodyguard romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: protective">
+         protective
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: cinematic">
+         cinematic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: high-security world">
+         high-security world
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: hidden danger">
+         hidden danger
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         20 chapters
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="little hands between us">
+    <li class="novel-card" data-blurb="Bound together by loss and a child who needs them, two reluctant guardians slowly learn that healing--and love--can grow in the most unexpected family." data-chapter-count="15" data-epilogue-count="1" data-gallery-count="3" data-genre="family drama, contemporary romance, slow-burn romance" data-has-gallery="true" data-setting="domestic life, family home, childcare" data-status="complete" data-title="little hands between us" data-tone="tender, healing, domestic">
      <a aria-label="Little Hands Between Us" href="/novel/little-hands-between-us/">
       <picture>
        <source srcset="/images/little-hands-between-us-cover-320.webp 320w, /images/little-hands-between-us-cover-640.webp 640w, /images/little-hands-between-us-cover-960.webp 960w" type="image/webp"/>
@@ -958,15 +2231,53 @@
        Little Hands Between Us
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        Bound together by loss and a child who needs them, two reluctant guardians slowly learn that healing--and love--can grow in the most unexpected family.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: family drama">
+         family drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: slow-burn romance">
+         slow-burn romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: healing">
+         healing
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: domestic">
+         domestic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: domestic life">
+         domestic life
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family home">
+         family home
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: childcare">
+         childcare
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 3
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="mangu">
+    <li class="novel-card" data-blurb="In the rain-soaked heart of Kuala Lumpur, two souls from different faiths fall deeply, tenderly in love--only to discover that sometimes the truest love is the one that cannot become a life." data-chapter-count="15" data-gallery-count="6" data-genre="cross-cultural romance, faith romance, contemporary romance" data-has-gallery="true" data-setting="Malaysia, Kuala Lumpur, modern city" data-status="complete" data-title="mangu" data-tone="aching, tender, bittersweet">
      <a aria-label="Mangu" href="/novel/mangu/">
       <picture>
        <source srcset="/images/mangu-cover-320.webp 320w, /images/mangu-cover-640.webp 640w, /images/mangu-cover-960.webp 960w" type="image/webp"/>
@@ -976,15 +2287,50 @@
        Mangu
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        In the rain-soaked heart of Kuala Lumpur, two souls from different faiths fall deeply, tenderly in love--only to discover that sometimes the truest love is the one that cannot become a life.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: faith romance">
+         faith romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: aching">
+         aching
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: bittersweet">
+         bittersweet
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Malaysia">
+         Malaysia
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Kuala Lumpur">
+         Kuala Lumpur
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: modern city">
+         modern city
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         15 chapters
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 6
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="when the door opens">
+    <li class="novel-card" data-blurb="When a weary son returns to his mother's home in Korea, he falls for the one woman he never should--his mother's best friend--and what begins at the doorway as quiet longing becomes a love that risks breaking their home before it finally teaches them how to remake it." data-chapter-count="10" data-epilogue-count="1" data-genre="forbidden romance, family drama, contemporary romance" data-setting="Korea, family home, domestic life" data-status="complete" data-title="when the door opens" data-tone="yearning, tender, tense">
      <a aria-label="When The Door Opens" href="/novel/when-the-door-opens/">
       <picture>
        <source srcset="/images/when-the-door-opens-cover-320.webp 320w, /images/when-the-door-opens-cover-640.webp 640w, /images/when-the-door-opens-cover-960.webp 960w" type="image/webp"/>
@@ -994,15 +2340,50 @@
        When The Door Opens
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        When a weary son returns to his mother's home in Korea, he falls for the one woman he never should--his mother's best friend--and what begins at the doorway as quiet longing becomes a love that risks breaking their home before it finally teaches them how to remake it.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: forbidden romance">
+         forbidden romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: family drama">
+         family drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: yearning">
+         yearning
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tense">
+         tense
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Korea">
+         Korea
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family home">
+         family home
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: domestic life">
+         domestic life
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
         </span>
        </div>
       </div>
      </a>
     </li>
-    <li class="novel-card" data-status="complete" data-title="a matching beginning">
+    <li class="novel-card" data-blurb="He fell in love with her at first sight on Hari Raya afternoon, when a Korean woman in a green kebaya was asked to stand beside him in matching gold-threaded clothes--and years later, at their wedding reception, they would tell everyone that love had begun with a photograph they were never meant to take." data-chapter-count="10" data-epilogue-count="1" data-gallery-count="9" data-genre="contemporary romance, cross-cultural romance, family drama" data-has-gallery="true" data-setting="Malaysia, family gathering, wedding" data-status="complete" data-title="a matching beginning" data-tone="tender, romantic, hopeful">
      <a aria-label="A Matching Beginning" href="/novel/a-matching-beginning/">
       <picture>
        <source srcset="/images/a-matching-beginning-cover-320.webp 320w, /images/a-matching-beginning-cover-640.webp 640w, /images/a-matching-beginning-cover-960.webp 960w" type="image/webp"/>
@@ -1012,9 +2393,74 @@
        A Matching Beginning
       </h2>
       <div class="novel-meta">
-       <div class="meta-row meta-row-status">
-        <span class="badge complete">
-         Complete
+       <p class="novel-card-blurb">
+        He fell in love with her at first sight on Hari Raya afternoon, when a Korean woman in a green kebaya was asked to stand beside him in matching gold-threaded clothes--and years later, at their wedding reception, they would tell everyone that love had begun with a photograph they were never meant to take.
+       </p>
+       <div class="meta-row meta-row-discovery">
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: contemporary romance">
+         contemporary romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: cross-cultural romance">
+         cross-cultural romance
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-genre" title="Genre: family drama">
+         family drama
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: tender">
+         tender
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: romantic">
+         romantic
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-tone" title="Tone: hopeful">
+         hopeful
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: Malaysia">
+         Malaysia
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: family gathering">
+         family gathering
+        </span>
+        <span class="novel-discovery-chip novel-discovery-chip-setting" title="Setting: wedding">
+         wedding
+        </span>
+       </div>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         10 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         1 epilogue
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 9
+        </span>
+       </div>
+      </div>
+     </a>
+    </li>
+    <li class="novel-card" data-blurb="A careful senior who never believed in casual love finds his world quietly undone by a fearless freshman whose sincerity refuses to let him hide from the future." data-chapter-count="12" data-epilogue-count="4" data-gallery-count="16" data-has-gallery="true" data-status="complete" data-title="senior i'm serious">
+     <a aria-label="Senior I'm Serious" href="/novel/senior-i-m-serious/">
+      <picture>
+       <source srcset="/images/senior-i-m-serious-cover-320.webp 320w, /images/senior-i-m-serious-cover-640.webp 640w, /images/senior-i-m-serious-cover-960.webp 960w" type="image/webp"/>
+       <img alt="Senior I'm Serious" decoding="async" loading="lazy" sizes="(max-width: 480px) 45vw, (max-width: 900px) 30vw, 240px" src="/images/senior-i-m-serious-cover-640.jpg" srcset="/images/senior-i-m-serious-cover-320.jpg 320w, /images/senior-i-m-serious-cover-640.jpg 640w, /images/senior-i-m-serious-cover-960.jpg 960w"/>
+      </picture>
+      <h2 class="novel-title">
+       Senior I'm Serious
+      </h2>
+      <div class="novel-meta">
+       <p class="novel-card-blurb">
+        A careful senior who never believed in casual love finds his world quietly undone by a fearless freshman whose sincerity refuses to let him hide from the future.
+       </p>
+       <div class="meta-row meta-row-stats">
+        <span class="novel-stat chapters">
+         12 chapters
+        </span>
+        <span class="novel-stat epilogues">
+         4 epilogues
+        </span>
+        <span class="novel-stat gallery">
+         Gallery 16
         </span>
        </div>
       </div>
