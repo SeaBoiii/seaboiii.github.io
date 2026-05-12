@@ -1,0 +1,10 @@
+# Deprecated — replaced by deploy.yml (Next.js build).
+# Kept disabled to preserve history; remove file when comfortable.
+name: (disabled) Build Jekyll site
+on:
+  workflow_dispatch:
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Jekyll workflow disabled. See deploy.yml."

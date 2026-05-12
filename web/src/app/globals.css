@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Design tokens — light & dark, matching the previous Jekyll site palette
+   ========================================================================== */
+:root,
+:root[data-theme="light"] {
+  --bg: 238 244 251;
+  --bg-2: 223 233 247;
+  --surface: 251 253 255;
+  --surface-2: 238 244 252;
+  --text: 20 32 51;
+  --muted: 93 111 137;
+  --border: 204 218 234;
+  --accent: 78 123 211;
+  --accent-strong: 49 95 184;
+  --accent-soft: 220 232 251;
+  color-scheme: light;
+
+  --reader-font: "Lora", Georgia, "Times New Roman", serif;
+  --reader-font-scale: 1;
+  --reader-line-height: 1.75;
+  --reader-max-width: 800px;
+}
+
+:root[data-theme="dark"] {
+  --bg: 7 13 22;
+  --bg-2: 11 19 32;
+  --surface: 15 24 39;
+  --surface-2: 19 32 54;
+  --text: 231 238 251;
+  --muted: 152 172 201;
+  --border: 34 50 76;
+  --accent: 143 178 235;
+  --accent-strong: 180 202 244;
+  --accent-soft: 22 36 58;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: 7 13 22;
+    --bg-2: 11 19 32;
+    --surface: 15 24 39;
+    --surface-2: 19 32 54;
+    --text: 231 238 251;
+    --muted: 152 172 201;
+    --border: 34 50 76;
+    --accent: 143 178 235;
+    --accent-strong: 180 202 244;
+    --accent-soft: 22 36 58;
+    color-scheme: dark;
+  }
+}
+
+html,
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--text));
+}
+
+body {
+  font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 50;
+  background: rgb(var(--accent));
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+/* ==========================================================================
+   Reader prose — applied to chapter HTML
+   ========================================================================== */
+.prose-reader {
+  font-family: var(--reader-font);
+  font-size: calc(1.125rem * var(--reader-font-scale));
+  line-height: var(--reader-line-height);
+  color: rgb(var(--text));
+}
+.prose-reader p {
+  margin: 0 0 1.25em;
+}
+.prose-reader p + p {
+  text-indent: 1.5em;
+}
+.prose-reader h1,
+.prose-reader h2,
+.prose-reader h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 600;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.25;
+}
+.prose-reader h2 {
+  font-size: 1.6em;
+}
+.prose-reader h3 {
+  font-size: 1.3em;
+}
+.prose-reader blockquote {
+  margin: 1.5em 0;
+  padding: 0.75em 1.25em;
+  border-left: 4px solid rgb(var(--accent) / 0.6);
+  background: rgb(var(--surface-2));
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: rgb(var(--text));
+  font-style: italic;
+}
+.prose-reader em {
+  font-style: italic;
+}
+.prose-reader strong {
+  font-weight: 700;
+}
+.prose-reader hr {
+  border: 0;
+  border-top: 1px solid rgb(var(--border));
+  margin: 2.5em auto;
+  width: 40%;
+}
+.prose-reader a {
+  color: rgb(var(--accent-strong));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Auto-hiding header */
+.header-autohide {
+  transition: transform 240ms ease;
+}
+.header-autohide[data-hidden="true"] {
+  transform: translateY(-100%);
+}
+
+/* Reading progress bar */
+.reading-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: transparent;
+  z-index: 60;
+  pointer-events: none;
+}
+.reading-progress > span {
+  display: block;
+  height: 100%;
+  width: var(--progress, 0%);
+  background: rgb(var(--accent));
+  transition: width 80ms linear;
+}
+
+/* Scrollbar styling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Focus rings */
+:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+  border-radius: 4px;
+}

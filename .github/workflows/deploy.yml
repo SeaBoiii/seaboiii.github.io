@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]   # or your default branch
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate config.js from secrets
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build Next.js (novel reader)
+        working-directory: web
+        run: npm run build
+
+      - name: Generate tetris/wordle config.js from secrets
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -36,15 +56,36 @@ jobs:
           cat > ./wordle/config.js <<EOF
           window.SUPABASE_URL = "${SUPABASE_URL}";
           window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
-          // Optional: override if you set DICTIONARY_URL as a secret
-          if ("${DICTIONARY_URL}") { window.DICTIONARY_URL = "${DICTIONARY_URL}"; }
           EOF
-          echo "Generated config.js"
+          if [ -n "${DICTIONARY_URL}" ]; then
+            echo "window.DICTIONARY_URL = \"${DICTIONARY_URL}\";" >> ./wordle/config.js
+          fi
 
-      - name: Upload artifact
+      - name: Assemble deploy directory
+        run: |
+          set -euo pipefail
+          mkdir -p deploy
+          # 1) Next.js static export — provides /novel/* and the SPA root redirect
+          cp -R web/out/. deploy/
+          # 2) Overlay legacy static root files (profile + mini-projects)
+          for item in \
+              index.html foryou.html hny.html vday.html \
+              site.webmanifest favicon.ico \
+              favicon-16x16.png favicon-32x32.png \
+              apple-touch-icon.png \
+              android-chrome-192x192.png android-chrome-512x512.png \
+              tetris wordle images img css js README.md; do
+            if [ -e "$item" ]; then
+              cp -R "$item" "deploy/"
+            fi
+          done
+          # 3) Disable Jekyll on Pages so _next/ assets are served untouched
+          touch deploy/.nojekyll
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .  # publish the repo root (index.html, styles.css, config.js, etc.)
+          path: deploy
 
   deploy:
     needs: build
