@@ -93,8 +93,8 @@ export function getAllNovels(): Novel[] {
     };
   });
 
-  // Default sort: most recently updated first
-  novels.sort((a, b) => b.lastChapterMtime - a.lastChapterMtime);
+  // Default sort: oldest first (newest at end of list)
+  novels.sort((a, b) => a.lastChapterMtime - b.lastChapterMtime);
   cache = novels;
   return novels;
 }

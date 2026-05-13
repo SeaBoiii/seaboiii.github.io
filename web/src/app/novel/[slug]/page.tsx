@@ -87,7 +87,7 @@ export default function NovelDetailPage({ params }: { params: { slug: string } }
               </span>
               {branches.length > 1 && (
                 <span className="rounded-full border border-accent/40 bg-accent-soft px-2.5 py-0.5 text-xs font-medium text-accent-strong">
-                  {branches.length} alternate endings
+                  Multiple endings
                 </span>
               )}
             </div>
@@ -136,13 +136,13 @@ export default function NovelDetailPage({ params }: { params: { slug: string } }
                   branches[0].slug === c.slug;
                 return (
                   <li key={c.slug}>
-                    {branchHere && (
+                    {branchHere && branches.length > 1 && (
                       <BranchPicker novelSlug={novel.slug} branches={branches} />
                     )}
                     {!branchHere && (
                       <ChapterRow novelSlug={novel.slug} chapter={c} first={i === 0} />
                     )}
-                    {isPivot && branches.length > 0 && (
+                    {isPivot && branches.length > 1 && (
                       <div className="border-t border-border bg-accent-soft/40 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-strong sm:px-5">
                         — Choose your ending below —
                       </div>

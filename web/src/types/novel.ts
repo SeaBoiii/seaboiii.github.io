@@ -17,10 +17,8 @@ export interface ChapterMeta {
   epilogueType: EpilogueType;
   /** sequential: "I"/"II"/"III"; branching: "A"/"B" */
   epilogueKey: string;
-  /** Short label used in lists: "01", "Epi", "Epi I", "Epi A" */
+  /** Label shown in lists: "Chapter 1", "Epilogue", "Epilogue I", "Epilogue A" */
   label: string;
-  /** Full label used in chapter header: "Chapter 1", "Epilogue", "Epilogue I", "Epilogue A" */
-  fullLabel: string;
 }
 
 export interface Chapter extends ChapterMeta {

@@ -69,19 +69,14 @@ function buildMeta(
   const displayTitle = isEpilogue ? stripTitlePrefix(rawTitle) : rawTitle.trim();
 
   let label: string;
-  let fullLabel: string;
   if (!isEpilogue) {
-    label = String(order).padStart(2, "0");
-    fullLabel = `Chapter ${order}`;
+    label = `Chapter ${order}`;
   } else if (ep.type === "branching") {
-    label = `Epi ${ep.key}`;
-    fullLabel = `Epilogue ${ep.key}`;
+    label = `Epilogue ${ep.key}`;
   } else if (ep.type === "sequential") {
-    label = `Epi ${ep.key}`;
-    fullLabel = `Epilogue ${ep.key}`;
+    label = `Epilogue ${ep.key}`;
   } else {
-    label = `Epi`;
-    fullLabel = `Epilogue`;
+    label = `Epilogue`;
   }
 
   return {
@@ -94,7 +89,6 @@ function buildMeta(
     epilogueType: ep.type,
     epilogueKey: ep.key,
     label,
-    fullLabel,
   };
 }
 

@@ -33,11 +33,11 @@ export default function ChapterReader({
   useEffect(() => {
     saveBookmark(novelSlug, {
       chapterSlug: chapter.slug,
-      chapterLabel: chapter.fullLabel,
+      chapterLabel: chapter.label,
       chapterTitle: chapter.displayTitle,
       ts: Date.now(),
     });
-  }, [novelSlug, chapter.slug, chapter.fullLabel, chapter.displayTitle]);
+  }, [novelSlug, chapter.slug, chapter.label, chapter.displayTitle]);
 
   // Reading progress + auto-hiding header
   useEffect(() => {
@@ -173,7 +173,7 @@ export default function ChapterReader({
                     >
                       <span
                         className={
-                          "w-16 shrink-0 text-xs font-semibold uppercase tracking-wide " +
+                          "w-20 shrink-0 text-xs font-semibold uppercase tracking-wide " +
                           (c.isEpilogue ? "text-accent-strong" : "text-muted")
                         }
                       >
@@ -197,7 +197,7 @@ export default function ChapterReader({
         >
           <header className="mb-8 border-b border-border pb-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
-              {chapter.fullLabel}
+              {chapter.label}
             </p>
             <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">
               {chapter.displayTitle}
@@ -231,15 +231,13 @@ export default function ChapterReader({
             dangerouslySetInnerHTML={{ __html: chapter.html }}
           />
 
-          {branchChoices.length > 0 && (
+          {branchChoices.length > 1 && (
             <section className="mt-12 rounded-2xl border border-accent/40 bg-accent-soft/60 p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
                 Choose your ending
               </p>
               <p className="mt-2 text-sm text-text/90">
-                This chapter branches into {branchChoices.length} alternate ending
-                {branchChoices.length > 1 ? "s" : ""}. Pick the one you’d like to read first —
-                you can always return for the other.
+                This chapter branches into {branchChoices.length} alternate endings. Pick the one you'd like to read first — you can always return for the other.
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {branchChoices.map((b) => (
@@ -274,7 +272,7 @@ export default function ChapterReader({
                 </span>
                 <span className="flex flex-col">
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Previous · {chapter.prev.fullLabel}
+                    Previous · {chapter.prev.label}
                   </span>
                   <span className="text-sm font-medium text-text">{chapter.prev.displayTitle}</span>
                 </span>
@@ -290,12 +288,12 @@ export default function ChapterReader({
                 <span aria-hidden>→</span>
                 <span className="flex flex-col">
                   <span className="text-xs font-semibold uppercase tracking-wide text-white/80">
-                    Next · {chapter.next.fullLabel}
+                    Next · {chapter.next.label}
                   </span>
                   <span className="text-sm font-medium">{chapter.next.displayTitle}</span>
                 </span>
               </Link>
-            ) : branchChoices.length === 0 ? (
+            ) : branchChoices.length <= 1 ? (
               <Link
                 href={`/novel/${novelSlug}/`}
                 className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-medium text-text hover:bg-surface-2"
