@@ -41,26 +41,6 @@ jobs:
         working-directory: web
         run: npm run build
 
-      - name: Generate tetris/wordle config.js from secrets
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          DICTIONARY_URL: ${{ secrets.DICTIONARY_URL }}
-        run: |
-          : "${SUPABASE_URL:?Missing SUPABASE_URL secret}"
-          : "${SUPABASE_ANON_KEY:?Missing SUPABASE_ANON_KEY secret}"
-          cat > ./tetris/config.js <<EOF
-          window.SUPABASE_URL = "${SUPABASE_URL}";
-          window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
-          EOF
-          cat > ./wordle/config.js <<EOF
-          window.SUPABASE_URL = "${SUPABASE_URL}";
-          window.SUPABASE_ANON_KEY = "${SUPABASE_ANON_KEY}";
-          EOF
-          if [ -n "${DICTIONARY_URL}" ]; then
-            echo "window.DICTIONARY_URL = \"${DICTIONARY_URL}\";" >> ./wordle/config.js
-          fi
-
       - name: Assemble deploy directory
         run: |
           set -euo pipefail
