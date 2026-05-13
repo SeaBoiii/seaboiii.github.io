@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
@@ -79,6 +81,12 @@ jobs:
             fi
           done
           cp -R web/out/. deploy/
+          # Preserve the existing root landing and standalone pages.
+          for file in index.html foryou.html hny.html vday.html; do
+            if [ -f "$file" ]; then
+              cp "$file" "deploy/"
+            fi
+          done
           touch deploy/.nojekyll
 
       - name: Publish to gh-pages branch
@@ -86,5 +94,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./deploy
-          publish_branch: gh-pages
-          force_orphan: true
+          publish_branch: main
+          destination_dir: docs
+          keep_files: false
