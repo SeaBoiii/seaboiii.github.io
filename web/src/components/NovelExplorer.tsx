@@ -105,8 +105,8 @@ export default function NovelExplorer({ novels }: Props) {
         if (sa !== sb) return sa.localeCompare(sb);
         return (a.readingOrder ?? 99) - (b.readingOrder ?? 99);
       }
-      // "newest" — sort by most recently updated chapter file
-      return (b.lastChapterMtime ?? 0) - (a.lastChapterMtime ?? 0);
+      // "newest" — reverse of canonical order provided by getAllNovels
+      return novels.indexOf(b) - novels.indexOf(a);
     });
 
     return result;
