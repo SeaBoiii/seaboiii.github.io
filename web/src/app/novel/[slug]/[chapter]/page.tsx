@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ChapterReader from "@/components/ChapterReader";
 import { ReaderPrefsBoot } from "@/components/ReaderSettings";
-import { getNovel, getAllNovels } from "@/lib/novels";
-import { allChapterParams, getChapter, getChapterList } from "@/lib/chapters";
+import { getNovel } from "@/lib/novels";
+import {
+  allChapterParams,
+  getBranchChoicesAfter,
+  getChapter,
+  getChapterList,
+} from "@/lib/chapters";
 
 export function generateStaticParams() {
   return allChapterParams();
@@ -18,8 +23,8 @@ export async function generateMetadata({
   const ch = await getChapter(params.slug, params.chapter);
   if (!novel || !ch) return {};
   return {
-    title: `${ch.label}: ${ch.title} · ${novel.title}`,
-    description: `${novel.title} — ${ch.label}: ${ch.title}`,
+    title: `${ch.fullLabel}: ${ch.displayTitle} · ${novel.title}`,
+    description: `${novel.title} — ${ch.fullLabel}: ${ch.displayTitle}`,
   };
 }
 
@@ -33,6 +38,9 @@ export default async function ChapterPage({
   const chapter = await getChapter(params.slug, params.chapter);
   if (!chapter) notFound();
   const chapters = getChapterList(params.slug);
+  const branchChoices = chapter.next
+    ? []
+    : getBranchChoicesAfter(params.slug, params.chapter);
 
   return (
     <>
@@ -42,6 +50,7 @@ export default async function ChapterPage({
         novelTitle={novel.title}
         chapter={chapter}
         chapters={chapters}
+        branchChoices={branchChoices}
       />
     </>
   );

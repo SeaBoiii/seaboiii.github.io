@@ -12,9 +12,16 @@ interface Props {
   novelTitle: string;
   chapter: Chapter;
   chapters: ChapterMeta[];
+  branchChoices?: ChapterMeta[];
 }
 
-export default function ChapterReader({ novelSlug, novelTitle, chapter, chapters }: Props) {
+export default function ChapterReader({
+  novelSlug,
+  novelTitle,
+  chapter,
+  chapters,
+  branchChoices = [],
+}: Props) {
   const [progress, setProgress] = useState(0);
   const [hidden, setHidden] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -26,11 +33,11 @@ export default function ChapterReader({ novelSlug, novelTitle, chapter, chapters
   useEffect(() => {
     saveBookmark(novelSlug, {
       chapterSlug: chapter.slug,
-      chapterLabel: chapter.label,
-      chapterTitle: chapter.title,
+      chapterLabel: chapter.fullLabel,
+      chapterTitle: chapter.displayTitle,
       ts: Date.now(),
     });
-  }, [novelSlug, chapter.slug, chapter.label, chapter.title]);
+  }, [novelSlug, chapter.slug, chapter.fullLabel, chapter.displayTitle]);
 
   // Reading progress + auto-hiding header
   useEffect(() => {
@@ -164,10 +171,15 @@ export default function ChapterReader({ novelSlug, novelTitle, chapter, chapters
                           : "hover:bg-surface-2")
                       }
                     >
-                      <span className="w-20 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted">
+                      <span
+                        className={
+                          "w-16 shrink-0 text-xs font-semibold uppercase tracking-wide " +
+                          (c.isEpilogue ? "text-accent-strong" : "text-muted")
+                        }
+                      >
                         {c.label}
                       </span>
-                      <span className="truncate font-medium">{c.title}</span>
+                      <span className="truncate font-medium">{c.displayTitle}</span>
                     </Link>
                   </li>
                 );
@@ -185,18 +197,68 @@ export default function ChapterReader({ novelSlug, novelTitle, chapter, chapters
         >
           <header className="mb-8 border-b border-border pb-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
-              {chapter.label}
+              {chapter.fullLabel}
             </p>
             <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">
-              {chapter.title}
+              {chapter.displayTitle}
             </h1>
             <p className="mt-2 text-sm text-muted">{novelTitle}</p>
+            {chapter.epilogueType === "branching" &&
+              chapter.branchSiblings &&
+              chapter.branchSiblings.length > 0 && (
+                <div className="mt-5 rounded-xl border border-accent/30 bg-accent-soft/60 px-4 py-3 text-sm text-accent-strong">
+                  <p className="font-semibold">You’re reading ending {chapter.epilogueKey}.</p>
+                  <p className="mt-1 text-accent-strong/90">
+                    Alternative ending{chapter.branchSiblings.length > 1 ? "s" : ""} available:{" "}
+                    {chapter.branchSiblings.map((s, i) => (
+                      <span key={s.slug}>
+                        {i > 0 && ", "}
+                        <Link
+                          href={`/novel/${novelSlug}/${s.slug}/`}
+                          className="font-semibold underline underline-offset-2 hover:text-accent"
+                        >
+                          Ending {s.epilogueKey}
+                        </Link>
+                      </span>
+                    ))}
+                  </p>
+                </div>
+              )}
           </header>
 
           <div
             className="prose-reader"
             dangerouslySetInnerHTML={{ __html: chapter.html }}
           />
+
+          {branchChoices.length > 0 && (
+            <section className="mt-12 rounded-2xl border border-accent/40 bg-accent-soft/60 p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
+                Choose your ending
+              </p>
+              <p className="mt-2 text-sm text-text/90">
+                This chapter branches into {branchChoices.length} alternate ending
+                {branchChoices.length > 1 ? "s" : ""}. Pick the one you’d like to read first —
+                you can always return for the other.
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {branchChoices.map((b) => (
+                  <Link
+                    key={b.slug}
+                    href={`/novel/${novelSlug}/${b.slug}/`}
+                    className="group flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-soft"
+                  >
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-accent-strong">
+                      Ending {b.epilogueKey}
+                    </span>
+                    <span className="font-display text-base font-semibold text-text group-hover:text-accent-strong">
+                      {b.displayTitle}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           <nav
             className="mt-16 flex flex-col gap-3 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between"
@@ -212,9 +274,9 @@ export default function ChapterReader({ novelSlug, novelTitle, chapter, chapters
                 </span>
                 <span className="flex flex-col">
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Previous · {chapter.prev.label}
+                    Previous · {chapter.prev.fullLabel}
                   </span>
-                  <span className="text-sm font-medium text-text">{chapter.prev.title}</span>
+                  <span className="text-sm font-medium text-text">{chapter.prev.displayTitle}</span>
                 </span>
               </Link>
             ) : (
@@ -228,18 +290,20 @@ export default function ChapterReader({ novelSlug, novelTitle, chapter, chapters
                 <span aria-hidden>→</span>
                 <span className="flex flex-col">
                   <span className="text-xs font-semibold uppercase tracking-wide text-white/80">
-                    Next · {chapter.next.label}
+                    Next · {chapter.next.fullLabel}
                   </span>
-                  <span className="text-sm font-medium">{chapter.next.title}</span>
+                  <span className="text-sm font-medium">{chapter.next.displayTitle}</span>
                 </span>
               </Link>
-            ) : (
+            ) : branchChoices.length === 0 ? (
               <Link
                 href={`/novel/${novelSlug}/`}
                 className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-medium text-text hover:bg-surface-2"
               >
                 Back to novel
               </Link>
+            ) : (
+              <span />
             )}
           </nav>
         </article>

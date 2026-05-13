@@ -32,13 +32,18 @@ function prettifySlug(slug: string): string {
     .join(" ");
 }
 
-function chaptersForSlug(slug: string): number {
+function chapterStats(slug: string): { count: number; lastMtime: number } {
   const dir = path.join(NOVELS_ROOT, slug);
-  if (!fs.existsSync(dir)) return 0;
-  return fs
+  if (!fs.existsSync(dir)) return { count: 0, lastMtime: 0 };
+  const files = fs
     .readdirSync(dir)
-    .filter((f) => /^Chapter\d+\.md$/i.test(f) || /^Epilogue.*\.md$/i.test(f))
-    .length;
+    .filter((f) => /^Chapter\d+\.md$/i.test(f) || /^Epilogue.*\.md$/i.test(f));
+  let lastMtime = 0;
+  for (const f of files) {
+    const m = fs.statSync(path.join(dir, f)).mtimeMs;
+    if (m > lastMtime) lastMtime = m;
+  }
+  return { count: files.length, lastMtime };
 }
 
 export function getAllNovels(): Novel[] {
@@ -65,6 +70,7 @@ export function getAllNovels(): Novel[] {
       : undefined;
 
     const rel = relationships[slug] ?? {};
+    const stats = chapterStats(slug);
 
     return {
       slug,
@@ -77,16 +83,18 @@ export function getAllNovels(): Novel[] {
       cover: typeof data.cover === "string" ? data.cover : undefined,
       gallery,
       order: typeof data.order === "number" ? data.order : 0,
+      lastChapterMtime: stats.lastMtime,
       seriesId: rel.series_id,
       seriesLabel: rel.series_label,
       relationType: rel.relation_type,
       relatedTo: rel.related_to,
       readingOrder: rel.reading_order,
-      chapterCount: chaptersForSlug(slug),
+      chapterCount: stats.count,
     };
   });
 
-  novels.sort((a, b) => a.title.localeCompare(b.title));
+  // Default sort: most recently updated first
+  novels.sort((a, b) => b.lastChapterMtime - a.lastChapterMtime);
   cache = novels;
   return novels;
 }

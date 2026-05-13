@@ -6,7 +6,7 @@ import NovelCard from "./NovelCard";
 
 type StatusFilter = "all" | "complete" | "incomplete";
 type CategoryFilter = "all" | "series" | "standalone";
-type SortOrder = "az" | "za" | "newest";
+type SortOrder = "newest" | "az" | "za" | "chapters" | "series";
 
 interface Props {
   novels: Novel[];
@@ -20,7 +20,7 @@ export default function NovelExplorer({ novels }: Props) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [category, setCategory] = useState<CategoryFilter>("all");
-  const [sort, setSort] = useState<SortOrder>("az");
+  const [sort, setSort] = useState<SortOrder>("newest");
   const [genre, setGenre] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -60,8 +60,16 @@ export default function NovelExplorer({ novels }: Props) {
     result = [...result].sort((a, b) => {
       if (sort === "az") return a.title.localeCompare(b.title);
       if (sort === "za") return b.title.localeCompare(a.title);
-      // "newest" — fall back to chapter count desc as a proxy for activity
-      return (b.chapterCount ?? 0) - (a.chapterCount ?? 0);
+      if (sort === "chapters") return (b.chapterCount ?? 0) - (a.chapterCount ?? 0);
+      if (sort === "series") {
+        // Group novels of the same series together, then by reading_order
+        const sa = a.seriesLabel ?? "\uffff";
+        const sb = b.seriesLabel ?? "\uffff";
+        if (sa !== sb) return sa.localeCompare(sb);
+        return (a.readingOrder ?? 99) - (b.readingOrder ?? 99);
+      }
+      // "newest" — most recently updated chapter first
+      return (b.lastChapterMtime ?? 0) - (a.lastChapterMtime ?? 0);
     });
 
     return result;
@@ -70,13 +78,13 @@ export default function NovelExplorer({ novels }: Props) {
   const activeFilterCount =
     (status !== "all" ? 1 : 0) +
     (category !== "all" ? 1 : 0) +
-    (sort !== "az" ? 1 : 0) +
+    (sort !== "newest" ? 1 : 0) +
     (genre !== "all" ? 1 : 0);
 
   function clearAll() {
     setStatus("all");
     setCategory("all");
-    setSort("az");
+    setSort("newest");
     setGenre("all");
     setQuery("");
   }
@@ -145,9 +153,11 @@ export default function NovelExplorer({ novels }: Props) {
               value={sort}
               onChange={(v) => setSort(v as SortOrder)}
               options={[
+                ["newest", "Recently updated"],
                 ["az", "A–Z"],
                 ["za", "Z–A"],
-                ["newest", "Most chapters"],
+                ["chapters", "Most chapters"],
+                ["series", "Group by series"],
               ]}
             />
             {activeFilterCount > 0 && (
