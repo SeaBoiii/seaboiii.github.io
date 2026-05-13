@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Novel } from "@/types/novel";
 import NovelCard from "./NovelCard";
 
@@ -12,17 +12,54 @@ interface Props {
   novels: Novel[];
 }
 
+const FILTERS_STORAGE_KEY = "novelExplorer:filters:v1";
+
+function readSavedFilters(): {
+  query?: string;
+  status?: StatusFilter;
+  category?: CategoryFilter;
+  sort?: SortOrder;
+  genre?: string;
+} {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as {
+      query?: string;
+      status?: StatusFilter;
+      category?: CategoryFilter;
+      sort?: SortOrder;
+      genre?: string;
+    };
+  } catch {
+    return {};
+  }
+}
+
 function uniq<T>(arr: T[]): T[] {
   return Array.from(new Set(arr));
 }
 
 export default function NovelExplorer({ novels }: Props) {
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("all");
-  const [category, setCategory] = useState<CategoryFilter>("all");
-  const [sort, setSort] = useState<SortOrder>("newest");
-  const [genre, setGenre] = useState<string>("all");
+  const saved = readSavedFilters();
+  const [query, setQuery] = useState(saved.query ?? "");
+  const [status, setStatus] = useState<StatusFilter>(saved.status ?? "all");
+  const [category, setCategory] = useState<CategoryFilter>(saved.category ?? "all");
+  const [sort, setSort] = useState<SortOrder>(saved.sort ?? "newest");
+  const [genre, setGenre] = useState<string>(saved.genre ?? "all");
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        FILTERS_STORAGE_KEY,
+        JSON.stringify({ query, status, category, sort, genre }),
+      );
+    } catch {
+      // Ignore storage errors (private mode / quota)
+    }
+  }, [query, status, category, sort, genre]);
 
   const allGenres = useMemo(
     () =>
@@ -68,8 +105,8 @@ export default function NovelExplorer({ novels }: Props) {
         if (sa !== sb) return sa.localeCompare(sb);
         return (a.readingOrder ?? 99) - (b.readingOrder ?? 99);
       }
-      // "newest" — most recently updated chapter first
-      return (b.lastChapterMtime ?? 0) - (a.lastChapterMtime ?? 0);
+      // "newest" — keep canonical order provided by getAllNovels (legacy index order)
+      return 0;
     });
 
     return result;

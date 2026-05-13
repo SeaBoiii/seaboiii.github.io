@@ -173,7 +173,7 @@ export default function ChapterReader({
                     >
                       <span
                         className={
-                          "w-20 shrink-0 text-xs font-semibold uppercase tracking-wide " +
+                          "w-24 shrink-0 whitespace-nowrap text-xs font-semibold uppercase tracking-wide " +
                           (c.isEpilogue ? "text-accent-strong" : "text-muted")
                         }
                       >

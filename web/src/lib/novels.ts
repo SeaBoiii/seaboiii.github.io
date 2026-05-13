@@ -46,10 +46,30 @@ function chapterStats(slug: string): { count: number; lastMtime: number } {
   return { count: files.length, lastMtime };
 }
 
+function readLegacyIndexOrder(): Map<string, number> {
+  const order = new Map<string, number>();
+  const legacyIndexPath = path.join(NOVELS_ROOT, "index.html");
+  if (!fs.existsSync(legacyIndexPath)) return order;
+
+  const html = fs.readFileSync(legacyIndexPath, "utf8");
+  const hrefRegex = /href=["']\/novel\/([^"'\/]+)\/["']/gi;
+  let m: RegExpExecArray | null;
+  let idx = 0;
+  while ((m = hrefRegex.exec(html)) !== null) {
+    const slug = m[1].toLowerCase();
+    if (!order.has(slug)) {
+      order.set(slug, idx);
+      idx += 1;
+    }
+  }
+  return order;
+}
+
 export function getAllNovels(): Novel[] {
   if (cache) return cache;
   const relationships = readRelationships();
   const slugs = listNovelSlugs();
+  const legacyOrder = readLegacyIndexOrder();
 
   const novels: Novel[] = slugs.map((slug) => {
     const indexPath = path.join(NOVELS_ROOT, slug, "index.md");
@@ -93,8 +113,15 @@ export function getAllNovels(): Novel[] {
     };
   });
 
-  // Default sort: oldest first (newest at end of list)
-  novels.sort((a, b) => a.lastChapterMtime - b.lastChapterMtime);
+  // Default sort: follow legacy /novel/index.html order (top is newest).
+  novels.sort((a, b) => {
+    const ai = legacyOrder.get(a.slug.toLowerCase());
+    const bi = legacyOrder.get(b.slug.toLowerCase());
+    if (ai !== undefined && bi !== undefined) return ai - bi;
+    if (ai !== undefined) return -1;
+    if (bi !== undefined) return 1;
+    return (b.lastChapterMtime ?? 0) - (a.lastChapterMtime ?? 0);
+  });
   cache = novels;
   return novels;
 }

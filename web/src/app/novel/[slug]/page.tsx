@@ -37,14 +37,7 @@ export default function NovelDetailPage({ params }: { params: { slug: string } }
   const chapters = getChapterList(params.slug);
   const first = chapters[0];
   const accent = novel.seriesId ? seriesAccentClass(novel.seriesId) : null;
-
-  // Group branching epilogues so we render a "Choose your ending" block.
   const branches = chapters.filter((c) => c.epilogueType === "branching");
-  const nonBranchBeforeEnding = (() => {
-    if (branches.length === 0) return null;
-    const firstBranchIdx = chapters.findIndex((c) => c.epilogueType === "branching");
-    return firstBranchIdx > 0 ? chapters[firstBranchIdx - 1] : null;
-  })();
 
   return (
     <>
@@ -125,31 +118,11 @@ export default function NovelDetailPage({ params }: { params: { slug: string } }
             </p>
           ) : (
             <ol className="overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
-              {chapters.map((c, i) => {
-                // If this is the chapter just before branching epilogues, render a special divider after.
-                const isPivot =
-                  branches.length > 0 &&
-                  nonBranchBeforeEnding?.slug === c.slug;
-                const branchHere =
-                  branches.length > 0 &&
-                  c.epilogueType === "branching" &&
-                  branches[0].slug === c.slug;
-                return (
-                  <li key={c.slug}>
-                    {branchHere && branches.length > 1 && (
-                      <BranchPicker novelSlug={novel.slug} branches={branches} />
-                    )}
-                    {!branchHere && (
-                      <ChapterRow novelSlug={novel.slug} chapter={c} first={i === 0} />
-                    )}
-                    {isPivot && branches.length > 1 && (
-                      <div className="border-t border-border bg-accent-soft/40 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-strong sm:px-5">
-                        — Choose your ending below —
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
+              {chapters.map((c, i) => (
+                <li key={c.slug}>
+                  <ChapterRow novelSlug={novel.slug} chapter={c} first={i === 0} />
+                </li>
+              ))}
             </ol>
           )}
         </section>
@@ -182,7 +155,7 @@ function ChapterRow({
       <div className="flex min-w-0 items-baseline gap-3">
         <span
           className={
-            "w-14 shrink-0 text-center text-[11px] font-semibold uppercase tracking-wide " +
+            "w-24 shrink-0 whitespace-nowrap text-left text-[11px] font-semibold uppercase tracking-wide " +
             (chapter.isEpilogue ? "text-accent-strong" : "text-muted")
           }
         >
@@ -196,38 +169,6 @@ function ChapterRow({
         →
       </span>
     </Link>
-  );
-}
-
-function BranchPicker({
-  novelSlug,
-  branches,
-}: {
-  novelSlug: string;
-  branches: ChapterMeta[];
-}) {
-  return (
-    <div className="border-t border-border bg-accent-soft/40 p-5">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-accent-strong">
-        Choose your ending
-      </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {branches.map((b) => (
-          <Link
-            key={b.slug}
-            href={`/novel/${novelSlug}/${b.slug}/`}
-            className="group flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-soft"
-          >
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-accent-strong">
-              Ending {b.epilogueKey}
-            </span>
-            <span className="font-display text-base font-semibold text-text group-hover:text-accent-strong">
-              {b.displayTitle}
-            </span>
-          </Link>
-        ))}
-      </div>
-    </div>
   );
 }
 
