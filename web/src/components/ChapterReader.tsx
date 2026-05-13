@@ -199,9 +199,11 @@ export default function ChapterReader({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
               {chapter.label}
             </p>
-            <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">
-              {chapter.displayTitle}
-            </h1>
+            {chapter.displayTitle && (
+              <h1 className="mt-2 font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">
+                {chapter.displayTitle}
+              </h1>
+            )}
             <p className="mt-2 text-sm text-muted">{novelTitle}</p>
             {chapter.epilogueType === "branching" &&
               chapter.branchSiblings &&

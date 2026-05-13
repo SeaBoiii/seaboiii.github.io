@@ -30,6 +30,8 @@ function stripTitlePrefix(rawTitle: string): string {
   t = t.replace(/^Epilogue(?:\s+(?:[IVX]+|[A-Z]|\d+))?\s*[-:–—]+\s*/i, "");
   // bare "Epilogue:" with no rest left → keep something readable
   if (!t || /^epilogue$/i.test(t)) t = rawTitle.trim();
+  // bare "Chapter X" with no subtitle → strip to empty so label isn't duplicated
+  if (/^Chapter\s+\d+$/i.test(t)) t = "";
   return t;
 }
 
@@ -66,7 +68,7 @@ function buildMeta(
   const slug = fileBasename.replace(/\.md$/i, "");
   const ep = parseEpilogueMarker(rawTitle);
   const isEpilogue = ep.type !== "none";
-  const displayTitle = isEpilogue ? stripTitlePrefix(rawTitle) : rawTitle.trim();
+  const displayTitle = stripTitlePrefix(rawTitle);
 
   let label: string;
   if (!isEpilogue) {
