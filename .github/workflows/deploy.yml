@@ -65,19 +65,25 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p deploy
-          # 1) Overlay legacy static root files first (profile + mini-projects)
-          for item in \
-              index.html foryou.html hny.html vday.html \
-              site.webmanifest favicon.ico \
-              favicon-16x16.png favicon-32x32.png \
-              apple-touch-icon.png \
-              android-chrome-192x192.png android-chrome-512x512.png \
-              tetris wordle images img css js README.md; do
-            if [ -e "$item" ]; then
-              cp -R "$item" "deploy/"
+          # 1) Copy legacy directories (profile + mini-projects), skip root files to avoid conflicts
+          for dir in tetris wordle images img css js; do
+            if [ -d "$dir" ]; then
+              cp -R "$dir" "deploy/"
             fi
           done
-          # 2) Copy Next.js static export on top (so /novel/* and /index.html redirect take precedence)
+          # Copy only non-conflicting root files
+          for file in site.webmanifest README.md; do
+            if [ -f "$file" ]; then
+              cp "$file" "deploy/"
+            fi
+          done
+          # Copy favicon files (safe)
+          for file in favicon.ico favicon-16x16.png favicon-32x32.png apple-touch-icon.png android-chrome-192x192.png android-chrome-512x512.png; do
+            if [ -f "$file" ]; then
+              cp "$file" "deploy/"
+            fi
+          done
+          # 2) Copy Next.js static export (provides /novel/* routes and pages)
           cp -R web/out/. deploy/
           # 3) Disable Jekyll on Pages so _next/ assets are served untouched
           touch deploy/.nojekyll
