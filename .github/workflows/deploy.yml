@@ -65,9 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p deploy
-          # 1) Next.js static export — provides /novel/* and the SPA root redirect
-          cp -R web/out/. deploy/
-          # 2) Overlay legacy static root files (profile + mini-projects)
+          # 1) Overlay legacy static root files first (profile + mini-projects)
           for item in \
               index.html foryou.html hny.html vday.html \
               site.webmanifest favicon.ico \
@@ -79,6 +77,8 @@ jobs:
               cp -R "$item" "deploy/"
             fi
           done
+          # 2) Copy Next.js static export on top (so /novel/* and /index.html redirect take precedence)
+          cp -R web/out/. deploy/
           # 3) Disable Jekyll on Pages so _next/ assets are served untouched
           touch deploy/.nojekyll
 

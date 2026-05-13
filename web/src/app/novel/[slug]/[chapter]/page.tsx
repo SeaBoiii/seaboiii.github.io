@@ -37,9 +37,6 @@ export default async function ChapterPage({
   return (
     <>
       <ReaderPrefsBoot />
-      <a href="#main" className="skip-link">
-        Skip to chapter
-      </a>
       <ChapterReader
         novelSlug={novel.slug}
         novelTitle={novel.title}

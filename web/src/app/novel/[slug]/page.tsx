@@ -35,9 +35,6 @@ export default function NovelDetailPage({ params }: { params: { slug: string } }
 
   return (
     <>
-      <a href="#chapters" className="skip-link">
-        Skip to chapter list
-      </a>
       <Header
         crumbs={[
           { label: "All Novels", href: "/novel/" },

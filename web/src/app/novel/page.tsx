@@ -12,9 +12,6 @@ export default function NovelLandingPage() {
   const novels = getAllNovels();
   return (
     <>
-      <a href="#main" className="skip-link">
-        Skip to library
-      </a>
       <Header crumbs={[{ label: "All Novels" }]} />
       <main id="main" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <section className="mb-10 max-w-3xl">
