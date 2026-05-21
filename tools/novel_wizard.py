@@ -824,7 +824,7 @@ def sync_relationship_badges_in_novels_index() -> dict:
         discovery_row = soup.new_tag("div", attrs={"class": ["meta-row", "meta-row-discovery"]})
 
         def _append_discovery_chip(kind: str, value: str):
-            label = str(value or "").strip()
+            label = str(value or "").strip().lower()
             if not label:
                 return
             classes = ["novel-discovery-chip", f"novel-discovery-chip-{kind}"]
