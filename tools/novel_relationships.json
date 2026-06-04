@@ -72,5 +72,9 @@
     "relation_type": "sequel",
     "series_id": "two-seats",
     "series_label": "Two Seats"
+  },
+  "where-we-learned-to-stay": {
+    "related_to": "the-seats-we-left-empty",
+    "relation_type": "sequel"
   }
 }
