@@ -4,9 +4,7 @@ Title: The Last Stranger
 novel: the-last-stranger
 status: Complete
 blurb: >-
-  A bittersweet one-sentence blurb:
-  
-  **After months of silence, blocked accounts, and separate futures, Farid and Cindy accidentally re-meet on Omegle at two in the morning—only to discover that some goodbyes still need a voice.**
+  After months of silence, blocked accounts, and separate futures, Farid and Cindy accidentally re-meet on Omegle at two in the morning—only to discover that some goodbyes still need a voice.
 genre: >-
   contemporary romance, bittersweet novella, second-chance-adjacent, emotional drama
 tone: >-
