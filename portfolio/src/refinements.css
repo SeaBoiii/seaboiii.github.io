@@ -1,0 +1,239 @@
+/* Refinements from the first rendered desktop/mobile review. */
+.hero-static-core {
+  position: absolute;
+  inset: 0;
+}
+[data-enhanced="true"] .hero-static-core {
+  visibility: hidden;
+}
+.project-ownership {
+  margin-top: 24px;
+}
+.project-ownership h4 {
+  font-size: 10px;
+  color: var(--accent-ink);
+  margin-bottom: 8px;
+}
+.project-ownership p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.classility-window img {
+  width: 103%;
+  max-width: none;
+  height: 117%;
+  object-position: 50% 0;
+}
+.play-potionality .play-image-link > img {
+  width: 103%;
+  max-width: none;
+  height: 117%;
+  object-position: 50% 0;
+}
+.stack-list li {
+  font-size: 11px;
+}
+.project-eyebrow {
+  font-size: 10px;
+}
+.project-evidence h4 {
+  font-size: 10px;
+}
+.hero-kicker {
+  font-size: 11px;
+}
+.hero-description {
+  font-size: 16px;
+}
+.object-label span:first-child,
+.core-toggle {
+  font-size: 11px;
+}
+.hero-coordinate,
+.hero-year,
+.scroll-invitation {
+  font-size: 10px;
+}
+.play-card p {
+  font-size: 14px;
+}
+.play-source,
+.play-card-meta {
+  font-size: 10px;
+}
+.serif-word {
+  font-style: normal;
+}
+.icm-photo {
+  position: absolute;
+  top: 180px;
+  left: 28px;
+  right: 28px;
+  bottom: 82px;
+  overflow: hidden;
+  border: 1px solid #66745c55;
+  z-index: 4;
+}
+.icm-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.visual-switch {
+  position: absolute;
+  bottom: 18px;
+  left: 28px;
+  right: 28px;
+  display: flex;
+  gap: 12px;
+  z-index: 5;
+}
+.visual-switch button {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  min-height: 44px;
+  min-width: 88px;
+  border: 1px solid #66745c;
+  background: transparent;
+  color: #c5cebd;
+  padding: 8px 14px;
+}
+.visual-switch button[aria-pressed="true"] {
+  background: #c3e85b;
+  color: #1b231b;
+  border-color: #c3e85b;
+}
+.visual-switch button:focus-visible {
+  outline-color: #c3e85b;
+}
+@media (max-width: 760px) {
+  .site-header {
+    gap: 12px;
+  }
+  .nav-links {
+    gap: 10px;
+  }
+  .nav-links a {
+    font-size: 12px;
+    min-width: 44px;
+    justify-content: center;
+  }
+  .identity {
+    font-size: 14px;
+    gap: 7px;
+  }
+  .core-fallback {
+    transform: scale(1.15);
+  }
+  .hero-kicker {
+    font-size: 9px;
+  }
+  .hero-description {
+    font-size: 13px;
+  }
+  .object-label span:first-child,
+  .core-toggle {
+    font-size: 10px;
+  }
+  .scroll-invitation {
+    font-size: 9px;
+  }
+  .hero-year {
+    font-size: 8px;
+  }
+  .work-index {
+    gap: 4px 16px;
+  }
+  .work-index a {
+    font-size: 11px;
+    flex-wrap: wrap;
+    align-content: center;
+    line-height: 1.4;
+    position: relative;
+    padding-right: 15px;
+  }
+  .work-index a .arrow {
+    position: absolute;
+    right: 0;
+    top: 13px;
+  }
+  .work-index a > span:first-child {
+    flex-basis: 16px;
+  }
+  .project-ownership p {
+    font-size: 14px;
+  }
+  .project-evidence h4 {
+    font-size: 9px;
+  }
+  .project-eyebrow {
+    font-size: 9px;
+  }
+  .stack-list li {
+    font-size: 10px;
+  }
+  .neural-figure > g:last-child {
+    display: none;
+  }
+  .neural-figure {
+    transform: translateY(8px);
+  }
+  .icm-figure {
+    transform: translateY(17px);
+  }
+  .icm-figure > g:last-child {
+    display: none;
+  }
+  .icm-photo {
+    top: 120px;
+    left: 20px;
+    right: 20px;
+    bottom: 76px;
+  }
+  .visual-switch {
+    bottom: 14px;
+    left: 20px;
+    gap: 10px;
+  }
+  .visual-switch button {
+    font-size: 10px;
+    min-width: 82px;
+    padding: 8px 12px;
+  }
+  .visual-icm .visual-footer {
+    bottom: 14px;
+    background: #242822;
+    padding-top: 8px;
+  }
+  .play-card p {
+    font-size: 12px;
+  }
+  .play-source,
+  .play-card-meta {
+    font-size: 9px;
+  }
+}
+@media (max-width: 380px) {
+  .site-header {
+    gap: 7px;
+  }
+  .nav-links {
+    gap: 7px;
+  }
+  .nav-links a {
+    font-size: 12px;
+  }
+  .identity {
+    font-size: 12px;
+    gap: 5px;
+  }
+  .identity svg {
+    width: 19px;
+  }
+  .hero-year {
+    font-size: 7px;
+  }
+  .hero-kicker {
+    font-size: 8px;
+  }
+}

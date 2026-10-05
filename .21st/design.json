@@ -1,0 +1,42 @@
+{
+  "name": "Aleem Siddique / The Compute Core — second edition",
+  "framework": "React / Vite / TypeScript",
+  "tokens": {
+    "paper": "#F1F0E9",
+    "ink": "#191C1A",
+    "muted": "#646A61",
+    "accent": "#C3E85B",
+    "accentInk": "#344815",
+    "vermilion": "#C7382A",
+    "cobalt": "#284BE8",
+    "onColor": "#FFFFFF",
+    "display": "Instrument Sans Variable",
+    "metadata": "IBM Plex Mono"
+  },
+  "decisions": [
+    {
+      "date": "2026-10-05",
+      "direction": "Precision / The Compute Core",
+      "reason": "Chosen after three documented studies. A layered object expresses connected hardware, AI and web work while semantic native-scroll chapters preserve clarity.",
+      "authority": "User brief requests autonomous research, critique and selection; production remains on a review branch.",
+      "references": ["portfolio/docs/DESIGN_RESEARCH.md", "portfolio/docs/DESIGN_SYSTEM.md"]
+    },
+    {
+      "date": "2026-10-05",
+      "direction": "Expressive colour / one continuous expanding core",
+      "reason": "The user requested more colour, product-led storytelling inspired by Nothing, and a smooth local chip expansion instead of a travelling scene. Vermilion marks the four-project AMD collection and cobalt marks the playground.",
+      "authority": "User-approved implementation plan; keep the existing review-before-deployment workflow.",
+      "references": ["https://nothing.tech/products/headphone-1-pro?Color=White", "portfolio/docs/DESIGN_SYSTEM.md", "portfolio/docs/CONTENT_EVIDENCE.md"]
+    }
+  ],
+  "catalog": {
+    "status": "CLI search attempted; authentication unavailable",
+    "reusedComponents": [],
+    "publicReference": "https://21st.dev/community/components"
+  },
+  "skills": {
+    "frontendDesign": "Installed from anthropics/skills; used for intentional composition and typography.",
+    "music": "Installed from elevenlabs/skills via the requested skills CLI workflow; shared skill lives under ~/.agents/skills/music. One local instrumental was generated with music_v2_5.",
+    "review": "Existing 21st build/review guidance plus actual-browser Playwright and axe checks. No paid 21st generation or retrieved component is claimed."
+  }
+}

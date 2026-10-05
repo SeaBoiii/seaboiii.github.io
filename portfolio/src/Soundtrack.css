@@ -1,0 +1,70 @@
+.soundtrack {
+  display: none;
+  position: relative;
+  flex: none;
+}
+
+[data-enhanced="true"] .soundtrack {
+  display: block;
+}
+
+.soundtrack-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.soundtrack-toggle[aria-pressed="true"] {
+  color: var(--paper, #f1f0e9);
+  background: var(--ink, #191c1a);
+  border-color: var(--ink, #191c1a);
+}
+
+.soundtrack-toggle[data-loading="true"] {
+  border-style: dashed;
+}
+
+.soundtrack-toggle:focus-visible {
+  outline: 2px solid var(--accent-ink, #344815);
+  outline-offset: 4px;
+}
+
+.soundtrack-error {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(260px, calc(100vw - 48px));
+  padding: 12px;
+  border: 1px solid var(--ink, #191c1a);
+  color: var(--ink, #191c1a);
+  background: var(--paper, #f1f0e9);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.soundtrack audio {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .soundtrack-toggle {
+    padding: 10px;
+  }
+
+  .soundtrack-label {
+    display: none;
+  }
+}

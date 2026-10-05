@@ -1,19 +1,8 @@
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/SeaBoiii/seaboiii.github.io">
-    <img src="img/A1E3M-logos_black.png" alt="Logo" width="500" height="500">
-  </a>
+# Aleem Siddique — Engineering portfolio
 
-<h3 align="center">My Portfolio Website</h3>
+The root experience is **The Compute Core**: an independent React/Vite portfolio with procedural 3D, evidence-based case studies and a complete semantic HTML fallback. It builds from `portfolio/` and deploys over the existing root while preserving the Next.js novel reader and standalone routes.
 
-  <p align="center">
-    A website to display everything about me!
-    <br />
-    <br />
-    <br />
-  </p>
-</div>
+See [portfolio setup and quality checks](portfolio/README.md), [design research](portfolio/docs/DESIGN_RESEARCH.md), and [route preservation](portfolio/docs/ROUTE_INVENTORY.md). The old root `index.html` is retained as legacy source; the production landing page comes from `portfolio/dist/index.html`.
 
 # SeaBoiii.github.io
 
@@ -71,7 +60,7 @@ pip install pillow beautifulsoup4
 - `tools/add_front_matter.py`, `tools/fix_front_matter.py`: front-matter maintenance
 
 ## Development Notes
-This is a static site. You can open `index.html` directly or serve the repo with any static file server.
+Use `npm run dev --prefix portfolio` for the portfolio. Build both frontends and run the deployment assembly script for a complete local preview; see `portfolio/README.md`. Opening root `index.html` directly shows the archived legacy source.
 
 ## Contact
 [![LinkedIn][linkedin-shield]][linkedin-url]
