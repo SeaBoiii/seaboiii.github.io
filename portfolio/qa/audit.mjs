@@ -23,6 +23,8 @@ const viewports = [
 ];
 const captureIds = [
   "hero",
+  "core",
+  "amd-collection",
   "journey",
   "project-tiny-ai",
   "project-rover",
@@ -47,7 +49,8 @@ async function runScenario(viewport, mode = "standard") {
     reducedMotion: mode === "reduced-motion" ? "reduce" : "no-preference",
   });
   await context.addInitScript(
-    ({ disableWebGL }) => {
+    ({ disableWebGL, saveData }) => {
+      if (saveData) Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true });
       if (disableWebGL) {
         const getContext = HTMLCanvasElement.prototype.getContext;
         HTMLCanvasElement.prototype.getContext = function (type, ...args) {
@@ -125,7 +128,7 @@ async function runScenario(viewport, mode = "standard") {
         { durationThreshold: 16 },
       );
     },
-    { disableWebGL: mode === "webgl-unavailable" },
+    { disableWebGL: mode === "webgl-unavailable", saveData: mode === "data-saving" },
   );
 
   const page = await context.newPage();
@@ -192,7 +195,7 @@ async function runScenario(viewport, mode = "standard") {
   const overflow = [];
   const screenshots = [];
   const ids =
-    scope === "targeted" ? ["hero", "project-icm-buddy", "contact"] : mode === "standard" ? captureIds : ["hero", "project-tiny-ai", "contact"];
+    scope === "targeted" ? ["hero", "core", "amd-collection", "contact"] : mode === "standard" ? captureIds : ["hero", "core", "amd-collection", "contact"];
   for (const id of ids) {
     const section = page.locator(`#${id}`);
     if (!(await section.count())) {
@@ -397,57 +400,26 @@ async function runScenario(viewport, mode = "standard") {
         (await page.locator("#project-icm-buddy .icm-photo img").isVisible()),
     );
   }
-  const toggle = page.locator("#core-toggle");
-  if ((await toggle.count()) && (await toggle.isVisible())) {
-    await toggle.focus();
-    const before = await toggle.getAttribute("aria-expanded");
-    await page.keyboard.press("Enter");
-    const after = await toggle.getAttribute("aria-expanded");
-    check(
-      "core detail control works by keyboard",
-      before !== after && ["true", "false"].includes(after),
-      { before, after },
-    );
-    // Focusing a distant control can start native smooth scrolling. Measure
-    // demand-render rest after that browser movement has actually stopped.
-    await page.evaluate(
-      () =>
-        new Promise((resolve) => {
-          let previous = scrollY,
-            stable = 0;
-          const started = performance.now();
-          const sample = () => {
-            stable = Math.abs(scrollY - previous) < 0.5 ? stable + 1 : 0;
-            previous = scrollY;
-            if (stable >= 8 || performance.now() - started > 2500) resolve();
-            else requestAnimationFrame(sample);
-          };
-          requestAnimationFrame(sample);
-        }),
-    );
-    await page.waitForTimeout(600);
-    computeDiagnostics = await page.evaluate(() =>
-      window.__computeDiagnostics ? { ...window.__computeDiagnostics } : null,
-    );
-    if (computeDiagnostics) {
-      check(
-        "WebGL DPR is bounded",
-        computeDiagnostics.dpr <= 1.5,
-        computeDiagnostics,
-      );
-      check(
-        "WebGL comes to rest after interaction",
-        computeDiagnostics.rendering === "resting",
-        computeDiagnostics,
-      );
-      const drawsBeforeRest = await page.evaluate(() => window.__portfolioAudit.webglDraws);
-      await page.waitForTimeout(350);
-      const drawsAfterRest = await page.evaluate(() => window.__portfolioAudit.webglDraws);
-      check("resting scene does not keep drawing", drawsBeforeRest === drawsAfterRest, { drawsBeforeRest, drawsAfterRest });
-    }
-    await page.keyboard.press("Enter");
+  await page.locator("#core").evaluate((element) => {
+    const sticky = element.querySelector(".core-sticky");
+    const top = parseFloat(getComputedStyle(sticky).top) || 0;
+    window.scrollTo({ top: element.getBoundingClientRect().top + scrollY - top + (element.offsetHeight - sticky.offsetHeight) * 0.5, behavior: "instant" });
+  });
+  await page.waitForTimeout(800);
+  computeDiagnostics = await page.evaluate(() => window.__computeDiagnostics ? structuredClone(window.__computeDiagnostics) : null);
+  if (computeDiagnostics) {
+    check("WebGL DPR is bounded", computeDiagnostics.dpr <= 1.5, computeDiagnostics);
+    check("WebGL comes to rest after scrolling", computeDiagnostics.rendering === "resting", computeDiagnostics);
+    const before = await page.evaluate(() => window.__portfolioAudit.webglDraws);
+    await page.waitForTimeout(350);
+    const after = await page.evaluate(() => window.__portfolioAudit.webglDraws);
+    check("resting scene does not keep drawing", before === after, { before, after });
   }
-  if (mode === "static" || mode === "webgl-unavailable") {
+  check("AMD collection contains all four projects", await page.locator("[data-amd-project]").count() === 4);
+  check("Our Flight is removed", await page.getByText(/Our Flight/i).count() === 0);
+  const audioRequests = await page.evaluate(() => performance.getEntriesByType("resource").filter((entry) => /\.(mp3|wav|ogg)(?:\?|$)/i.test(entry.name)).map((entry) => entry.name));
+  check("music is not requested before explicit activation", audioRequests.length === 0, audioRequests);
+  if (["static", "webgl-unavailable", "reduced-motion", "data-saving"].includes(mode)) {
     check(
       "static fallback retains complete content",
       (await page.locator("h1").isVisible()) ||
@@ -457,6 +429,8 @@ async function runScenario(viewport, mode = "standard") {
       "static fallback has no active WebGL canvas",
       (await page.locator(".core-stage canvas").count()) === 0,
     );
+    const engines = await page.evaluate(() => performance.getEntriesByType("resource").filter((entry) => /ComputeCore|three-fiber|@react-three|three(?:\.module|_)/i.test(entry.name)).map((entry) => entry.name));
+    check("fallback avoids downloading the graphics engine", engines.length === 0, engines);
   }
   if (mode === "reduced-motion") {
     const reduced = await page.evaluate(() => ({
@@ -559,9 +533,9 @@ async function runScenario(viewport, mode = "standard") {
     await page.waitForTimeout(350);
     const drawsAfterOffscreen = await page.evaluate(() => window.__portfolioAudit.webglDraws);
     check("offscreen core pauses rendering", offscreen === "false" && drawsBeforeOffscreen === drawsAfterOffscreen, { offscreen, drawsBeforeOffscreen, drawsAfterOffscreen });
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.locator("#core").scrollIntoViewIfNeeded();
     await page.waitForTimeout(600);
-    check("core returns when hero is visible", await page.locator(".core-stage").getAttribute("data-visible") === "true");
+    check("core returns when its own section is visible", await page.locator(".core-stage").getAttribute("data-visible") === "true");
   }
   const vitals = await page.evaluate(() => {
     const metrics = window.__portfolioAudit;
@@ -690,6 +664,8 @@ async function runWithoutJavaScript(viewport) {
     await page.locator("h1").allTextContents(),
   );
   for (const id of [
+    "core",
+    "amd-collection",
     "journey",
     "project-tiny-ai",
     "project-rover",
@@ -730,13 +706,14 @@ async function runWithoutJavaScript(viewport) {
     "no active WebGL canvas without JavaScript",
     (await page.locator("canvas").count()) === 0,
   );
+  check("optional audio control stays hidden without JavaScript", !(await page.locator(".soundtrack-toggle").isVisible()));
   check(
     "no HTTP errors without JavaScript",
     badResponses.length === 0,
     badResponses,
   );
   const screenshots = [];
-  for (const id of ["hero", "project-icm-buddy", "contact"]) {
+  for (const id of ["hero", "core", "amd-collection", "contact"]) {
     const section = page.locator(`#${id}`);
     if (!(await section.count())) continue;
     await section.scrollIntoViewIfNeeded();
@@ -780,7 +757,7 @@ try {
     }
   } else {
     for (const viewport of viewports) await runScenario(viewport);
-    for (const mode of ["reduced-motion", "static", "webgl-unavailable"]) {
+    for (const mode of ["reduced-motion", "static", "webgl-unavailable", "data-saving"]) {
       await runScenario(desktop, mode);
       await runScenario(viewports[2], mode);
     }

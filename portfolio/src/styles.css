@@ -1024,21 +1024,6 @@ ul {
   color: #819b66;
   transform: rotate(12deg);
 }
-.illustration-our-flight {
-  background: #ccd7d7;
-  color: #384946;
-}
-.flight-route {
-  font-size: 38px;
-  font-weight: 500;
-  letter-spacing: -0.05em;
-}
-.flight-route > span {
-  display: inline-block;
-  transform: translateY(-8px);
-  padding: 0 18px;
-  color: #758f85;
-}
 .playground-more {
   margin-top: 60px;
 }
@@ -1755,12 +1740,7 @@ ul {
     bottom: 20px;
     letter-spacing: 0.04em;
   }
-  .flight-route {
-    font-size: 21px;
-  }
-  .flight-route > span {
-    padding: 0 5px;
-  }
+
   .playground-more {
     font-size: 12px;
     min-height: 44px;

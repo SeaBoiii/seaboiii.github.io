@@ -4,6 +4,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  type RefObject,
   type ReactNode,
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
@@ -19,6 +20,7 @@ import {
   Float32BufferAttribute,
   Group,
   InstancedMesh,
+  LineBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   OrthographicCamera,
@@ -51,13 +53,18 @@ type Diagnostics = {
   dpr: number;
   rendering: "settling" | "resting";
   procedural: true;
+  progress: number;
+  layers: { lid: number; die: number; frame: number; connections: number };
 };
 declare global {
   interface Window {
     __computeDiagnostics?: Diagnostics;
   }
 }
-const PROJECT_TINTS = [0xc3e85b, 0xb4c8c4, 0xd7c89e, 0xaed4ad] as const;
+const ease = (value: number) => {
+  const t = Math.max(0, Math.min(1, value));
+  return t * t * (3 - 2 * t);
+};
 
 /** No GPU, slow connection, or a genuinely small device gets the authored SVG. */
 function deviceTier(): Tier {
@@ -163,7 +170,7 @@ function makeTraces(tier: Tier): Instance[] {
   for (let i = 0; i < routes; i++) {
     const x = -1.32 + (i * 2.62) / (routes - 1);
     const offset = 0.18 + (i % 3) * 0.05;
-    const colour = i % 4 === 0 ? "#c3e85b" : "#697e67";
+    const colour = i % 4 === 0 ? "#d0f46b" : "#516fe8";
     for (const sign of [-1, 1]) {
       traces.push({
         x,
@@ -232,7 +239,7 @@ function makeTopology(tier: Tier): Instance[] {
         w: 1.3 / cols,
         h: 0.022 + (band === 1 ? 0.012 : 0),
         d: 0.85 / rows,
-        colour: ["#536259", "#8d9a8a", "#344d3c"][band],
+        colour: ["#f06c4b", "#dc4a30", "#b63320"][band],
       });
     }
   return tiles;
@@ -244,12 +251,16 @@ function Instances({
   colour = "#b7b8a6",
   metalness = 0.7,
   roughness = 0.35,
+  materialRef,
+  opacity = 1,
 }: {
   items: Instance[];
   geometry: BoxGeometry;
   colour?: string;
   metalness?: number;
   roughness?: number;
+  materialRef?: RefObject<MeshStandardMaterial | null>;
+  opacity?: number;
 }) {
   const ref = useRef<InstancedMesh>(null);
   useLayoutEffect(() => {
@@ -269,7 +280,13 @@ function Instances({
   }, [items, colour]);
   return (
     <instancedMesh ref={ref} args={[geometry, undefined, items.length]}>
-      <meshStandardMaterial metalness={metalness} roughness={roughness} />
+      <meshStandardMaterial
+        ref={materialRef}
+        metalness={metalness}
+        roughness={roughness}
+        transparent={opacity < 1}
+        opacity={opacity}
+      />
     </instancedMesh>
   );
 }
@@ -394,23 +411,17 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
     plate = useRef<Group>(null),
     die = useRef<Group>(null),
     wafer = useRef<Group>(null),
-    network = useRef<Group>(null);
-  const accent = useRef<MeshStandardMaterial>(null);
+    network = useRef<Group>(null),
+    guides = useRef<Group>(null);
+  const wires = useRef<LineBasicMaterial>(null);
+  const guideMaterial = useRef<LineBasicMaterial>(null);
+  const nodesMaterial = useRef<MeshStandardMaterial>(null);
+  const signalsMaterial = useRef<MeshStandardMaterial>(null);
   const callback = useRef({ onReady, onFailure });
   callback.current = { onReady, onFailure };
   const readyFrame = useRef(0),
     ready = useRef(false);
-  const state = useRef({
-    separation: 0,
-    network: 0,
-    yaw: -0.38,
-    tilt: 0,
-    scale: 1,
-    offset: 0,
-    waferTilt: 0,
-    dieShift: 0,
-  });
-  const colourTarget = useMemo(() => new Color("#c3e85b"), []);
+  const state = useRef({ progress: scrollSignal.progress });
   const diagnostics = useMemo<Diagnostics>(
     () => ({
       tier,
@@ -421,6 +432,8 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
       dpr: gl.getPixelRatio(),
       rendering: "resting",
       procedural: true,
+      progress: 0,
+      layers: { lid: 0.35, die: 0.075, frame: -0.015, connections: 0 },
     }),
     [tier, gl],
   );
@@ -428,7 +441,18 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
     const base = slab(3.65, 2.65, 0.22, true),
       silver = slab(3.28, 2.3, 0.17, true, true),
       silicon = slab(1.88, 1.4, 0.14),
-      glass = slab(2.25, 1.78, 0.018);
+      glass = slab(3.26, 2.3, 0.06);
+    const guideGeometry = new BufferGeometry();
+    guideGeometry.setAttribute(
+      "position",
+      new Float32BufferAttribute(
+        [
+          -1.4, 0, -0.91, -1.4, 1, -0.91, -1.4, 0, 0.91, -1.4, 1, 0.91, 1.4, 0,
+          -0.91, 1.4, 1, -0.91, 1.1, 0, 0.91, 1.1, 1, 0.91,
+        ],
+        3,
+      ),
+    );
     return {
       base,
       silver,
@@ -443,6 +467,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
       shadow: grounding(),
       brushed: brushedMetal(),
       net: networkGeometry(),
+      guideGeometry,
     };
   }, [tier]);
   const screws = useMemo<Instance[]>(
@@ -457,9 +482,8 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
 
   useLayoutEffect(() => {
     const cam = camera as OrthographicCamera;
-    cam.zoom =
-      Math.min(size.width, size.height) / (tier === "high" ? 5.2 : 5.05);
-    cam.lookAt(0, 0.21, 0);
+    cam.zoom = Math.min(size.width, size.height) / 6.6;
+    cam.lookAt(0, 0.8, 0);
     cam.updateProjectionMatrix();
     invalidate();
   }, [camera, size.width, size.height, tier, invalidate]);
@@ -482,41 +506,17 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
     };
     gl.domElement.addEventListener("webglcontextlost", lost);
     let wasVisible = scrollSignal.visible && !document.hidden;
-    let wasReduced = scrollSignal.reducedMotion;
-    let wasExpanded = scrollSignal.expanded;
-    let previousChapter = scrollSignal.chapter;
-    let previousProject = scrollSignal.project;
     let previousProgress = scrollSignal.progress;
-    let previousPointerX = scrollSignal.pointerX;
-    let previousPointerY = scrollSignal.pointerY;
     const unsubscribe = subscribeToScroll(() => {
-      if (!scrollSignal.expanded) delete window.__computeDiagnostics;
       const visible = scrollSignal.visible && !document.hidden;
-      // Moving the DOM anchor does not change pixels inside the canvas. Only
-      // signals used by the current pose need a GPU frame; reduced motion keeps
-      // its assembly unchanged while native page scrolling carries the figure.
-      const poseChanged =
-        scrollSignal.reducedMotion !== wasReduced ||
-        scrollSignal.expanded !== wasExpanded ||
-        (!scrollSignal.reducedMotion &&
-          (scrollSignal.chapter !== previousChapter ||
-            (scrollSignal.chapter === 3 &&
-              scrollSignal.project !== previousProject) ||
-            (scrollSignal.chapter >= 1 &&
-              scrollSignal.chapter <= 3 &&
-              scrollSignal.progress !== previousProgress) ||
-            (tier === "high" &&
-              (scrollSignal.pointerX !== previousPointerX ||
-                scrollSignal.pointerY !== previousPointerY))));
-      if (visible && (!wasVisible || poseChanged)) invalidate();
+      // Navigation changes and pointer movement never cause a render.
+      if (
+        visible &&
+        (!wasVisible || scrollSignal.progress !== previousProgress)
+      )
+        invalidate();
       wasVisible = visible;
-      wasReduced = scrollSignal.reducedMotion;
-      wasExpanded = scrollSignal.expanded;
-      previousChapter = scrollSignal.chapter;
-      previousProject = scrollSignal.project;
       previousProgress = scrollSignal.progress;
-      previousPointerX = scrollSignal.pointerX;
-      previousPointerY = scrollSignal.pointerY;
     });
     return () => {
       unsubscribe();
@@ -540,6 +540,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
       pieces.shadow.dispose();
       pieces.brushed.dispose();
       pieces.net.geometry.dispose();
+      pieces.guideGeometry.dispose();
     },
     [pieces],
   );
@@ -555,118 +556,58 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
       !network.current
     )
       return;
-    const s = state.current,
-      reduced = scrollSignal.reducedMotion;
-    const chapter = reduced ? 0 : scrollSignal.chapter,
-      p = scrollSignal.progress;
-    const project = Math.max(0, Math.min(3, scrollSignal.project));
-    let separation = 0,
-      networkAmount = 0,
-      yaw = -0.38,
-      tilt = 0,
-      scale = 1,
-      offset = 0,
-      waferTilt = 0,
-      dieShift = 0;
-    if (chapter === 1) {
-      separation = 0.08 + p * 0.12;
-      yaw += p * 0.16;
+    const target = scrollSignal.reducedMotion ? 1 : scrollSignal.progress;
+    const current = state.current.progress;
+    const remaining = Math.abs(target - current);
+    // One damped scalar makes rapid/reverse scrolling continuous without
+    // overshoot. Every layer is a pure function of that same scalar.
+    const progress =
+      remaining < 0.00015
+        ? target
+        : current +
+          (target - current) * (1 - Math.exp(-Math.min(delta, 0.05) * 22));
+    state.current.progress = progress;
+    const lidLift = ease((progress - 0.04) / 0.36);
+    const separation = ease((progress - 0.27) / 0.42);
+    const connection = ease((progress - 0.62) / 0.25);
+    // All motion finishes by .87, leaving a deliberate final inspection hold.
+    const lidY = 0.35 + lidLift * 0.86 + separation * 1.15;
+    const dieY = 0.075 + separation * 1.19;
+    const frameY = -0.015 + separation * 0.48;
+    plate.current.position.y = frameY;
+    die.current.position.y = dieY;
+    wafer.current.position.y = lidY;
+    network.current.visible = connection > 0.001;
+    if (wires.current) wires.current.opacity = connection * 0.6;
+    if (nodesMaterial.current) nodesMaterial.current.opacity = connection;
+    if (signalsMaterial.current) signalsMaterial.current.opacity = connection;
+    if (guides.current) {
+      guides.current.visible = separation > 0.001;
+      guides.current.scale.y = lidY + 0.16;
     }
-    if (chapter === 2) {
-      separation = 0.86 + p * 0.12;
-      yaw = -0.52;
-      scale = 0.92;
-      offset = -0.4;
-    }
-    if (chapter === 3) {
-      separation = 0.42 + p * 0.08;
-      yaw = -0.3 + project * 0.18;
-      scale = 0.95;
-      offset = -0.14;
-      waferTilt = project === 1 ? -0.16 : project === 3 ? 0.12 : 0;
-      dieShift = project === 2 ? 0.25 : 0;
-    }
-    if (chapter === 4) {
-      separation = 0.22;
-      networkAmount = 1;
-      scale = 0.77;
-      yaw = -0.22;
-    }
-    if (chapter === 5) {
-      separation = 0.1;
-      yaw = -0.3;
-      scale = 0.92;
-    }
-    if (chapter === 6) {
-      yaw = -0.24;
-      scale = 0.96;
-    }
-    if (scrollSignal.expanded && !reduced) {
-      separation += 0.48;
-      scale *= 0.9;
-      offset -= 0.1;
-    }
-    if (!reduced && tier === "high") {
-      yaw += scrollSignal.pointerX * 0.035;
-      tilt = scrollSignal.pointerY * 0.018;
-    }
-    const speed = reduced ? 1 : 1 - Math.exp(-Math.min(delta, 0.05) * 18);
-    let remaining = 0;
-    remaining += Math.abs(s.separation - separation);
-    s.separation += (separation - s.separation) * speed;
-    remaining += Math.abs(s.network - networkAmount);
-    s.network += (networkAmount - s.network) * speed;
-    remaining += Math.abs(s.yaw - yaw);
-    s.yaw += (yaw - s.yaw) * speed;
-    remaining += Math.abs(s.tilt - tilt);
-    s.tilt += (tilt - s.tilt) * speed;
-    remaining += Math.abs(s.scale - scale);
-    s.scale += (scale - s.scale) * speed;
-    remaining += Math.abs(s.offset - offset);
-    s.offset += (offset - s.offset) * speed;
-    remaining += Math.abs(s.waferTilt - waferTilt);
-    s.waferTilt += (waferTilt - s.waferTilt) * speed;
-    remaining += Math.abs(s.dieShift - dieShift);
-    s.dieShift += (dieShift - s.dieShift) * speed;
-    root.current.rotation.set(s.tilt, s.yaw, 0);
-    root.current.scale.setScalar(s.scale);
-    root.current.position.y = s.offset;
-    plate.current.position.y = -0.015 + s.separation * 0.43;
-    die.current.position.set(
-      0.13 + s.dieShift,
-      0.075 + s.separation * 0.86,
-      -0.015,
-    );
-    wafer.current.position.y = 0.35 + s.separation * 1.54;
-    wafer.current.rotation.z = s.waferTilt;
-    network.current.visible = s.network > 0.005;
-    network.current.scale.setScalar(Math.max(0.01, s.network));
-    if (accent.current) {
-      colourTarget.setHex(chapter === 3 ? PROJECT_TINTS[project] : 0xc3e85b);
-      remaining +=
-        Math.abs(accent.current.color.r - colourTarget.r) +
-        Math.abs(accent.current.color.g - colourTarget.g) +
-        Math.abs(accent.current.color.b - colourTarget.b);
-      accent.current.color.lerp(colourTarget, speed);
-    }
-    const settling = remaining > 0.0015;
+    if (guideMaterial.current)
+      guideMaterial.current.opacity = separation * 0.32;
+    const settling = Math.abs(target - progress) > 0.00015;
     if (settling) invalidate();
     if (!ready.current) {
       ready.current = true;
-      // Fiber's frame callbacks precede drawing. Notify DOM only after it draws.
+      // Fiber callbacks precede drawing; expose the canvas after it is painted.
       readyFrame.current = requestAnimationFrame(() =>
         callback.current.onReady?.(),
       );
     }
-    if (scrollSignal.expanded) {
-      diagnostics.drawCalls = gl.info.render.calls;
-      diagnostics.triangles = gl.info.render.triangles;
-      diagnostics.geometries = gl.info.memory.geometries;
-      diagnostics.textures = gl.info.memory.textures;
-      diagnostics.dpr = gl.getPixelRatio();
-      diagnostics.rendering = settling ? "settling" : "resting";
-      window.__computeDiagnostics = diagnostics;
-    }
+    diagnostics.drawCalls = gl.info.render.calls;
+    diagnostics.triangles = gl.info.render.triangles;
+    diagnostics.geometries = gl.info.memory.geometries;
+    diagnostics.textures = gl.info.memory.textures;
+    diagnostics.dpr = gl.getPixelRatio();
+    diagnostics.rendering = settling ? "settling" : "resting";
+    diagnostics.progress = progress;
+    diagnostics.layers.lid = lidY;
+    diagnostics.layers.die = dieY;
+    diagnostics.layers.frame = frameY;
+    diagnostics.layers.connections = connection;
+    window.__computeDiagnostics = diagnostics;
   });
 
   return (
@@ -687,7 +628,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
         <group position={[0, -0.19, 0]}>
           <mesh geometry={pieces.base}>
             <meshStandardMaterial
-              color="#27342d"
+              color="#234bd1"
               metalness={0.64}
               roughness={0.36}
             />
@@ -695,7 +636,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
           <Instances
             items={pieces.pins}
             geometry={pieces.unit}
-            colour="#b5b89e"
+            colour="#c4d99a"
             metalness={0.85}
             roughness={0.3}
           />
@@ -750,7 +691,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
         <group ref={die} position={[0.13, 0.075, -0.015]}>
           <mesh geometry={pieces.silicon}>
             <meshStandardMaterial
-              color="#17251d"
+              color="#9e2d1d"
               metalness={0.62}
               roughness={0.29}
             />
@@ -764,8 +705,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
           <mesh position={[-0.19, 0.134, -0.01]}>
             <boxGeometry args={[0.016, 0.009, 1.24]} />
             <meshStandardMaterial
-              ref={accent}
-              color="#c3e85b"
+              color="#e9efa7"
               metalness={0.24}
               roughness={0.38}
             />
@@ -773,7 +713,7 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
           <mesh position={[0.16, 0.134, 0.066]}>
             <boxGeometry args={[1.65, 0.009, 0.016]} />
             <meshStandardMaterial
-              color="#a9ba90"
+              color="#e9efa7"
               metalness={0.35}
               roughness={0.42}
             />
@@ -782,34 +722,55 @@ function CoreScene({ tier, onReady, onFailure }: CoreProps & { tier: Tier }) {
         <group ref={wafer} position={[0, 0.35, 0]}>
           <mesh geometry={pieces.glass} renderOrder={2}>
             <meshStandardMaterial
-              color="#d4ead6"
-              metalness={0.08}
-              roughness={0.22}
+              color="#b8c6d4"
+              metalness={0.28}
+              roughness={0.18}
               transparent
-              opacity={tier === "high" ? 0.16 : 0.12}
+              opacity={tier === "high" ? 0.32 : 0.24}
               depthWrite={false}
               side={DoubleSide}
             />
           </mesh>
           <lineSegments geometry={pieces.glassEdge}>
-            <lineBasicMaterial color="#a6bf9b" transparent opacity={0.6} />
+            <lineBasicMaterial color="#bbc7d4" transparent opacity={0.8} />
+          </lineSegments>
+        </group>
+        <group ref={guides} position={[0, -0.16, 0]} visible={false}>
+          <lineSegments geometry={pieces.guideGeometry}>
+            <lineBasicMaterial
+              ref={guideMaterial}
+              color="#72839e"
+              transparent
+              opacity={0}
+              depthWrite={false}
+            />
           </lineSegments>
         </group>
         <group ref={network} visible={false}>
           <lineSegments geometry={pieces.net.geometry}>
-            <lineBasicMaterial color="#6b845f" transparent opacity={0.65} />
+            <lineBasicMaterial
+              ref={wires}
+              color="#4b69e3"
+              transparent
+              opacity={0}
+              depthWrite={false}
+            />
           </lineSegments>
           <Instances
             items={pieces.net.nodes}
             geometry={pieces.unit}
             metalness={0.55}
             roughness={0.4}
+            materialRef={nodesMaterial}
+            opacity={0}
           />
           <Instances
             items={pieces.net.signals}
             geometry={pieces.unit}
             metalness={0.22}
             roughness={0.5}
+            materialRef={signalsMaterial}
+            opacity={0}
           />
         </group>
       </group>

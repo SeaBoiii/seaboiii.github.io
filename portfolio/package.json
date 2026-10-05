@@ -13,7 +13,9 @@
     "check": "tsc -b",
     "assemble": "node scripts/assemble-deploy.mjs",
     "verify:routes": "node scripts/verify-deploy.mjs",
-    "qa": "node qa/audit.mjs"
+    "qa": "node qa/audit.mjs",
+    "qa:revision": "node qa/revision-audit.mjs",
+    "qa:soundtrack": "node qa/soundtrack-check.mjs"
   },
   "dependencies": {
     "@fontsource-variable/instrument-sans": "^5.2.8",

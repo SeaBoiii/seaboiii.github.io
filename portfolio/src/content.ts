@@ -3,8 +3,25 @@ export interface ContentLink {
   href: string;
 }
 
+export type FeaturedProjectId =
+  "tiny-ai" | "rover" | "icm-buddy" | "classility";
+export type AmdProjectId =
+  "amd_buildapc" | "amd_personality" | "amd_robotics" | "amd_trainatinyai";
+
+export interface AmdProject {
+  id: AmdProjectId;
+  title: string;
+  category: string;
+  description: string;
+  figure: string;
+  figureLabel: string;
+  source: string;
+  live?: string;
+  caseStudyId?: FeaturedProjectId;
+}
+
 export interface FeaturedProject {
-  id: string;
+  id: FeaturedProjectId;
   title: string;
   eyebrow: string;
   summary: string;
@@ -17,6 +34,8 @@ export interface FeaturedProject {
   links: ContentLink[];
   year: string;
   visual: "icm" | "ai" | "robotics" | "classility" | "pc";
+  collection?: "amd";
+  collectionProject?: AmdProjectId;
 }
 
 export interface CareerMilestone {
@@ -85,6 +104,8 @@ export const featuredProjects: FeaturedProject[] = [
     ],
     year: "2026",
     visual: "ai",
+    collection: "amd",
+    collectionProject: "amd_trainatinyai",
   },
   {
     id: "rover",
@@ -114,6 +135,8 @@ export const featuredProjects: FeaturedProject[] = [
     ],
     year: "2026",
     visual: "robotics",
+    collection: "amd",
+    collectionProject: "amd_robotics",
   },
   {
     id: "icm-buddy",
@@ -171,6 +194,53 @@ export const featuredProjects: FeaturedProject[] = [
     ],
     year: "2026",
     visual: "classility",
+  },
+];
+
+export const amdProjects: AmdProject[] = [
+  {
+    id: "amd_buildapc",
+    title: "AMD Chip Challenge",
+    category: "Hardware trade-offs",
+    description:
+      "Choose components within a 900-point budget, run an AI mission test, and see how each part changes the outcome.",
+    figure: "900",
+    figureLabel: "POINTS TO BUILD WITH",
+    source: "https://github.com/SeaBoiii/amd_buildapc",
+  },
+  {
+    id: "amd_personality",
+    title: "silicon·self",
+    category: "Personality, in silicon",
+    description:
+      "Twenty questions map four personality dimensions to sixteen silicon-inspired archetypes, with shareable links and downloadable cards.",
+    figure: "16",
+    figureLabel: "ARCHETYPES TO DISCOVER",
+    source: "https://github.com/SeaBoiii/amd_personality",
+    live: "https://seaboiii.github.io/amd_personality/",
+  },
+  {
+    id: "amd_robotics",
+    title: "AI Rover Challenge",
+    category: "Sense. Think. Move.",
+    description:
+      "Build a virtual rover, train its classifier, and write control rules. Five missions reveal how the whole system behaves.",
+    figure: "05",
+    figureLabel: "MISSIONS TO WORK THROUGH",
+    source: "https://github.com/SeaBoiii/amd_robotics",
+    live: "https://seaboiii.github.io/amd_robotics/",
+    caseStudyId: "rover",
+  },
+  {
+    id: "amd_trainatinyai",
+    title: "Train a Tiny AI",
+    category: "Learning, made visible",
+    description:
+      "Teach a classifier with your drawings, then test new ones. A separate ONNX model makes the available compute backend visible.",
+    figure: "DRAW",
+    figureLabel: "TEACH → TEST → UNDERSTAND",
+    source: "https://github.com/SeaBoiii/amd_trainatinyai",
+    caseStudyId: "tiny-ai",
   },
 ];
 
@@ -238,26 +308,6 @@ export const playgroundProjects: PlaygroundProject[] = [
     accent: "sage",
   },
   {
-    id: "chip-challenge",
-    title: "Build a PC",
-    category: "Interfaces",
-    description:
-      "A STEM booth game about component budgets and hardware trade-offs.",
-    href: "https://github.com/SeaBoiii/amd_buildapc",
-    code: "https://github.com/SeaBoiii/amd_buildapc",
-    accent: "amber",
-  },
-  {
-    id: "our-flight",
-    title: "Our Flight",
-    category: "Interfaces",
-    description:
-      "A bilingual invitation with a flight narrative and practical RSVP flow.",
-    href: "https://github.com/SeaBoiii/our_flight",
-    code: "https://github.com/SeaBoiii/our_flight",
-    accent: "sky",
-  },
-  {
     id: "visual-novel",
     title: "Visual Novel",
     category: "Stories",
@@ -293,7 +343,7 @@ export const playgroundProjects: PlaygroundProject[] = [
     title: "Tetris",
     category: "Games",
     description: "A familiar game loop, rebuilt for the browser.",
-    href: "/tetris/",
+    href: "https://seaboiii.github.io/tetris/",
     code: "https://github.com/SeaBoiii/tetris",
     image: "/portfolio-assets/media/tetris.webp",
     accent: "sky",

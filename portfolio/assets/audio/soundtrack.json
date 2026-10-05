@@ -1,0 +1,22 @@
+{
+  "title": "Quiet mechanisms",
+  "provider": "ElevenLabs",
+  "model": "music_v2_5",
+  "requestedDurationMs": 60000,
+  "forceInstrumental": true,
+  "requestedOutputFormat": "mp3_48000_128",
+  "prompt": "An understated instrumental ambient electronic soundtrack for an engineering portfolio. 60 seconds at a steady 80 BPM. Soft rounded synthesizer pulses, warm sustained pads, sparse delicate mechanical percussion, subtle brushed metallic ticks and a gentle low bass. Spacious, precise, curious and calm. Consistent quiet energy throughout, no build-ups, no drops, no dramatic crescendo, no vocals or spoken words. Keep a simple repeating harmonic bed and a restrained beat. The last bar should return naturally to the opening harmony and pulse for a smooth loop, with no final sting or abrupt ending.",
+  "generationDate": "2026-10-05",
+  "generationAttempts": 1,
+  "status": "generated-and-verified",
+  "file": "quiet-mechanisms.mp3",
+  "bytes": 960429,
+  "sha256": "5693274089743a99a777588bc955a55d69b482f2d955315ea4787a5aa5dde6c3",
+  "decodedDurationSeconds": 60.024,
+  "decodedSampleRateHz": 48000,
+  "channels": 2,
+  "decodedPeak": 0.8957480788230896,
+  "boundarySampleJump": 0.000006383564596035285,
+  "playback": "User initiated only; loop; volume 0.25; no stored preference; pause when the page is hidden.",
+  "verification": "Chromium decoded the complete stereo MP3 and verified actual loop wrap. Playback checks passed for zero initial audio requests, deliberate activation, volume, toggle, pending-play cancellation, network error and retry, pagehide pause, simulated document visibility pause, and unmount cleanup. The low waveform boundary jump does not establish perceptual seamlessness; this environment has not subjectively auditioned the track."
+}

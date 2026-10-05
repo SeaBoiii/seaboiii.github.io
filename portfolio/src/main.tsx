@@ -4,6 +4,7 @@ import "./fonts.css";
 import App from "./App";
 import "./styles.css";
 import "./refinements.css";
+import "./revision.css";
 
 const root = document.getElementById("root")!;
 const app = (

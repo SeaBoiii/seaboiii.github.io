@@ -21,9 +21,9 @@ Four projects receive case-study prominence. Recent work leads; the physical pro
 | ICM Buddy / FYP | Featured / third | [README](https://github.com/SeaBoiii/FYP#readme), [firmware](https://github.com/SeaBoiii/FYP/blob/main/Motor_ICM/Motor_ICM.ino), [report](https://github.com/SeaBoiii/FYP/blob/main/.documents/ICM_Buddy_Final_Report.pdf). Hardware, firmware, calibration and photographic outputs are unusually concrete evidence. |
 | Classility | Featured / fourth | [README](https://github.com/SeaBoiii/classility#readme), [scoring](https://github.com/SeaBoiii/classility/blob/main/src/lib/scoring.ts), [evaluator](https://github.com/SeaBoiii/classility/blob/main/src/lib/evaluator.ts). Deterministic logic, content modelling and share-card presentation add a distinct interface story. |
 | Lyon 2.0 | Journey milestone | [NTU announcement](https://www.ntu.edu.sg/news/detail/ntu-singapore-and-google-cloud-develop-new-rapid-response-virtual-assistant-to-help-address-freshmen-queries), [NTU-hosted coverage naming Aleem](https://www3.ntu.edu.sg/CorpComms2/Documents/2020/07_Jul/TechXplore_200722_NTU%20and%20google%20launches%20chatbot.pdf). Team contribution and launch are documented. Public evidence does not specify Aleem's exact personal deliverables, so this is a conservative contributor milestone. |
-| Build a PC | Playground | [README](https://github.com/SeaBoiii/amd_buildapc#readme). A good educational UI but overlaps the first two cases. Source describes an educational, AMD-inspired demo, not an official configurator. |
+| AMD Chip Challenge / Build a PC | AMD collection | [README](https://github.com/SeaBoiii/amd_buildapc#readme). Component selection within a 900-point budget followed by mission tests. Source describes an educational, AMD-inspired demo, not an official configurator. |
+| silicon·self | AMD collection | [README](https://github.com/SeaBoiii/amd_personality#readme). Twenty questions score four axes into sixteen silicon-inspired archetypes. The browser generates shareable result links and downloadable cards. |
 | Potionality | Playground | [README](https://github.com/SeaBoiii/potionality#readme). Data-driven weighted/conditional outcomes and Canvas share cards are useful experiments; featuring it alongside Classility would repeat the quiz narrative. |
-| Our Flight | Playground / source link | [README](https://github.com/SeaBoiii/our_flight#readme). A strong bilingual invitation and RSVP continuity implementation. The guest experience is intentionally access-code-based, so the portfolio sends visitors to the public project source without exposing private guest details. |
 
 ### Case-study claim boundaries
 
@@ -57,11 +57,23 @@ Java is retained in the journey, supported by Minecraft plugin source. Tool name
 
 ## Playground selection and routes
 
-The data includes eight deliberately smaller entries: Potionality, Build a PC, Our Flight, Visual Novel, Age of War, Nizam, Tetris and Novels Library. These cover interfaces, games and stories. Wordle and MMORPG remain existing destinations but do not receive equal homepage weight.
+The second-edition playground includes six smaller entries: Potionality, Visual Novel, Age of War, Nizam, Tetris and Novels Library. These cover interfaces, games and stories. Build a PC belongs to the AMD collection, avoiding a duplicate card. Wordle and MMORPG remain existing destinations but do not receive equal homepage weight.
 
 Project descriptions are grounded in the individual public READMEs or existing homepage descriptions. Further primary links: [Visual Novel](https://github.com/SeaBoiii/visual_novel), [Age of War](https://github.com/SeaBoiii/age_of_war), [Nizam](https://github.com/SeaBoiii/nizam), [Tetris](https://github.com/SeaBoiii/tetris), [novel reader source](https://github.com/SeaBoiii/seaboiii.github.io/tree/main/web). Existing `images/hub/*-site.png` files are real project screenshots and can be used as supporting imagery. They should be visually checked rather than assumed to reflect the latest project version.
 
-Public route checks during research returned HTTP 200 for Classility, Potionality and AI Rover Challenge. Guessed `seaboiii.github.io/amd_trainatinyai/` and `/amd_buildapc/` URLs returned 404, so those projects intentionally expose source links only. Our Flight uses a separate configured invitation domain in its README; no guessed GitHub Pages link is used. The root's existing `/novel/` and `/tetris/` paths must be preserved by deployment.
+Public route checks returned HTTP 200 for Classility, Potionality, AI Rover Challenge and silicon·self. Checks repeated during the 5 October 2026 revision confirmed 200 for Classility, Rover and silicon·self, and 404 for `seaboiii.github.io/amd_trainatinyai/` and `/amd_buildapc/`. Tiny AI and Build a PC therefore expose source links, with an additional local case study for Tiny AI. The root's existing `/novel/` and `/tetris/` paths must be preserved by deployment.
+
+## Complete AMD collection
+
+The collection contains the four inspected public `amd_` repositories: `amd_buildapc`, `amd_personality`, `amd_robotics` and `amd_trainatinyai`. Tiny AI and Rover retain detailed cases and link to them from the collection; Classility remains a distinct fourth featured case.
+
+The card figures are source-grounded descriptions: **900** is the Build a PC budget, **16** is silicon·self's archetype count, **05** is Rover's mission count, and **DRAW / TEACH → TEST → UNDERSTAND** describes Tiny AI's learning flow. They are not adoption, benchmark or outcome metrics. These are presented as AMD-inspired experiments; repository names do not imply employer affiliation or endorsement. silicon·self's README explicitly calls the project unofficial and fan-made.
+
+## Generated asset provenance
+
+The About illustration is an original OpenAI-generated exploded compute module with graphite/silver enclosure, red silicon, cobalt board and lime details. It is an imagined editorial object, not a photograph or technical diagram of a specific product. The source PNG is tracked under `assets/images/compute-core-exploded-v2.png` (1254 × 1254, 1,712,964 bytes). The media script derives a transparent 1200 × 1200 WebP (206,344 bytes). `assets/images/README.md` records origin, hash and art direction; it deliberately does not invent an unavailable exact prompt/model identifier.
+
+“Quiet mechanisms” was generated once with ElevenLabs `music_v2_5`, using the requested 60-second, approximately 80 BPM instrumental direction. The tracked MP3 is 960,429 bytes; `assets/audio/soundtrack.json` records the actual prompt, model, output request and verification state. Its generated structure is not presented as an independently measured tempo. Both generated assets are built from local tracked files; no API credentials or generation calls reach production builds or visitors.
 
 ## Contact provenance
 

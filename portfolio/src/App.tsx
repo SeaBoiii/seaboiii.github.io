@@ -3,6 +3,7 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -17,7 +18,9 @@ import {
 } from "./content";
 import CoreFallback from "./CoreFallback";
 import ProjectVisual from "./ProjectVisual";
-import { connectScroll, notifyScroll, scrollSignal } from "./scrollSignal";
+import { connectScroll } from "./scrollSignal";
+import AmdCollection from "./AmdCollection";
+import Soundtrack from "./Soundtrack";
 
 const ComputeCore = lazy(() => import("./ComputeCore"));
 const Arrow = ({ diagonal = false }: { diagonal?: boolean }) => (
@@ -105,7 +108,7 @@ function Playground() {
             out.
           </p>
         </div>
-        <div className="playground-network" data-core-anchor aria-hidden="true">
+        <div className="playground-network" aria-hidden="true">
           <svg viewBox="0 0 400 200">
             <g fill="none" stroke="currentColor" strokeWidth="1">
               <path d="M40 140 110 55 200 95 270 30 355 85M110 55 115 170 200 95 295 170 355 85M40 140 115 170M270 30 295 170" />
@@ -166,35 +169,13 @@ function Playground() {
               target={project.href.startsWith("http") ? "_blank" : undefined}
               rel="noreferrer"
             >
-              {project.image ? (
-                <img
-                  src={project.image}
-                  alt={`${project.title} interface preview`}
-                  loading="lazy"
-                  width="1366"
-                  height="768"
-                />
-              ) : (
-                <div
-                  className={`play-illustration illustration-${project.id}`}
-                  aria-hidden="true"
-                >
-                  {project.id === "chip-challenge" ? (
-                    <>
-                      <span className="pc-board">▥</span>
-                      <span className="pc-chip">AS</span>
-                      <span className="mono">CHOOSE. BUILD. BALANCE.</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flight-route">
-                        SIN <span>↗</span> US
-                      </span>
-                      <span className="mono">TWO PEOPLE. ONE JOURNEY.</span>
-                    </>
-                  )}
-                </div>
-              )}
+              <img
+                src={project.image}
+                alt={`${project.title} interface preview`}
+                loading="lazy"
+                width="1366"
+                height="768"
+              />
               <span className="play-open" aria-hidden="true">
                 ↗
               </span>
@@ -238,10 +219,24 @@ function Playground() {
 
 export default function App() {
   const stage = useRef<HTMLDivElement>(null);
+  const restoreCorePosition = useRef(false);
   const [loadGraphics, setLoadGraphics] = useState(false);
   const [graphicsReady, setGraphicsReady] = useState(false);
   const [graphicsFailed, setGraphicsFailed] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const handleGraphicsFailure = () => {
+    const rect = document.getElementById("core")?.getBoundingClientRect();
+    const headerHeight = document.querySelector("header")?.offsetHeight ?? 0;
+    restoreCorePosition.current =
+      !!rect && rect.top <= headerHeight + 1 && rect.bottom > headerHeight;
+    setGraphicsFailed(true);
+  };
+  useLayoutEffect(() => {
+    if (!restoreCorePosition.current) return;
+    restoreCorePosition.current = false;
+    document
+      .getElementById("core")
+      ?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [graphicsFailed]);
   useEffect(() => {
     if (!stage.current) return;
     const disconnect = connectScroll(stage.current);
@@ -251,13 +246,15 @@ export default function App() {
     ).connection;
     const memory = (navigator as Navigator & { deviceMemory?: number })
       .deviceMemory;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const shouldLoad =
       params.get("quality") !== "static" &&
+      !motion.matches &&
       !connection?.saveData &&
       !(memory && memory < 4) &&
       navigator.hardwareConcurrency > 2;
     const idle = window.setTimeout(() => {
-      if (!shouldLoad) return;
+      if (!shouldLoad || motion.matches) return;
       // Avoid even downloading the rendering engine when no usable GPU exists.
       try {
         const probe = document
@@ -270,8 +267,16 @@ export default function App() {
         /* The authored core is already rendered with the content. */
       }
     }, 450);
+    const respectMotion = () => {
+      if (!motion.matches) return;
+      clearTimeout(idle);
+      setLoadGraphics(false);
+      setGraphicsReady(false);
+    };
+    motion.addEventListener("change", respectMotion);
     return () => {
       clearTimeout(idle);
+      motion.removeEventListener("change", respectMotion);
       disconnect();
     };
   }, []);
@@ -279,9 +284,10 @@ export default function App() {
     // Preserve old inbound bookmarks while the root narrative changes.
     const aliases: Record<string, string> = {
       main: "hero",
+      statement: "core",
       projects: "work",
       proficiency: "perspective",
-      description: "statement",
+      description: "core",
       announcement: "about",
     };
     const resolve = () => {
@@ -292,12 +298,6 @@ export default function App() {
     window.addEventListener("hashchange", resolve);
     return () => window.removeEventListener("hashchange", resolve);
   }, []);
-  const toggleCore = () => {
-    const next = !expanded;
-    setExpanded(next);
-    scrollSignal.expanded = next;
-    notifyScroll();
-  };
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -327,30 +327,12 @@ export default function App() {
             Contact <span aria-hidden="true">↗</span>
           </a>
         </nav>
+        <Soundtrack />
       </header>
-      <div
-        ref={stage}
-        className={`core-stage ${graphicsReady && !graphicsFailed ? "is-ready" : ""}`}
-        data-quality={loadGraphics && !graphicsFailed ? "webgl" : "static"}
-        aria-hidden="true"
-      >
-        <CoreFallback />
-        {loadGraphics && !graphicsFailed && (
-          <GraphicsBoundary onFailure={() => setGraphicsFailed(true)}>
-            <Suspense fallback={null}>
-              <ComputeCore
-                onReady={() => setGraphicsReady(true)}
-                onFailure={() => setGraphicsFailed(true)}
-              />
-            </Suspense>
-          </GraphicsBoundary>
-        )}
-      </div>
       <main id="main-content">
         <section id="hero" data-chapter="0" className="hero chapter">
           <div className="hero-kicker mono">
-            <span className="status-dot" />
-            ENGINEERING, IN EVERY DIMENSION.
+            <span className="status-dot" /> Engineering, in every dimension.
           </div>
           <div className="hero-composition">
             <div className="hero-copy">
@@ -359,129 +341,117 @@ export default function App() {
                 <br />
                 Siddique<span className="name-stop">.</span>
               </h1>
+            </div>
+            <div className="hero-intro">
+              <div className="discipline-mark" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
               <p className="hero-positioning">
-                Engineer. Builder.
+                Systems.
                 <br />
-                <span>Perpetually curious.</span>
+                Experiments.
+                <br />
+                Experiences.
               </p>
               <p className="hero-description">
-                Building systems, experiments
-                <br /> and experiences.
+                I connect hardware, software and the people using them.
               </p>
-            </div>
-            <div className="hero-object">
-              <div className="core-object-anchor" data-core-anchor>
-                <div className="hero-static-core">
-                  <CoreFallback />
-                </div>
-              </div>
-              <div className="object-label mono">
-                <span>AS—01 / THE COMPUTE CORE</span>
-                <span className="object-label-line" />
-                <span>FORM FOLLOWS CURIOSITY</span>
-              </div>
-              <button
-                id="core-toggle"
-                className="core-toggle mono"
-                aria-expanded={expanded}
-                aria-controls="core-notes"
-                onClick={toggleCore}
-              >
-                <span aria-hidden="true">{expanded ? "−" : "+"}</span>
-                {expanded ? "Assemble core" : "Look inside the core"}
-              </button>
-              <div
-                id="core-notes"
-                className="core-notes mono"
-                hidden={!expanded}
-              >
-                ONE OBJECT. THREE DISCIPLINES.
-                <br />
-                HARDWARE / INTELLIGENCE / INTERACTION.
-              </div>
+              <a className="text-link" href="#work">
+                Explore the work <Arrow />
+              </a>
             </div>
           </div>
           <div className="hero-bottom">
-            <a href="#statement" className="scroll-invitation mono">
-              <span className="scroll-line" />
-              SCROLL TO EXPLORE <Arrow />
+            <a href="#core" className="scroll-invitation mono">
+              <span className="scroll-line" /> Look beneath the surface{" "}
+              <Arrow />
             </a>
-            <span className="mono hero-coordinate">
-              HARDWARE ↔ SOFTWARE ↔ PEOPLE
-            </span>
-            <span className="mono hero-year">SELECTED WORK / 2026</span>
+            <span className="mono hero-year">Selected work / 2026</span>
           </div>
         </section>
-        <section id="statement" data-chapter="1" className="statement chapter">
-          <ChapterLabel number="01">A connected perspective</ChapterLabel>
-          <div className="statement-grid">
-            <div>
-              <h2>
-                {profile.statement.split("tangible.")[0]}
-                <span className="serif-word">tangible.</span>
+        <section
+          id="core"
+          data-chapter="1"
+          className="core-story"
+          aria-labelledby="core-heading"
+          data-rendering={loadGraphics && !graphicsFailed ? "webgl" : "static"}
+        >
+          <div className="core-sticky">
+            <div className="core-narrative">
+              <p className="core-eyebrow mono">
+                One object. Three disciplines.
+              </p>
+              <h2 id="core-heading">
+                Look beneath
+                <br /> the surface.
               </h2>
-              <p>{profile.introduction}</p>
-              <a className="text-link" href="#work">
-                See what that looks like <Arrow />
+              <p className="core-introduction">
+                Good systems make their complexity feel simple. Here’s how I
+                think about the layers.
+              </p>
+              <ol className="core-chapters">
+                <li data-core-step="hardware">
+                  <span className="core-step-index mono">01</span>
+                  <div>
+                    <h3>Hardware</h3>
+                    <p>
+                      The physical foundation. Mechanisms, circuits and precise
+                      control.
+                    </p>
+                  </div>
+                </li>
+                <li data-core-step="intelligence">
+                  <span className="core-step-index mono">02</span>
+                  <div>
+                    <h3>Intelligence</h3>
+                    <p>
+                      Signals become decisions. Models that learn, predict and
+                      respond.
+                    </p>
+                  </div>
+                </li>
+                <li data-core-step="interaction">
+                  <span className="core-step-index mono">03</span>
+                  <div>
+                    <h3>Interaction</h3>
+                    <p>
+                      A clear connection. Interfaces that put people in control.
+                    </p>
+                  </div>
+                </li>
+              </ol>
+              <a href="#work" className="core-skip text-link">
+                Meet the projects <Arrow />
               </a>
             </div>
-            <div
-              className="statement-object"
-              data-core-anchor
-              aria-hidden="true"
-            />
-          </div>
-          <div className="discipline-strip mono">
-            <span>01 / PHYSICAL</span>
-            <span>02 / INTELLIGENT</span>
-            <span>03 / INTERACTIVE</span>
-          </div>
-        </section>
-        <section id="journey" data-chapter="2" className="journey chapter">
-          <div className="section-top">
-            <ChapterLabel number="02">Engineering journey</ChapterLabel>
-            <span className="mono quiet">THE LAYERS BEHIND THE WORK.</span>
-          </div>
-          <div className="journey-grid">
-            <div>
-              <h2>
-                Curiosity.
-                <br />
-                Built over time.
-              </h2>
-              <div className="timeline">
-                {careerMilestones.map((item) => (
-                  <article className="milestone" key={item.year}>
-                    <span className="milestone-year mono">{item.year}</span>
-                    <div>
-                      <h3>{item.title}</h3>
-                      <p className="milestone-role mono">{item.role}</p>
-                      <p>{item.description}</p>
-                      <a
-                        href={item.link.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="milestone-link"
-                      >
-                        {item.link.label} <Arrow diagonal />
-                      </a>
-                    </div>
-                  </article>
-                ))}
+            <div className="core-object">
+              <div
+                ref={stage}
+                className={`core-stage ${graphicsReady && !graphicsFailed ? "is-ready" : ""}`}
+                data-quality={
+                  loadGraphics && !graphicsFailed ? "webgl" : "static"
+                }
+                aria-hidden="true"
+              >
+                <CoreFallback />
+                {loadGraphics && !graphicsFailed && (
+                  <GraphicsBoundary onFailure={handleGraphicsFailure}>
+                    <Suspense fallback={null}>
+                      <ComputeCore
+                        onReady={() => setGraphicsReady(true)}
+                        onFailure={handleGraphicsFailure}
+                      />
+                    </Suspense>
+                  </GraphicsBoundary>
+                )}
+              </div>
+              <div className="core-caption mono">
+                <span>Compute core / exploded study</span>
+                <span className="core-scroll-cue">Scroll to open ↓</span>
               </div>
             </div>
-            <aside className="journey-aside">
-              <div
-                className="journey-object"
-                data-core-anchor
-                aria-hidden="true"
-              />
-              <div className="journey-figure-note mono">
-                EXPLORING THE LAYERS
-                <br />
-                <span>Each system has a story underneath.</span>
-              </div>
-            </aside>
           </div>
         </section>
         <section
@@ -491,7 +461,7 @@ export default function App() {
           data-project="0"
         >
           <div className="section-top">
-            <ChapterLabel number="03">Selected work</ChapterLabel>
+            <ChapterLabel number="02">Selected work</ChapterLabel>
             <span className="mono quiet">
               FOUR SYSTEMS. DIFFERENT CONSTRAINTS.
             </span>
@@ -584,6 +554,56 @@ export default function App() {
             </div>
           </article>
         ))}
+        <AmdCollection />
+        <section id="journey" data-chapter="2" className="journey chapter">
+          <div className="section-top">
+            <ChapterLabel number="03">Engineering journey</ChapterLabel>
+            <span className="mono quiet">THE LAYERS BEHIND THE WORK.</span>
+          </div>
+          <div className="journey-grid">
+            <div>
+              <h2>
+                Curiosity.
+                <br />
+                Built over time.
+              </h2>
+              <div className="timeline">
+                {careerMilestones.map((item) => (
+                  <article className="milestone" key={item.year}>
+                    <span className="milestone-year mono">{item.year}</span>
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p className="milestone-role mono">{item.role}</p>
+                      <p>{item.description}</p>
+                      <a
+                        href={item.link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="milestone-link"
+                      >
+                        {item.link.label} <Arrow diagonal />
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+            <aside className="journey-aside">
+              <p className="journey-pullquote">
+                The tools change.
+                <br />
+                The curiosity stays.
+              </p>
+              <p>
+                From a Minecraft server to systems that move, learn and respond.
+                Every project adds another way to solve a problem.
+              </p>
+              <a className="text-link" href="#about">
+                More about me <Arrow />
+              </a>
+            </aside>
+          </div>
+        </section>
         <section id="perspective" className="perspective chapter">
           <ChapterLabel number="↳">The working toolkit</ChapterLabel>
           <div className="perspective-heading">
@@ -618,7 +638,18 @@ export default function App() {
                 <br />
                 <span className="muted">Still a tinkerer.</span>
               </h2>
-              <div className="about-core" data-core-anchor aria-hidden="true" />
+              <figure className="about-core-image">
+                <img
+                  src="/portfolio-assets/media/compute-core-exploded-v2.webp"
+                  alt="Exploded compute module showing a graphite cover, silver frame, red silicon and cobalt circuit board"
+                  width="1200"
+                  height="1200"
+                  loading="lazy"
+                />
+                <figcaption className="mono">
+                  A little curiosity. Layer by layer.
+                </figcaption>
+              </figure>
             </div>
             <div className="about-copy">
               <p className="about-lead">
@@ -665,7 +696,12 @@ export default function App() {
                 Let’s talk <Arrow diagonal />
               </a>
             </div>
-            <div className="contact-core" data-core-anchor aria-hidden="true" />
+            <p className="contact-note">
+              A new idea.
+              <br />A difficult problem.
+              <br />A different perspective.
+              <span>I’m always interested in what comes next.</span>
+            </p>
           </div>
           <div className="contact-links">
             {contactLinks.map((link) => (

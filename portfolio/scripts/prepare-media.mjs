@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
@@ -15,6 +15,11 @@ const media = [
   ["images/hub/novel-site.png", "novels.webp", 720],
   ["img/a1e3m.jpg", "aleem.webp", 240],
   ["img/icm_buddy.gif", "icm-prototype.webp", 1000],
+  [
+    "portfolio/assets/images/compute-core-exploded-v2.png",
+    "compute-core-exploded-v2.webp",
+    1200,
+  ],
 ];
 // Derived display assets only: all original files and route namespaces survive.
 for (const [source, filename, width] of media) {
@@ -27,7 +32,12 @@ for (const [source, filename, width] of media) {
   await writeFile(new URL(filename, output), buffer);
 }
 console.log(
-  "Prepared nine lightweight portfolio images from existing project evidence.",
+  `Prepared ${media.length} optimized portfolio images from tracked source assets.`,
+);
+// Generated once and committed: builds never contact an audio-generation API.
+await copyFile(
+  new URL("../assets/audio/quiet-mechanisms.mp3", import.meta.url),
+  new URL("quiet-mechanisms.mp3", output),
 );
 const socialSource = new URL(
   "../public/portfolio-assets/social-card.svg",

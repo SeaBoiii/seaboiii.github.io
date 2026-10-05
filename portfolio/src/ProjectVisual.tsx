@@ -301,11 +301,6 @@ export default function ProjectVisual({
           </div>
         </>
       )}
-      <div
-        data-core-anchor
-        className="project-core-anchor"
-        aria-hidden="true"
-      />
       <figcaption className="sr-only">
         {project.visual === "classility"
           ? "Screenshot of the real Classility experience."
