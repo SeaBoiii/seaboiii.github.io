@@ -24,9 +24,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: |
+            web/package-lock.json
+            portfolio/package-lock.json
 
       - name: Install dependencies
         working-directory: web
@@ -41,33 +43,16 @@ jobs:
         working-directory: web
         run: npm run build
 
+      - name: Install portfolio dependencies
+        working-directory: portfolio
+        run: npm ci
+
+      - name: Build portfolio
+        working-directory: portfolio
+        run: npm run build
+
       - name: Assemble deploy directory
-        run: |
-          set -euo pipefail
-          mkdir -p deploy
-          for dir in tetris wordle images img css js; do
-            if [ -d "$dir" ]; then
-              cp -R "$dir" "deploy/"
-            fi
-          done
-          for file in site.webmanifest README.md; do
-            if [ -f "$file" ]; then
-              cp "$file" "deploy/"
-            fi
-          done
-          for file in favicon.ico favicon-16x16.png favicon-32x32.png apple-touch-icon.png android-chrome-192x192.png android-chrome-512x512.png; do
-            if [ -f "$file" ]; then
-              cp "$file" "deploy/"
-            fi
-          done
-          cp -R web/out/. deploy/
-          # Preserve the existing root landing and standalone pages.
-          for file in index.html foryou.html hny.html vday.html; do
-            if [ -f "$file" ]; then
-              cp "$file" "deploy/"
-            fi
-          done
-          touch deploy/.nojekyll
+        run: node portfolio/scripts/assemble-deploy.mjs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

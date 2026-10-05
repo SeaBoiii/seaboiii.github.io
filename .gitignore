@@ -14,3 +14,12 @@ tools/novel_wizard_state.db
 tools/novel_wizard_state.db-*
 *.log
 .codex-preview.out.log
+/portfolio/node_modules/
+/portfolio/dist/
+/portfolio/qa/artifacts/
+/portfolio/artifacts/
+/portfolio/public/portfolio-assets/media/
+/portfolio/tsconfig.tsbuildinfo
+/portfolio/public/portfolio-assets/social-card.png
+/portfolio/.vite/
+/deploy/

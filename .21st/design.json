@@ -1,0 +1,27 @@
+{
+  "name": "Aleem Siddique / The Compute Core",
+  "framework": "React / Vite / TypeScript",
+  "tokens": {
+    "paper": "#F1F0E9",
+    "ink": "#191C1A",
+    "muted": "#646A61",
+    "accent": "#C3E85B",
+    "accentInk": "#344815",
+    "display": "Instrument Sans Variable",
+    "metadata": "IBM Plex Mono"
+  },
+  "decisions": [
+    {
+      "date": "2026-10-05",
+      "direction": "Precision / The Compute Core",
+      "reason": "Chosen after three documented studies. A layered object expresses connected hardware, AI and web work while semantic native-scroll chapters preserve clarity.",
+      "authority": "User brief requests autonomous research, critique and selection; production remains on a review branch.",
+      "references": ["portfolio/docs/DESIGN_RESEARCH.md", "portfolio/docs/DESIGN_SYSTEM.md"]
+    }
+  ],
+  "catalog": {
+    "status": "CLI search attempted; authentication unavailable",
+    "reusedComponents": [],
+    "publicReference": "https://21st.dev/community/components"
+  }
+}
