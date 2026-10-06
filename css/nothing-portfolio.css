@@ -7,7 +7,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 :root {
-  /* Color Palette - Nothing Monochromatic + Technical Accents */
+  /* Color Palette - Nothing Monochromatic + Technical Accents (Black Edition Default) */
   --bg-deep: #070709;
   --bg-surface: #0e0f13;
   --bg-surface-elevated: #15161c;
@@ -45,6 +45,83 @@
   --ease-snappy: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
 }
+
+/* ==========================================================================
+   DUAL COLORWAY: WHITE EDITION (?Color=White Homage)
+   ========================================================================== */
+[data-theme="white"] {
+  --bg-deep: #f6f7f9;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #eceef2;
+  --bg-card: rgba(255, 255, 255, 0.72);
+  --bg-card-hover: rgba(255, 255, 255, 0.92);
+
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-prominent: rgba(0, 0, 0, 0.16);
+  --border-active: rgba(0, 0, 0, 0.38);
+
+  --text-pure: #0a0a0c;
+  --text-primary: #121316;
+  --text-secondary: #5a5d6c;
+  --text-muted: #8b8f9e;
+
+  --glyph-white: #0a0a0c;
+  --glyph-glow: rgba(0, 0, 0, 0.25);
+  --accent-red: #d71920;
+  --accent-red-glow: rgba(215, 25, 32, 0.25);
+  --accent-cyan: #0077b6;
+  --accent-cyan-glow: rgba(0, 119, 182, 0.25);
+
+  --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="white"] .grid-bg-overlay {
+  background-image: 
+    radial-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+  opacity: 0.85;
+}
+
+[data-theme="white"] .model-controls-pill {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="white"] .hud-header {
+  background: rgba(246, 247, 249, 0.85);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="white"] .scrolly-card-panel {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="white"] .bento-card {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="white"] .bento-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="white"] .terminal-window {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="white"] .terminal-titlebar {
+  background: #f0f2f5;
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="white"] .hud-footer {
+  background: rgba(246, 247, 249, 0.95);
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
 
 /* Base Reset */
 *, *::before, *::after {
@@ -342,6 +419,168 @@ body {
     animation-timeline: scroll();
   }
 }
+
+/* --------------------------------------------------------------------------
+   HUD COLORWAY SELECTOR (NOTHING ?Color=White Homage)
+   -------------------------------------------------------------------------- */
+.hud-colorway-selector {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+[data-theme="white"] .hud-colorway-selector {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.colorway-btn {
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-dot);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  transition: all 0.2s var(--ease-snappy);
+}
+
+.colorway-btn:hover {
+  color: var(--text-pure);
+}
+
+.colorway-btn.active {
+  background: var(--text-pure);
+  color: var(--bg-deep);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="white"] .colorway-btn.active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.colorway-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+}
+
+.colorway-swatch.swatch-black {
+  background: #070709;
+}
+
+.colorway-swatch.swatch-white {
+  background: #f6f7f9;
+}
+
+.colorway-btn.active .colorway-swatch.swatch-black {
+  border-color: #ffffff;
+}
+
+.colorway-btn.active .colorway-swatch.swatch-white {
+  border-color: #070709;
+}
+
+/* --------------------------------------------------------------------------
+   3D CALLOUT ANNOTATION PINS (ANCHORED TO THREE.JS COMPONENTS)
+   -------------------------------------------------------------------------- */
+#callouts-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  overflow: hidden;
+}
+
+.callout-pin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(-9999px, -9999px, 0);
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 0.35s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.callout-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-pure);
+  border: 2px solid var(--bg-deep);
+  box-shadow: 0 0 12px var(--glyph-glow);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.callout-dot::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid var(--accent-red);
+  animation: callout-pulse 1.8s infinite ease-out;
+}
+
+@keyframes callout-pulse {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.callout-line {
+  width: 32px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--text-pure), transparent);
+}
+
+.callout-tag {
+  background: rgba(14, 15, 19, 0.88);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+[data-theme="white"] .callout-tag {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.callout-num {
+  font-family: var(--font-dot);
+  font-size: 0.68rem;
+  color: var(--accent-red);
+  font-weight: 700;
+}
+
+.callout-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-pure);
+  letter-spacing: 0.05em;
+}
+
 
 /* --------------------------------------------------------------------------
    PAGE CONTENT WRAPPER & SECTIONS
@@ -793,6 +1032,33 @@ body {
   opacity: 1;
 }
 
+.bento-card-media {
+  width: 100%;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+[data-theme="white"] .bento-card-media {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.bento-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s var(--ease-snappy);
+}
+
+.bento-card:hover .bento-card-media img {
+  transform: scale(1.06);
+}
+
 .bento-card-top {
   display: flex;
   align-items: center;
@@ -887,6 +1153,95 @@ body {
   border-color: var(--border-prominent);
   background: rgba(255, 255, 255, 0.08);
 }
+
+/* --------------------------------------------------------------------------
+   STAGE: AMD SILICON & HARDWARE SHOWCASE TROPHY BADGE
+   -------------------------------------------------------------------------- */
+.showcase-trophy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+  font-family: var(--font-dot);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  margin-bottom: 22px;
+}
+
+[data-theme="white"] .showcase-trophy-badge {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.35);
+  color: #b45309;
+}
+
+/* --------------------------------------------------------------------------
+   INDUSTRIAL SPEC SHEET DATASHEET TABLE (NOTHING TECH SPEC MATRIX)
+   -------------------------------------------------------------------------- */
+.spec-sheet-table-wrap {
+  width: 100%;
+  border: var(--glass-border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  overflow: hidden;
+  margin-top: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.spec-sheet-group-header {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px 24px;
+  font-family: var(--font-dot);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--text-pure);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+[data-theme="white"] .spec-sheet-group-header {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.spec-sheet-group-header:first-child {
+  border-top: none;
+}
+
+.spec-sheet-grid-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+}
+
+.spec-row-cell {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec-row-k {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.spec-row-v {
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--text-pure);
+}
+
 
 /* --------------------------------------------------------------------------
    STAGE 05: TECHNICAL PROFICIENCY & BENCHMARK MATRIX

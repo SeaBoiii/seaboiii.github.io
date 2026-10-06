@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="black">
 <head>
   <meta charset="utf-8">
-  <title>A1E3M // ALEEM — Computer Engineer Portfolio</title>
-  <meta name="description" content="Portfolio of Aleem (A1E3M). Computer Engineer graduated from NTU specializing in AI, Cyber Security, low-level C/C++ firmware, distributed systems, and modern web applications.">
-  <meta name="keywords" content="aleem, a1e3m, computer engineer, ntu, portfolio, ai, cyber security, firmware, threejs, nothing tech">
+  <title>A1E3M // ALEEM — Product Development Engineer @ AMD & Computer Engineer</title>
+  <meta name="description" content="Portfolio of Aleem (A1E3M). Product Development Engineer at AMD specializing in high-volume console SoCs, yield/quality engineering, bare-metal C/C++ firmware, conversational AI, and web platforms.">
+  <meta name="keywords" content="aleem, a1e3m, amd, product development engineer, ntu, computer engineer, ps5, ps5 pro, threejs, nothing tech, webgl, firmware">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#070709">
 
   <!-- OpenGraph / Social Meta -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="A1E3M // ALEEM — Computer Engineer Portfolio">
-  <meta property="og:description" content="Interactive 3D portfolio showcasing low-level firmware, AI algorithms, high-concurrency systems, and live web applications.">
-  <meta property="og:image" content="img/nothing_hardware_core.jpg">
+  <meta property="og:title" content="A1E3M // ALEEM — Product Development Engineer @ AMD">
+  <meta property="og:description" content="Interactive 3D portfolio showcasing console silicon bring-up, bare-metal firmware, campus AI, distributed systems, and live web apps.">
+  <meta property="og:image" content="assets/gen/case-silicon.webp">
   <meta name="twitter:card" content="summary_large_image">
 
   <!-- Favicons -->
@@ -39,12 +39,48 @@
     <canvas id="webgl-canvas"></canvas>
   </div>
 
+  <!-- 3D Projected Screen Callout Annotation Pins (Anchored to 3D Mesh) -->
+  <div id="callouts-container" aria-hidden="true">
+    <div class="callout-pin" id="callout-chip">
+      <div class="callout-dot"></div>
+      <div class="callout-line"></div>
+      <div class="callout-tag">
+        <span class="callout-num">01</span>
+        <span class="callout-label">SILICON DIE // AMD &amp; ATMEGA CORE</span>
+      </div>
+    </div>
+    <div class="callout-pin" id="callout-gear">
+      <div class="callout-dot"></div>
+      <div class="callout-line"></div>
+      <div class="callout-tag">
+        <span class="callout-num">02</span>
+        <span class="callout-label">STEPPER GEARBOX // 2-AXIS AUTOMATION</span>
+      </div>
+    </div>
+    <div class="callout-pin" id="callout-glyph">
+      <div class="callout-dot"></div>
+      <div class="callout-line"></div>
+      <div class="callout-tag">
+        <span class="callout-num">03</span>
+        <span class="callout-label">GLYPH LED RING // STATUS HALO</span>
+      </div>
+    </div>
+    <div class="callout-pin" id="callout-chassis">
+      <div class="callout-dot"></div>
+      <div class="callout-line"></div>
+      <div class="callout-tag">
+        <span class="callout-num">04</span>
+        <span class="callout-label">TRANSLUCENT CHASSIS // IOR 1.45</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Interactive 3D Model Control Pill (Fixed Bottom Right) -->
   <aside class="model-controls-pill" aria-label="3D Model View Controls">
-    <button class="ctrl-btn" id="btn-explode" title="Toggle Exploded Disassembly View">
+    <button class="ctrl-btn" id="btn-explode" title="Toggle Exploded Mechanical Disassembly View">
       <span class="ctrl-led-indicator"></span> EXPLODE
     </button>
-    <button class="ctrl-btn" id="btn-wireframe" title="Toggle Wireframe Schematic Mode">
+    <button class="ctrl-btn" id="btn-wireframe" title="Toggle CAD Wireframe Schematic Mode">
       <span class="ctrl-led-indicator"></span> WIREFRAME
     </button>
     <button class="ctrl-btn" id="btn-glyph" title="Cycle Glyph LED Lighting">
@@ -57,7 +93,7 @@
 
   <!-- Clipboard Toast Alert -->
   <div id="copy-toast" role="status" aria-live="polite">
-    <i class="fa fa-check" aria-hidden="true"></i> Email copied to clipboard
+    <i class="fa fa-check" aria-hidden="true"></i> Transmission channel copied: seaboiiigamer@gmail.com
   </div>
 
   <!-- =========================================================================
@@ -79,15 +115,30 @@
 
     <nav class="hud-nav" aria-label="Section Navigation">
       <a href="#stage-hero" class="hud-link active">Hero</a>
+      <a href="#stage-silicon" class="hud-link">Silicon</a>
       <a href="#stage-hardware" class="hud-link">Hardware</a>
-      <a href="#stage-ai" class="hud-link">AI & Systems</a>
+      <a href="#stage-ai" class="hud-link">AI</a>
+      <a href="#stage-network" class="hud-link">Network</a>
+      <a href="#stage-novels" class="hud-link">Novels</a>
       <a href="#stage-projects" class="hud-link">Web Hub</a>
-      <a href="#stage-proficiency" class="hud-link">Proficiency</a>
-      <a href="#stage-terminal" class="hud-link">Terminal</a>
+      <a href="#stage-specs" class="hud-link">Specs</a>
+      <a href="#stage-terminal" class="hud-link">CLI</a>
       <a href="#stage-contact" class="hud-link">Contact</a>
     </nav>
 
     <div class="hud-right">
+      <!-- Dual Colorway Selector (Nothing ?Color=White Homage) -->
+      <div class="hud-colorway-selector" aria-label="Select Edition Colorway">
+        <button class="colorway-btn active" data-color="black" title="Switch to Obsidian Black Edition">
+          <span class="colorway-swatch swatch-black"></span>
+          <span>BLACK</span>
+        </button>
+        <button class="colorway-btn" data-color="white" title="Switch to Frosted White Edition (?Color=White)">
+          <span class="colorway-swatch swatch-white"></span>
+          <span>WHITE</span>
+        </button>
+      </div>
+
       <button class="hud-tool-btn" id="btn-sound-toggle" title="Toggle Tactile Micro-Audio Feedback">
         <i class="fa fa-volume-off" aria-hidden="true"></i> MUTE
       </button>
@@ -110,21 +161,24 @@
         <div class="hero-content">
           <div class="hero-spec-tag">
             <span class="ctrl-led-indicator" style="background:#10b981;box-shadow:0 0 8px #10b981;"></span>
-            UNIT // SYS_SPEC_2026 &bull; NTU B.ENG
+            UNIT // AMD PRODUCT DEV &bull; NTU B.ENG COMP ENG
           </div>
           <h1 class="hero-headline">
             A L E E M<span class="dot-accent">.</span>
           </h1>
           <p class="hero-lead">
-            <b>Computer Engineer</b> specializing in <b>Embedded C/C++ Firmware</b>, <b>AI Learning Systems</b>, and <b>High-Concurrency Architecture</b>. Crafting tactile hardware controllers and interactive digital experiences.
+            <b>Product Development Engineer @ AMD</b> &amp; <b>NTU Computer Engineering Graduate</b>. Specializing in high-volume console SoC bring-up, bare-metal C/C++ firmware, conversational AI algorithms, and interactive web architecture.
           </p>
 
           <div class="hero-actions">
-            <a href="#stage-hardware" class="btn-nothing btn-nothing-primary">
-              <i class="fa fa-microchip" aria-hidden="true"></i> Inspect Hardware
+            <a href="#stage-silicon" class="btn-nothing btn-nothing-primary">
+              <i class="fa fa-microchip" aria-hidden="true"></i> Silicon Core (AMD)
+            </a>
+            <a href="#stage-hardware" class="btn-nothing btn-nothing-secondary">
+              <i class="fa fa-layer-group" aria-hidden="true"></i> Hardware Disassembly
             </a>
             <a href="#stage-projects" class="btn-nothing btn-nothing-secondary">
-              <i class="fa fa-layer-group" aria-hidden="true"></i> Web Hub (9 Apps)
+              <i class="fa fa-globe" aria-hidden="true"></i> Web Hub (9 Apps)
             </a>
             <a href="#stage-terminal" class="btn-nothing btn-nothing-secondary">
               <i class="fa fa-terminal" aria-hidden="true"></i> Shell CLI
@@ -134,56 +188,103 @@
           <div class="hero-specs-card">
             <div class="specs-grid">
               <div class="spec-item">
+                <div class="spec-label">Current Role</div>
+                <div class="spec-val">Product Dev Engineer @ AMD</div>
+              </div>
+              <div class="spec-item">
+                <div class="spec-label">Console SoCs</div>
+                <div class="spec-val">PS5 / PS5 Pro Bring-Up &amp; Yield</div>
+              </div>
+              <div class="spec-item">
                 <div class="spec-label">Education</div>
-                <div class="spec-val">NTU B.Eng (Comp Eng)</div>
+                <div class="spec-val">NTU B.Eng (AI &amp; Cyber Sec)</div>
               </div>
               <div class="spec-item">
-                <div class="spec-label">Specialisation</div>
-                <div class="spec-val">AI & Cyber Security</div>
-              </div>
-              <div class="spec-item">
-                <div class="spec-label">Age / Status</div>
-                <div class="spec-val" id="spec-age">28 YRS &bull; Active</div>
-              </div>
-              <div class="spec-item">
-                <div class="spec-label">Distributed Peak</div>
-                <div class="spec-val">400 CCU Concurrent</div>
+                <div class="spec-label">Creative Body</div>
+                <div class="spec-val">50 Novels &bull; 818 Chapters</div>
               </div>
             </div>
           </div>
 
           <div class="scroll-indicator-wrap">
             <div class="scroll-arrow-icon" aria-hidden="true"></div>
-            <span>Scroll to disassemble & explore engineering</span>
+            <span>Scroll to disassemble &amp; explore engineering</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 01: HARDWARE & EMBEDDED CONTROLLERS (ICM BUDDY)
+         STAGE 01: AMD SILICON ENGINEERING & CONSOLE SoCs
          ----------------------------------------------------------------------- -->
-    <section class="scrolly-stage section-container" id="stage-hardware">
+    <section class="scrolly-stage section-container" id="stage-silicon">
       <div class="scrolly-card-panel">
         <span class="stage-number-watermark">01</span>
+        
+        <div class="showcase-trophy-badge">
+          <i class="fa fa-trophy" aria-hidden="true"></i> 2nd PLACE // AMD ASIA TECH SHOWCASE 2024
+        </div>
+
         <div class="stage-badge">
-          <i class="fa fa-camera" aria-hidden="true"></i> FINAL YEAR PROJECT // HARDWARE AUTOMATION
+          <i class="fa fa-microchip" aria-hidden="true"></i> SILICON &bull; PRODUCT DEVELOPMENT ENGINEER @ AMD
+        </div>
+        <h2 class="stage-title">Silicon Engineering &amp; High-Volume Console SoCs</h2>
+        <p class="stage-body">
+          Since graduating from NTU in 2022, I serve as a <b>Product Development Engineer at AMD</b>. My work focuses on the lifecycle of high-volume custom console SoCs—including the <b>PlayStation 5 and PlayStation 5 Pro</b>.
+        </p>
+
+        <div class="stage-media-wrap">
+          <img src="assets/gen/case-silicon.webp" alt="AMD silicon wafer and high-volume console SoC engineering diagram" loading="lazy">
+        </div>
+
+        <p class="stage-body">
+          Responsible for new product bring-up, defect screening, test methodology, and continuous yield and quality improvements. In 2024, our innovation was awarded <b>2nd Place at AMD's Asia Tech Showcase</b>.
+        </p>
+        <p class="stage-body" style="font-style: italic; color: var(--text-pure);">
+          "Silicon by day; firmware, automation tools, and web platforms by night."
+        </p>
+
+        <div class="stage-metrics-row">
+          <div class="stage-metric">
+            <span class="metric-num">PS5 / Pro</span>
+            <span class="metric-lbl">Console SoCs</span>
+          </div>
+          <div class="stage-metric">
+            <span class="metric-num">Yield &amp; QA</span>
+            <span class="metric-lbl">Engineering Focus</span>
+          </div>
+          <div class="stage-metric">
+            <span class="metric-num">2nd Place</span>
+            <span class="metric-lbl">Asia Tech '24</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         STAGE 02: HARDWARE AUTOMATION (ICM BUDDY)
+         ----------------------------------------------------------------------- -->
+    <section class="scrolly-stage section-container" id="stage-hardware">
+      <div class="scrolly-card-panel scrolly-stage-right">
+        <span class="stage-number-watermark">02</span>
+        <div class="stage-badge">
+          <i class="fa fa-camera" aria-hidden="true"></i> FINAL YEAR PROJECT // HARDWARE AUTOMATION &amp; FIRMWARE
         </div>
         <h2 class="stage-title">ICM Buddy — Automated Long Exposure Controller</h2>
         <p class="stage-body">
-          Developed to solve the consistency challenge in <b>Intentional Camera Movement (ICM)</b> photography. This system automates camera lens zoom and focus movements during slow exposure captures through precise motorized gearing.
+          Developed to eliminate inconsistency in <b>Intentional Camera Movement (ICM)</b> photography. This system automates DSLR camera lens zoom and focus rotation during long exposures through precision motorized gearing.
         </p>
         
         <div class="stage-media-wrap">
-          <img src="img/icm_buddy_exploded.jpg" alt="ICM Buddy automated lens controller exploded technical blueprint" loading="lazy">
+          <img src="assets/gen/case-icm.webp" alt="ICM Buddy automated lens controller exploded technical blueprint" loading="lazy">
         </div>
 
         <p class="stage-body">
-          Powered by an <b>Arduino AtMega microcontroller</b> programmed in bare-metal C/C++. The primary engineering hurdle was firmware optimization: squeezing complex step-interpolation and acceleration profiles into highly constrained microcontroller memory while preserving real-time responsiveness.
+          Powered by an <b>Arduino AtMega microcontroller</b> programmed in bare-metal C/C++. The core engineering feat was firmware optimization: squeezing step-interpolation and acceleration profiles into highly constrained microcontroller SRAM while preserving real-time deterministic timing.
         </p>
 
         <div class="stage-media-wrap" style="max-height: 220px; overflow: hidden;">
-          <img src="img/icm_buddy.gif" alt="ICM Buddy motorized lens automation in action" loading="lazy">
+          <img src="assets/real/icm_buddy.gif" alt="ICM Buddy motorized lens automation in action" loading="lazy">
         </div>
 
         <div class="stage-metrics-row">
@@ -193,419 +294,509 @@
           </div>
           <div class="stage-metric">
             <span class="metric-num">C / C++</span>
-            <span class="metric-lbl">Firmware Core</span>
+            <span class="metric-lbl">Bare-Metal Core</span>
           </div>
           <div class="stage-metric">
-            <span class="metric-num">Automated</span>
-            <span class="metric-lbl">Zoom & Focus</span>
+            <span class="metric-num">2-Axis</span>
+            <span class="metric-lbl">Zoom &amp; Focus</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 02: AI & CLOUD SYSTEMS (PROJECT LYON 2.0)
+         STAGE 03: CONVERSATIONAL AI & CLOUD (PROJECT LYON 2.0)
          ----------------------------------------------------------------------- -->
     <section class="scrolly-stage section-container" id="stage-ai">
-      <div class="scrolly-card-panel scrolly-stage-right">
-        <span class="stage-number-watermark">02</span>
+      <div class="scrolly-card-panel">
+        <span class="stage-number-watermark">03</span>
         <div class="stage-badge">
-          <i class="fa fa-brain" aria-hidden="true"></i> CAMPUS AI // GOOGLE CLOUD PARTNERSHIP
+          <i class="fa fa-brain" aria-hidden="true"></i> CAMPUS AI // NTU &times; GOOGLE CLOUD &times; ONIGROUP
         </div>
-        <h2 class="stage-title">LYON 2.0 — NTU Virtual Assistant</h2>
+        <h2 class="stage-title">LYON 2.0 — NTU Virtual Campus Assistant</h2>
         <p class="stage-body">
           Developed under <b>Project Lyon 2.0</b> in partnership with <b>Google Cloud</b> and specialist partner <b>OniGroup</b>. Deployed to assist over <b>6,000 incoming university freshmen</b> transitioning to university life during the virtual Freshmen Orientation.
         </p>
 
         <div class="stage-media-wrap">
-          <img src="img/ntu_singapore_onigroup_google_cloud.jpg" alt="NTU Singapore virtual assistant partnership with OniGroup and Google Cloud" loading="lazy">
+          <img src="assets/gen/case-lyon.webp" alt="LYON 2.0 virtual assistant neural dialogue flows" loading="lazy">
         </div>
 
         <p class="stage-body">
-          Engineered natural language understanding algorithms and onboarding decision flows. Guided students dynamically through NTU Smart Campus resources, class schedules, and interactive virtual events.
+          Worked directly on the Natural Language Understanding (NLU) decision flows, learning algorithms, and conversational routing rules that directed students to NTU Smart Campus resources, schedules, and virtual events with instant responsiveness.
         </p>
+
+        <div class="stage-media-wrap" style="max-height: 220px; overflow: hidden;">
+          <img src="assets/real/ntu-lyon.jpg" alt="NTU, OniGroup, and Google Cloud partnership launch" loading="lazy">
+        </div>
 
         <div class="stage-metrics-row">
           <div class="stage-metric">
             <span class="metric-num">6,000+</span>
-            <span class="metric-lbl">Students Served</span>
+            <span class="metric-lbl">Freshmen Served</span>
           </div>
           <div class="stage-metric">
-            <span class="metric-num">Google Cloud</span>
+            <span class="metric-num">GCP</span>
             <span class="metric-lbl">Infrastructure</span>
           </div>
           <div class="stage-metric">
-            <span class="metric-num">Python & NLP</span>
-            <span class="metric-lbl">Machine Learning</span>
+            <span class="metric-num">NLU</span>
+            <span class="metric-lbl">Dialogue Trees</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 03: DISTRIBUTED SYSTEMS & CONCURRENCY (PROBOW NETWORK)
+         STAGE 04: DISTRIBUTED SYSTEMS (PROBOW NETWORK - 400 CCU)
          ----------------------------------------------------------------------- -->
-    <section class="scrolly-stage section-container" id="stage-systems">
-      <div class="scrolly-card-panel">
-        <span class="stage-number-watermark">03</span>
+    <section class="scrolly-stage section-container" id="stage-network">
+      <div class="scrolly-card-panel scrolly-stage-right">
+        <span class="stage-number-watermark">04</span>
         <div class="stage-badge">
-          <i class="fa fa-network-wired" aria-hidden="true"></i> HIGH CONCURRENCY // DISTRIBUTED JAVA
+          <i class="fa fa-network-wired" aria-hidden="true"></i> DISTRIBUTED SYSTEMS // HIGH-CONCURRENCY INFRASTRUCTURE
         </div>
-        <h2 class="stage-title">Probow Network — High-Concurrency Cluster</h2>
+        <h2 class="stage-title">Probow Network — 400 CCU Multiplayer Infrastructure</h2>
         <p class="stage-body">
-          What began in 2013 as an exploration of server infrastructure evolved into the <b>Probow Network</b> — a high-performance distributed multiplayer game network that peaked at <b>400 concurrent active players</b>.
+          What began in 2013 as a personal experiment grew into a viral multiplayer gaming network peaking at <b>400 concurrent connected users (CCU)</b> simultaneously.
         </p>
 
         <div class="stage-media-wrap">
-          <img src="img/probow.png" alt="The Probow Network multiplayer gaming platform" loading="lazy">
+          <img src="assets/gen/case-probow.webp" alt="Distributed multiplayer server network topology" loading="lazy">
         </div>
 
         <p class="stage-body">
-          As the sole systems programmer, architected custom <b>Java plugins</b> using Object-Oriented Design Principles (OODP), optimized low-latency networking, and managed database state synchronization, server hardware, and sponsor operations.
+          As the sole programmer, I engineered custom Java server plugins utilizing Object-Oriented Design Principles (OODP), optimized packet serialization to reduce latency, managed MySQL database state sync, and operated bare-metal Linux server hardware under high load.
         </p>
+
+        <div class="stage-media-wrap" style="max-height: 180px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center;">
+          <img src="assets/real/probow.png" alt="Probow Network Logo" style="max-width: 280px; width: auto;" loading="lazy">
+        </div>
 
         <div class="stage-metrics-row">
           <div class="stage-metric">
-            <span class="metric-num">400 CCU</span>
-            <span class="metric-lbl">Peak Concurrent Players</span>
-          </div>
-          <div class="stage-metric">
-            <span class="metric-num">Java OODP</span>
-            <span class="metric-lbl">Plugin Architecture</span>
+            <span class="metric-num">400</span>
+            <span class="metric-lbl">Peak CCU</span>
           </div>
           <div class="stage-metric">
             <span class="metric-num">100%</span>
-            <span class="metric-lbl">Sole Programmer</span>
+            <span class="metric-lbl">Sole Developer</span>
+          </div>
+          <div class="stage-metric">
+            <span class="metric-num">Java / OODP</span>
+            <span class="metric-lbl">Custom Stack</span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 04: PROJECT HUB (THE 9 BROWSER APPS BENTO GRID)
+         STAGE 05: CONTENT ENGINEERING & NOVEL PLATFORM
+         ----------------------------------------------------------------------- -->
+    <section class="scrolly-stage section-container" id="stage-novels">
+      <div class="scrolly-card-panel">
+        <span class="stage-number-watermark">05</span>
+        <div class="stage-badge">
+          <i class="fa fa-book-open" aria-hidden="true"></i> FULL-STACK PLATFORM // CONTENT ENGINEERING &amp; CMS
+        </div>
+        <h2 class="stage-title">Novel Publishing Platform — 50 Novels &amp; 818 Chapters</h2>
+        <p class="stage-body">
+          A full-stack publishing ecosystem powering a prolific creative library of <b>50 serialized web novels and 818 chapters</b>. Combining custom desktop authoring tools with an automated image processing pipeline and a Next.js reader.
+        </p>
+
+        <div class="stage-media-wrap">
+          <img src="assets/gen/case-novel.webp" alt="Novel publishing pipeline and interactive reader interface" loading="lazy">
+        </div>
+
+        <p class="stage-body">
+          Authored a <b>5,800-line Python Tkinter wizard</b> with DOCX import and HTML/RTF Markdown conversion. Supported by a Python PIL image optimizer producing responsive 320/640/960px WebP/JPG variants, deployed via GitHub Actions and static Next.js export.
+        </p>
+
+        <div class="stage-metrics-row" style="margin-bottom: 24px;">
+          <div class="stage-metric">
+            <span class="metric-num">50</span>
+            <span class="metric-lbl">Serialized Novels</span>
+          </div>
+          <div class="stage-metric">
+            <span class="metric-num">818</span>
+            <span class="metric-lbl">Chapters Published</span>
+          </div>
+          <div class="stage-metric">
+            <span class="metric-num">6&times;</span>
+            <span class="metric-lbl">Image Variants</span>
+          </div>
+        </div>
+
+        <a href="/novel/" class="btn-nothing btn-nothing-primary" style="width: 100%; justify-content: center;">
+          <i class="fa fa-book-reader" aria-hidden="true"></i> Open The Novels Library (/novel/)
+        </a>
+      </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+         STAGE 06: INTERACTIVE WEB PROJECT HUB (9 APPS BENTO GRID)
          ----------------------------------------------------------------------- -->
     <section class="stage-project-hub section-container" id="stage-projects">
       <div class="tech-header">
-        <div class="tech-tag">ECOSYSTEM // GITHUB PAGES</div>
-        <h2 class="tech-title">Live Web Applications Hub</h2>
-        <p class="tech-subtitle">
-          Nine production web applications shipped to GitHub Pages. Spanning reactive quizzes, browser game engines, branching stories, and content systems built with modern web technologies.
+        <div class="tech-tag">
+          <span class="ctrl-led-indicator"></span>
+          ECOSYSTEM // GITHUB PAGES DEPLOYMENTS
+        </div>
+        <h2 class="tech-title">Live Web Project Hub</h2>
+        <p class="tech-sub">
+          Nine interactive browser applications designed, coded, and deployed across games, identity tests, and narrative engines.
         </p>
       </div>
 
-      <!-- Category Filter Pills -->
-      <div class="hub-filter-bar" role="tablist" aria-label="Project Categories">
-        <button class="hub-filter-pill active" data-filter="all">ALL (9)</button>
-        <button class="hub-filter-pill" data-filter="quizzes">INTERACTIVE &amp; QUIZZES</button>
-        <button class="hub-filter-pill" data-filter="games">GAMES</button>
-        <button class="hub-filter-pill" data-filter="fiction">NOVELS &amp; STORIES</button>
+      <!-- Filter Controls -->
+      <div class="hub-filter-bar">
+        <button class="hub-filter-pill active" data-filter="all">ALL APPS (9)</button>
+        <button class="hub-filter-pill" data-filter="interactive">INTERACTIVE &amp; QUIZZES</button>
+        <button class="hub-filter-pill" data-filter="games">GAMES &amp; SIMS</button>
+        <button class="hub-filter-pill" data-filter="stories">STORY &amp; NOVELS</button>
       </div>
 
-      <!-- Bento Grid of 9 Projects -->
+      <!-- Bento Cards Grid -->
       <div class="bento-grid">
+
         <!-- 1. Potionality -->
-        <article class="bento-card" data-category="quizzes">
+        <article class="bento-card" data-category="interactive">
+          <div class="bento-card-media">
+            <img src="assets/hub/potionality.webp" alt="Potionality web application preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
             <div class="bento-icon-box"><i class="fa fa-flask" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">QUIZ &bull; SYSTEM</span>
+            <span class="bento-category-tag">QUIZ SYSTEM</span>
           </div>
           <h3 class="bento-title">Potionality</h3>
-          <p class="bento-desc">A reflective personality test calculating dominant energetic brews across eight elemental forces with dynamic score weighting.</p>
+          <p class="bento-desc">
+            A reflective personality test calculating your dominant brew across eight elemental forces with weighted mathematical scoring.
+          </p>
           <div class="bento-actions">
-            <a href="/potionality/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/potionality/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Launch App
             </a>
-            <a href="https://github.com/SeaBoiii/potionality" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Potionality Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/potionality" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
 
         <!-- 2. Classility -->
-        <article class="bento-card" data-category="quizzes">
+        <article class="bento-card" data-category="interactive">
+          <div class="bento-card-media">
+            <img src="assets/hub/classility.webp" alt="Classility RPG questionnaire preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
-            <div class="bento-icon-box"><i class="fa fa-dice-d20" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">RPG &bull; IDENTITY</span>
+            <div class="bento-icon-box"><i class="fa fa-university" aria-hidden="true"></i></div>
+            <span class="bento-category-tag">RPG IDENTITY</span>
           </div>
           <h3 class="bento-title">Classility</h3>
-          <p class="bento-desc">Find your class. Roll for identity. Forge your destiny. An algorithmic RPG character questionnaire with tactile animations.</p>
+          <p class="bento-desc">
+            Algorithmic RPG character class questionnaire. Roll for identity, calculate stat spreads, and forge your personal destiny.
+          </p>
           <div class="bento-actions">
-            <a href="/classility/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/classility/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Launch App
             </a>
-            <a href="https://github.com/SeaBoiii/classility" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Classility Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/classility" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
 
         <!-- 3. Novels Hub -->
-        <article class="bento-card" data-category="fiction">
+        <article class="bento-card" data-category="stories">
+          <div class="bento-card-media">
+            <img src="assets/hub/novel.webp" alt="Novels Hub reader preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
-            <div class="bento-icon-box"><i class="fa fa-book-open" aria-hidden="true"></i></div>
+            <div class="bento-icon-box"><i class="fa fa-book" aria-hidden="true"></i></div>
             <span class="bento-category-tag">READER &bull; CMS</span>
           </div>
           <h3 class="bento-title">Novels Hub</h3>
-          <p class="bento-desc">A personal web novel reader engine featuring markdown frontmatter, chapter pagination, docx import tools, and image variant optimization.</p>
+          <p class="bento-desc">
+            Next.js web novel library with chapter navigation, typography controls, responsive covers, and rich Markdown reader.
+          </p>
           <div class="bento-actions">
-            <a href="/novel/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/novel/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Explore Hub
             </a>
-            <a href="https://github.com/SeaBoiii/seaboiii.github.io/tree/main/novel" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Novels Hub Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/seaboiii.github.io/tree/main/novel" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
 
         <!-- 4. Age of War -->
         <article class="bento-card" data-category="games">
+          <div class="bento-card-media">
+            <img src="assets/hub/age_of_war.webp" alt="Age of War game remake preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
-            <div class="bento-icon-box"><i class="fa fa-shield-halved" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">STRATEGY &bull; GAME</span>
+            <div class="bento-icon-box"><i class="fa fa-shield" aria-hidden="true"></i></div>
+            <span class="bento-category-tag">STRATEGY GAME</span>
           </div>
           <h3 class="bento-title">Age of War</h3>
-          <p class="bento-desc">A recreation of the classic base defense and evolutionary warfare strategy game, engineered for zero-dependency browser play.</p>
+          <p class="bento-desc">
+            Zero-dependency HTML5 canvas remake of the classic evolutionary strategy game with era transitions, unit queues, and turrets.
+          </p>
           <div class="bento-actions">
-            <a href="/age_of_war/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/age_of_war/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Play Game
             </a>
-            <a href="https://github.com/SeaBoiii/age_of_war" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Age of War Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/age_of_war" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
 
         <!-- 5. Nizam -->
         <article class="bento-card" data-category="games">
+          <div class="bento-card-media">
+            <img src="assets/hub/nizam.webp" alt="Nizam Mount and Blade inspired game preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
             <div class="bento-icon-box"><i class="fa fa-chess-knight" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">TACTICS &bull; GAME</span>
+            <span class="bento-category-tag">TACTICAL REALM SIM</span>
           </div>
           <h3 class="bento-title">Nizam</h3>
-          <p class="bento-desc">Bannerlord-inspired tactical realm simulation with dynamic army recruitments, territorial disputes, and browser-based unit combat.</p>
+          <p class="bento-desc">
+            Mount &amp; Blade Bannerlord-inspired tactical sim with village recruitment, regional economy, unit rank progression, and combat.
+          </p>
           <div class="bento-actions">
-            <a href="/nizam/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/nizam/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Play Game
             </a>
-            <a href="https://github.com/SeaBoiii/nizam" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Nizam Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/nizam" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
 
-        <!-- 6. Tetris -->
-        <article class="bento-card" data-category="games">
+        <!-- 6. Visual Novel -->
+        <article class="bento-card" data-category="stories">
+          <div class="bento-card-media">
+            <img src="assets/hub/visual_novel.webp" alt="Visual novel branching engine preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
-            <div class="bento-icon-box"><i class="fa fa-border-all" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">ARCADE &bull; RETRO</span>
-          </div>
-          <h3 class="bento-title">Tetris</h3>
-          <p class="bento-desc">Classic grid-based polyomino puzzle game featuring precise lock delays, wall kicks, ghost pieces, and dynamic level acceleration.</p>
-          <div class="bento-actions">
-            <a href="/tetris/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
-            </a>
-            <a href="https://github.com/SeaBoiii/tetris" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Tetris Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
-            </a>
-          </div>
-        </article>
-
-        <!-- 7. Wordle -->
-        <article class="bento-card" data-category="games">
-          <div class="bento-card-top">
-            <div class="bento-icon-box"><i class="fa fa-font" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">WORD &bull; PUZZLE</span>
-          </div>
-          <h3 class="bento-title">Wordle</h3>
-          <p class="bento-desc">Interactive 5-letter daily vocabulary guessing challenge with letter state evaluation, statistics tracking, and flip tile animations.</p>
-          <div class="bento-actions">
-            <a href="/wordle/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
-            </a>
-            <a href="https://github.com/SeaBoiii/wordle" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Wordle Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
-            </a>
-          </div>
-        </article>
-
-        <!-- 8. Visual Novel -->
-        <article class="bento-card" data-category="fiction">
-          <div class="bento-card-top">
-            <div class="bento-icon-box"><i class="fa fa-comments" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">BRANCHING &bull; ENGINE</span>
+            <div class="bento-icon-box"><i class="fa fa-map-signs" aria-hidden="true"></i></div>
+            <span class="bento-category-tag">BRANCHING ENGINE</span>
           </div>
           <h3 class="bento-title">Visual Novel</h3>
-          <p class="bento-desc">A browser-based branching narrative engine where conversational choices dynamically adjust trust, tension, and narrative outcomes.</p>
+          <p class="bento-desc">
+            Interactive branching narrative engine where dialogue choices shift affection, trust, and tension scores across multiple endings.
+          </p>
           <div class="bento-actions">
-            <a href="/visual_novel/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/visual_novel/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Play Story
             </a>
-            <a href="https://github.com/SeaBoiii/visual_novel" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View Visual Novel Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/visual_novel" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
 
-        <!-- 9. MMORPG -->
+        <!-- 7. MMORPG -->
         <article class="bento-card" data-category="games">
+          <div class="bento-card-media">
+            <img src="assets/hub/mmorpg.webp" alt="MMORPG bullet hell game preview" loading="lazy">
+          </div>
           <div class="bento-card-top">
             <div class="bento-icon-box"><i class="fa fa-gamepad" aria-hidden="true"></i></div>
-            <span class="bento-category-tag">SHOOTER &bull; EXPERIMENTAL</span>
+            <span class="bento-category-tag">BULLET HELL</span>
           </div>
           <h3 class="bento-title">MMORPG</h3>
-          <p class="bento-desc">"Wanted an MMO but got Touhou instead." A high-octane bullet-hell browser action game with canvas-driven particle rendering.</p>
+          <p class="bento-desc">
+            "Wanted an MMO, got Touhou." Fast-paced canvas bullet-hell survival shooter with dense particle patterns and dodge mechanics.
+          </p>
           <div class="bento-actions">
-            <a href="/mmorpg/" class="bento-btn-launch" target="_blank" rel="noopener">
-              <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i> Launch Live
+            <a href="/mmorpg/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Play Game
             </a>
-            <a href="https://github.com/SeaBoiii/mmorpg" class="bento-btn-code" target="_blank" rel="noopener noreferrer" title="View Source Code" aria-label="View MMORPG Code">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <a href="https://github.com/SeaBoiii/mmorpg" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
             </a>
           </div>
         </article>
+
+        <!-- 8. Tetris -->
+        <article class="bento-card" data-category="games">
+          <div class="bento-card-media">
+            <img src="assets/hub/tetris.webp" alt="Tetris arcade game preview" loading="lazy">
+          </div>
+          <div class="bento-card-top">
+            <div class="bento-icon-box"><i class="fa fa-th-large" aria-hidden="true"></i></div>
+            <span class="bento-category-tag">ARCADE CLASSIC</span>
+          </div>
+          <h3 class="bento-title">Tetris</h3>
+          <p class="bento-desc">
+            Pure JavaScript implementation with Super Rotation System (SRS) wall-kicks, ghost piece projection, lock delay, and score tiers.
+          </p>
+          <div class="bento-actions">
+            <a href="/tetris/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Play Game
+            </a>
+            <a href="https://github.com/SeaBoiii/tetris" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
+            </a>
+          </div>
+        </article>
+
+        <!-- 9. Wordle -->
+        <article class="bento-card" data-category="interactive">
+          <div class="bento-card-media">
+            <img src="assets/hub/wordle.webp" alt="Wordle puzzle game preview" loading="lazy">
+          </div>
+          <div class="bento-card-top">
+            <div class="bento-icon-box"><i class="fa fa-font" aria-hidden="true"></i></div>
+            <span class="bento-category-tag">WORD PUZZLE</span>
+          </div>
+          <h3 class="bento-title">Wordle</h3>
+          <p class="bento-desc">
+            Daily 5-letter word puzzle evaluator with letter-state analysis, tactile on-screen keyboard, statistics storage, and daily seed.
+          </p>
+          <div class="bento-actions">
+            <a href="/wordle/" class="bento-btn-launch">
+              <i class="fa fa-play" aria-hidden="true"></i> Play Game
+            </a>
+            <a href="https://github.com/SeaBoiii/wordle" target="_blank" rel="noopener noreferrer" class="bento-btn-code" title="View Source Code">
+              <i class="fa fa-code" aria-hidden="true"></i>
+            </a>
+          </div>
+        </article>
+
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 05: TECHNICAL PROFICIENCY & BENCHMARK MATRIX
+         STAGE 07: INDUSTRIAL SPECIFICATION DATASHEET
          ----------------------------------------------------------------------- -->
-    <section class="stage-proficiency section-container" id="stage-proficiency">
+    <section class="stage-proficiency section-container" id="stage-specs">
       <div class="tech-header">
-        <div class="tech-tag">BENCHMARKS // PROFICIENCY</div>
-        <h2 class="tech-title">Engineering Core Matrix</h2>
-        <p class="tech-subtitle">
-          Hands-on mastery across low-level microcontroller systems, artificial intelligence algorithms, backend distributed services, and modern browser runtimes.
+        <div class="tech-tag">
+          <span class="ctrl-led-indicator"></span>
+          DATASHEET // HARDWARE &amp; SOFTWARE SPEC MATRIX
+        </div>
+        <h2 class="tech-title">Engineering Specifications</h2>
+        <p class="tech-sub">
+          Structured technical capabilities across silicon lifecycle, bare-metal firmware, cloud platforms, and full-stack software.
         </p>
       </div>
 
-      <div class="skills-matrix-grid">
-        <!-- C / C++ -->
-        <div class="skill-card">
-          <div class="skill-header">
-            <div class="skill-name-wrap">
-              <i class="fa-solid fa-c skill-icon"></i>
-              <span class="skill-name">C / C++</span>
-            </div>
-            <span class="skill-rank-badge tier-master">VERY PROFICIENT</span>
+      <!-- Nothing Style Technical Spec Sheet Table -->
+      <div class="spec-sheet-table-wrap">
+        
+        <!-- Group 1: Silicon & Product Development -->
+        <div class="spec-sheet-group-header">
+          <i class="fa fa-microchip" aria-hidden="true"></i> 01 // SILICON &amp; PRODUCT DEVELOPMENT (AMD)
+        </div>
+        <div class="spec-sheet-grid-rows">
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Lifecycle Scope</span>
+            <span class="spec-row-v">New Product Bring-Up &bull; Sustaining Engineering</span>
           </div>
-          <div class="skill-progress-track">
-            <div class="skill-progress-fill" style="width: 95%;"></div>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Primary Focus</span>
+            <span class="spec-row-v">Defect Screening &bull; Quality Improvement &bull; Yield Optimization</span>
           </div>
-          <p class="skill-details-copy">
-            Deep experience in embedded systems, Arduino AtMega microcontrollers, and low-level data structures. Specialized in aggressive memory footprint reduction and clock-cycle optimization.
-          </p>
-          <div class="skill-tags">
-            <span class="skill-tag-item">AtMega</span>
-            <span class="skill-tag-item">Firmware</span>
-            <span class="skill-tag-item">Data Structures</span>
-            <span class="skill-tag-item">Hardware Interfacing</span>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Products Handled</span>
+            <span class="spec-row-v">High-Volume Custom Console SoCs (PlayStation 5 &amp; PS5 Pro)</span>
+          </div>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Recognition</span>
+            <span class="spec-row-v">2nd Place &bull; AMD Asia Tech Showcase 2024</span>
           </div>
         </div>
 
-        <!-- Python -->
-        <div class="skill-card">
-          <div class="skill-header">
-            <div class="skill-name-wrap">
-              <i class="fa-brands fa-python skill-icon"></i>
-              <span class="skill-name">Python</span>
-            </div>
-            <span class="skill-rank-badge tier-expert">ADEPT</span>
+        <!-- Group 2: Systems & Firmware -->
+        <div class="spec-sheet-group-header">
+          <i class="fa fa-cogs" aria-hidden="true"></i> 02 // SYSTEMS &amp; LOW-LEVEL FIRMWARE
+        </div>
+        <div class="spec-sheet-grid-rows">
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Languages</span>
+            <span class="spec-row-v">C &bull; C++ &bull; Java (OODP)</span>
           </div>
-          <div class="skill-progress-track">
-            <div class="skill-progress-fill" style="width: 88%;"></div>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Hardware Core</span>
+            <span class="spec-row-v">Arduino &bull; AtMega AVR &bull; Stepper Motor Profile Interpolation</span>
           </div>
-          <p class="skill-details-copy">
-            Learned during University engineering curriculum for Data Science and Machine Learning. Built athlete performance correlation algorithms, AI models, and 2D games with Pygame.
-          </p>
-          <div class="skill-tags">
-            <span class="skill-tag-item">Artificial Intelligence</span>
-            <span class="skill-tag-item">Data Science</span>
-            <span class="skill-tag-item">Pygame</span>
-            <span class="skill-tag-item">Automation</span>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Distributed Ops</span>
+            <span class="spec-row-v">Linux Server Infrastructure &bull; SQL State Sync &bull; 400 CCU Concurrency</span>
           </div>
         </div>
 
-        <!-- Java -->
-        <div class="skill-card">
-          <div class="skill-header">
-            <div class="skill-name-wrap">
-              <i class="fa-brands fa-java skill-icon"></i>
-              <span class="skill-name">Java</span>
-            </div>
-            <span class="skill-rank-badge tier-expert">ADEPT</span>
+        <!-- Group 3: AI & Cloud -->
+        <div class="spec-sheet-group-header">
+          <i class="fa fa-brain" aria-hidden="true"></i> 03 // AI &amp; CLOUD INFRASTRUCTURE
+        </div>
+        <div class="spec-sheet-grid-rows">
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Cloud Platform</span>
+            <span class="spec-row-v">Google Cloud Platform (GCP) &bull; OniGroup Partnership</span>
           </div>
-          <div class="skill-progress-track">
-            <div class="skill-progress-fill" style="width: 85%;"></div>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">AI &amp; Data Science</span>
+            <span class="spec-row-v">Python &bull; NLU Dialogue Trees &bull; Pygame &bull; Tkinter Tooling</span>
           </div>
-          <p class="skill-details-copy">
-            Developed since secondary school for custom Minecraft server plugins and scaled to large multiplayer networks. Mastered Object-Oriented Design Principles (OODP) and concurrency models.
-          </p>
-          <div class="skill-tags">
-            <span class="skill-tag-item">OODP</span>
-            <span class="skill-tag-item">Distributed Systems</span>
-            <span class="skill-tag-item">Plugin Engineering</span>
-            <span class="skill-tag-item">Networking</span>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Scale Deployed</span>
+            <span class="spec-row-v">6,000+ Freshmen Assisted &bull; Automated Routing</span>
           </div>
         </div>
 
-        <!-- JavaScript / TypeScript -->
-        <div class="skill-card">
-          <div class="skill-header">
-            <div class="skill-name-wrap">
-              <i class="fa-brands fa-js skill-icon"></i>
-              <span class="skill-name">JavaScript &amp; TS</span>
-            </div>
-            <span class="skill-rank-badge">INTERMEDIATE</span>
+        <!-- Group 4: Web Architecture & 3D -->
+        <div class="spec-sheet-group-header">
+          <i class="fa fa-cubes" aria-hidden="true"></i> 04 // WEB ARCHITECTURE &amp; 3D VIEWPORT
+        </div>
+        <div class="spec-sheet-grid-rows">
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Web Technologies</span>
+            <span class="spec-row-v">TypeScript &bull; JavaScript &bull; Next.js &bull; Tailwind CSS</span>
           </div>
-          <div class="skill-progress-track">
-            <div class="skill-progress-fill" style="width: 78%;"></div>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">3D Graphics &amp; Audio</span>
+            <span class="spec-row-v">Three.js WebGL &bull; Physical Shaders &bull; Web Audio API Haptics</span>
           </div>
-          <p class="skill-details-copy">
-            Engineers responsive state machines, WebGL 3D canvas renderers (Three.js), modern game loops, and DOM interactions for browser deployment on GitHub Pages.
-          </p>
-          <div class="skill-tags">
-            <span class="skill-tag-item">Three.js</span>
-            <span class="skill-tag-item">WebGL</span>
-            <span class="skill-tag-item">Game Engines</span>
-            <span class="skill-tag-item">TypeScript</span>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Delivery Pipeline</span>
+            <span class="spec-row-v">GitHub Actions CI/CD &bull; GitHub Pages &bull; WebP / AVIF Optimization</span>
           </div>
         </div>
 
-        <!-- HTML / CSS -->
-        <div class="skill-card">
-          <div class="skill-header">
-            <div class="skill-name-wrap">
-              <i class="fa-brands fa-html5 skill-icon"></i>
-              <span class="skill-name">Modern CSS / HTML5</span>
-            </div>
-            <span class="skill-rank-badge">MODERNIZING</span>
+        <!-- Group 5: Academic Credentials -->
+        <div class="spec-sheet-group-header">
+          <i class="fa fa-graduation-cap" aria-hidden="true"></i> 05 // ACADEMIC CREDENTIALS
+        </div>
+        <div class="spec-sheet-grid-rows">
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Degree</span>
+            <span class="spec-row-v">B.Eng Computer Engineering &bull; Nanyang Technological University (NTU, 2022)</span>
           </div>
-          <div class="skill-progress-track">
-            <div class="skill-progress-fill" style="width: 82%;"></div>
-          </div>
-          <p class="skill-details-copy">
-            Specializing in CSS scroll-driven animations, glassmorphism, responsive grid architecture, fluid typography, and accessible brutalist UI design systems.
-          </p>
-          <div class="skill-tags">
-            <span class="skill-tag-item">Scroll Timeline</span>
-            <span class="skill-tag-item">Glassmorphism</span>
-            <span class="skill-tag-item">Responsive Bento</span>
-            <span class="skill-tag-item">Accessibility</span>
+          <div class="spec-row-cell">
+            <span class="spec-row-k">Specialisations</span>
+            <span class="spec-row-v">Artificial Intelligence &bull; Cyber Security</span>
           </div>
         </div>
+
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 06: INTERACTIVE TERMINAL ("A1E3M SHELL")
+         STAGE 08: INTERACTIVE TERMINAL ("A1E3M SHELL")
          ----------------------------------------------------------------------- -->
     <section class="stage-terminal section-container" id="stage-terminal">
       <div class="tech-header">
-        <div class="tech-tag">RECRUITER CLI // INTERACTIVE CONSOLE</div>
-        <h2 class="tech-title">A1E3M Command Shell</h2>
-        <p class="tech-subtitle">
-          Type terminal commands or click the shortcut buttons below to inspect technical credentials, query projects, and examine qualifications.
+        <div class="tech-tag">
+          <span class="ctrl-led-indicator"></span>
+          CONSOLE INTERFACE // SHELL v2.6
+        </div>
+        <h2 class="tech-title">Interactive Terminal</h2>
+        <p class="tech-sub">
+          Query telemetry, engineering pillars, and system parameters directly from the command line.
         </p>
       </div>
 
@@ -616,102 +807,106 @@
             <span class="terminal-dot dot-min"></span>
             <span class="terminal-dot dot-max"></span>
           </div>
-          <div class="terminal-title">guest@a1e3m: ~/portfolio [v2.6]</div>
-          <div style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">BASH // SGT</div>
+          <span class="terminal-title">A1E3M // BASH CORE &bull; V2.6</span>
+          <span style="font-size: 0.68rem; color: var(--text-muted);">TTY1 &bull; 60 FPS</span>
         </div>
 
         <div class="terminal-body" id="terminal-output">
           <div class="term-line-output highlight">
-            * Welcome to A1E3M Interactive Telemetry Shell (v2.6)
+            [SYS_OK] Initialized A1E3M Engineering Core Shell [v2.6].
           </div>
           <div class="term-line-output">
-            * Type <span class="highlight">help</span> to view available system commands, or click the quick action pills below.
+            Type <span style="color:var(--text-pure); font-weight:700;">"help"</span> for commands or click quick-run chips below.
           </div>
           <div class="term-line-output accent">
-            [STATUS: READY // ALL SUBSYSTEMS NOMINAL]
+            Tip: Try <span style="color:var(--text-pure);">"amd"</span>, <span style="color:var(--text-pure);">"skills"</span>, <span style="color:var(--text-pure);">"projects"</span>, or <span style="color:var(--text-pure);">"color white"</span>.
           </div>
         </div>
 
         <div class="term-quick-btns">
+          <button class="term-quick-btn" data-cmd="amd">amd</button>
           <button class="term-quick-btn" data-cmd="skills">skills</button>
           <button class="term-quick-btn" data-cmd="projects">projects</button>
           <button class="term-quick-btn" data-cmd="hardware">hardware</button>
           <button class="term-quick-btn" data-cmd="ai">ai</button>
           <button class="term-quick-btn" data-cmd="server">server</button>
-          <button class="term-quick-btn" data-cmd="whoami">whoami</button>
-          <button class="term-quick-btn" data-cmd="contact">contact</button>
+          <button class="term-quick-btn" data-cmd="novels">novels</button>
+          <button class="term-quick-btn" data-cmd="specs">specs</button>
+          <button class="term-quick-btn" data-cmd="color white">color white</button>
           <button class="term-quick-btn" data-cmd="clear">clear</button>
         </div>
 
-        <div class="term-prompt-line" style="padding: 12px 24px; background: #0c0d11; border-top: 1px solid var(--border-subtle);">
-          <span class="term-prompt-user">guest@a1e3m</span>:<span class="term-prompt-path">~</span>$ 
-          <input type="text" class="term-input" id="terminal-input" placeholder="type command (e.g. skills, projects)..." autocomplete="off" spellcheck="false" aria-label="Terminal Command Input">
+        <div class="term-prompt-line" style="padding: 12px 24px; border-top: 1px solid var(--border-subtle);">
+          <span class="term-prompt-user">guest@a1e3m-core</span>:<span class="term-prompt-path">~</span>$
+          <input type="text" id="terminal-input" class="term-input" placeholder="Type a command and press Enter..." autocomplete="off" spellcheck="false">
         </div>
       </div>
     </section>
 
     <!-- -----------------------------------------------------------------------
-         STAGE 07: IDENTITY & CONTACT CHANNELS
+         STAGE 09: ABOUT IDENTITY & DIRECT TRANSMISSION
          ----------------------------------------------------------------------- -->
     <section class="stage-about-contact section-container" id="stage-contact">
       <div class="about-contact-grid">
-        <!-- Profile Column -->
+        <!-- Identity Summary Card -->
         <div class="about-profile-card">
           <div class="profile-avatar-frame">
-            <img src="img/a1e3m.jpg" alt="Aleem portrait" class="profile-avatar-img">
+            <img src="assets/real/portrait.jpg" alt="Aleem (A1E3M) portrait" class="profile-avatar-img">
           </div>
           <h2 class="profile-name">Aleem</h2>
-          <div class="profile-handle">@A1E3M &bull; SEA BOIII</div>
+          <div class="profile-handle">A1E3M // PRODUCT DEV ENGINEER @ AMD</div>
           <p class="profile-bio">
-            Graduated from <b>Nanyang Technological University (NTU)</b> in May 2022 with a Bachelor's Degree in Computer Engineering, specialized in <b>Artificial Intelligence</b> and <b>Cyber Security</b>.
-            Driven by first-principles problem solving, high-efficiency logic, and engineering software/hardware that makes a real-world difference.
+            Graduated from Nanyang Technological University (NTU) with a Bachelor's Degree in Computer Engineering (AI &amp; Cyber Security). Working at AMD on PlayStation 5 and PS5 Pro console SoC bring-up and yield enhancement. An engineer fascinated by logic, deterministic hardware, and interactive digital worlds.
           </p>
 
           <div class="profile-spec-sheet">
             <div class="spec-sheet-row">
-              <span class="spec-sheet-key">Degree</span>
-              <span class="spec-sheet-val">B.Eng Computer Engineering</span>
+              <span class="spec-sheet-key">Primary Discipline</span>
+              <span class="spec-sheet-val">Silicon &bull; Firmware &bull; Software</span>
             </div>
             <div class="spec-sheet-row">
-              <span class="spec-sheet-key">Institution</span>
-              <span class="spec-sheet-val">Nanyang Technological Univ</span>
+              <span class="spec-sheet-key">Alma Mater</span>
+              <span class="spec-sheet-val">NTU Singapore (May 2022)</span>
             </div>
             <div class="spec-sheet-row">
-              <span class="spec-sheet-key">Age</span>
-              <span class="spec-sheet-val" id="bio-age">28</span>
+              <span class="spec-sheet-key">Current Station</span>
+              <span class="spec-sheet-val">Product Dev Engineer @ AMD</span>
             </div>
             <div class="spec-sheet-row">
-              <span class="spec-sheet-key">Location</span>
-              <span class="spec-sheet-val">Singapore (SGT)</span>
+              <span class="spec-sheet-key">Timezone</span>
+              <span class="spec-sheet-val">Singapore (SGT // UTC+8)</span>
             </div>
             <div class="spec-sheet-row">
-              <span class="spec-sheet-key">Specialisation</span>
-              <span class="spec-sheet-val">AI &amp; Cyber Security</span>
+              <span class="spec-sheet-key">Status</span>
+              <span class="spec-sheet-val" style="color:#10b981;">Active // Available for Collaboration</span>
             </div>
           </div>
         </div>
 
-        <!-- Direct Transmission Channels -->
+        <!-- Contact Transmission Channels -->
         <div class="contact-channels-wrap">
           <div class="tech-header" style="margin-bottom: 24px;">
-            <div class="tech-tag">TRANSMISSION // CHANNELS</div>
-            <h2 class="tech-title" style="font-size: 2.2rem;">Get In Touch</h2>
-            <p class="tech-subtitle">
-              Open to high-impact software &amp; hardware engineering roles, systems architecture, and technical collaborations.
+            <div class="tech-tag">
+              <span class="ctrl-led-indicator" style="background:#10b981;box-shadow:0 0 8px #10b981;"></span>
+              TRANSMISSION // DIRECT CHANNELS
+            </div>
+            <h2 class="tech-title">Connect &amp; Collaborate</h2>
+            <p class="tech-sub">
+              Open to high-impact silicon engineering discussions, firmware architecture, and innovative technical collaborations.
             </p>
           </div>
 
           <!-- Email (1-Click Copy Toast) -->
-          <a href="mailto:seaboiiigamer@gmail.com" class="contact-card-channel copy-email-trigger" title="Click to copy email address">
+          <div class="contact-card-channel copy-email-trigger" title="Click to copy email address">
             <div class="channel-info">
               <div class="channel-icon"><i class="fa fa-envelope" aria-hidden="true"></i></div>
               <div>
-                <div class="channel-name">Email Transmission</div>
+                <div class="channel-name">Direct Email Transmission</div>
                 <div class="channel-sub">seaboiiigamer@gmail.com</div>
               </div>
             </div>
-            <span class="channel-action-hint">CLICK TO COPY // MAILTO <i class="fa fa-copy" aria-hidden="true"></i></span>
-          </a>
+            <span class="channel-action-hint">CLICK TO COPY <i class="fa fa-copy" aria-hidden="true"></i></span>
+          </div>
 
           <!-- LinkedIn -->
           <a href="https://www.linkedin.com/in/a1e3m/" target="_blank" rel="noopener noreferrer" class="contact-card-channel">
@@ -773,7 +968,7 @@
     <div class="footer-inner">
       <div class="footer-credits">
         <div class="hud-logo-icon"></div>
-        <span>ALEEM // A1E3M &bull; COMPUTER ENGINEER</span>
+        <span>ALEEM // A1E3M &bull; PRODUCT DEVELOPMENT ENGINEER @ AMD</span>
       </div>
       <div>
         <span>DEPLOYED ON GITHUB PAGES &bull; COPYRIGHT &copy; <span id="footer-year">2026</span></span>

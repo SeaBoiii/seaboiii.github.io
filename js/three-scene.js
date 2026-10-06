@@ -2,7 +2,14 @@
  * NOTHING TECH 3D INTERACTIVE VIEWPORT ENGINE
  * Author: Aleem (A1E3M)
  * Powered by Three.js (WebGL)
- * Features: Frosted Glass Refraction, Glyph LEDs, Exploded Disassembly, Scrollytelling Lerp
+ * Features:
+ *  - Frosted Glass Refraction & ACES Filmic Tone Mapping
+ *  - Dual Colorway Engine (Black Edition & White Edition ?Color=White)
+ *  - 3D Projected Screen Callout Annotation Pins
+ *  - Exploded Mechanical Disassembly with Physics Easing
+ *  - Stage-Synchronized Scrollytelling Choreography
+ *  - 400-Node Particle Constellation (Probow 400 CCU Distributed System)
+ *  - Interactive Orbit Drag & Glyph LED Modes
  */
 
 (function () {
@@ -25,6 +32,7 @@
 
   // Scene State
   const state = {
+    theme: 'black', // 'black' or 'white'
     exploded: false,
     wireframe: false,
     glyphMode: 'white', // 'white', 'pulse', 'red', 'off'
@@ -47,19 +55,31 @@
   let scene, camera, renderer;
   let canvasContainer, canvas;
   let coreRoot, outerChassis, pcbBoard, microchip, glyphRing, glyphStrips = [], gearRing1, gearRing2, floatingChips = [];
-  let glyphLight1, glyphLight2, ambientLight;
+  let glyphLight1, glyphLight2, ambientLight, keyLight, fillLight;
+  let networkParticles, particleGeo, particleMat;
 
   // Materials Registry for Wireframe/Theme updates
   const materials = [];
+  const tempVec = new THREE.Vector3();
+
+  // Callout DOM Elements
+  let calloutsContainer, calloutChip, calloutGear, calloutGlyph, calloutChassis;
 
   function init() {
     canvasContainer = document.getElementById('webgl-canvas-container');
     canvas = document.getElementById('webgl-canvas');
     if (!canvas) return;
 
+    // Cache Callout DOM Elements
+    calloutsContainer = document.getElementById('callouts-container');
+    calloutChip = document.getElementById('callout-chip');
+    calloutGear = document.getElementById('callout-gear');
+    calloutGlyph = document.getElementById('callout-glyph');
+    calloutChassis = document.getElementById('callout-chassis');
+
     // 1. Scene Setup
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x070709, 0.05);
+    scene.fog = new THREE.FogExp2(0x070709, 0.045);
 
     // 2. Camera Setup
     const aspect = window.innerWidth / window.innerHeight;
@@ -77,14 +97,15 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     if (THREE.ACESFilmicToneMapping) {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.1;
+      renderer.toneMappingExposure = 1.15;
     }
 
-    // 4. Lighting
+    // 4. Lighting Setup
     setupLighting();
 
-    // 5. Build the Transparent Cybernetic Core
+    // 5. Build Transparent Cybernetic Core & Particle Constellation
     buildHardwareCore();
+    buildNetworkConstellation();
 
     // 6. Event Listeners
     setupEventListeners();
@@ -92,7 +113,11 @@
     // 7. Initial Layout Sync
     onWindowResize();
 
-    // 8. Start Render Loop
+    // 8. Sync Initial Theme from Document
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'black';
+    setTheme(currentTheme);
+
+    // 9. Start Render Loop
     requestAnimationFrame(renderLoop);
   }
 
@@ -101,12 +126,12 @@
     scene.add(ambientLight);
 
     // Key Specular Rim Light
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
     keyLight.position.set(5, 8, 6);
     scene.add(keyLight);
 
     // Soft Fill Light
-    const fillLight = new THREE.DirectionalLight(0x8a99ad, 1.2);
+    fillLight = new THREE.DirectionalLight(0x8a99ad, 1.2);
     fillLight.position.set(-6, -4, -4);
     scene.add(fillLight);
 
@@ -124,8 +149,8 @@
     coreRoot = new THREE.Group();
     scene.add(coreRoot);
 
-    // Outer Frosted Glass Chassis
-    const chassisGeo = new THREE.BoxGeometry(2.6, 2.6, 0.9, 16, 16, 16);
+    // 1. Outer Frosted Glass Chassis (Nothing Signature Transparent Shell)
+    const chassisGeo = new THREE.BoxGeometry(2.7, 2.7, 0.92, 16, 16, 16);
     const chassisMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       metalness: 0.1,
@@ -134,73 +159,73 @@
       transparent: true,
       opacity: 0.92,
       ior: 1.45,
-      thickness: 0.6,
+      thickness: 0.65,
       reflectivity: 0.7,
-      clearcoat: 0.9,
+      clearcoat: 0.95,
       clearcoatRoughness: 0.1
     });
     materials.push(chassisMat);
     outerChassis = new THREE.Mesh(chassisGeo, chassisMat);
     coreRoot.add(outerChassis);
 
-    // Inner Matte-Black PCB Board
-    const pcbGeo = new THREE.BoxGeometry(2.3, 2.3, 0.08);
+    // 2. Inner Matte-Black PCB Board
+    const pcbGeo = new THREE.BoxGeometry(2.35, 2.35, 0.08);
     const pcbMat = new THREE.MeshStandardMaterial({
       color: 0x0c0d10,
-      roughness: 0.7,
-      metalness: 0.4
+      roughness: 0.75,
+      metalness: 0.35
     });
     materials.push(pcbMat);
     pcbBoard = new THREE.Mesh(pcbGeo, pcbMat);
     coreRoot.add(pcbBoard);
 
-    // Circuit Line Traces (Procedural Geometric Matrix)
+    // 3. Circuit Line Traces (Procedural Geometric Matrix)
     const traceGeo = new THREE.BufferGeometry();
     const tracePoints = [];
-    for (let i = 0; i < 40; i++) {
-      const x1 = (Math.random() - 0.5) * 2.0;
-      const y1 = (Math.random() - 0.5) * 2.0;
-      const x2 = x1 + (Math.random() > 0.5 ? 0.3 : -0.3);
-      const y2 = y1 + (Math.random() > 0.5 ? 0.3 : -0.3);
+    for (let i = 0; i < 48; i++) {
+      const x1 = (Math.random() - 0.5) * 2.1;
+      const y1 = (Math.random() - 0.5) * 2.1;
+      const x2 = x1 + (Math.random() > 0.5 ? 0.35 : -0.35);
+      const y2 = y1 + (Math.random() > 0.5 ? 0.35 : -0.35);
       tracePoints.push(x1, y1, 0.06, x2, y1, 0.06);
       tracePoints.push(x2, y1, 0.06, x2, y2, 0.06);
     }
     traceGeo.setAttribute('position', new THREE.Float32BufferAttribute(tracePoints, 3));
-    const traceMat = new THREE.LineBasicMaterial({ color: 0xc8c8d0, transparent: true, opacity: 0.6 });
+    const traceMat = new THREE.LineBasicMaterial({ color: 0xd8d8e2, transparent: true, opacity: 0.65 });
     const traces = new THREE.LineSegments(traceGeo, traceMat);
     coreRoot.add(traces);
 
-    // Central Microcontroller (The "A1E3M // ATMEGA-AI" Chip)
-    const chipGeo = new THREE.BoxGeometry(0.8, 0.8, 0.18);
+    // 4. Central Microcontroller (The "A1E3M // AMD · ATMEGA · AI" Chip)
+    const chipGeo = new THREE.BoxGeometry(0.85, 0.85, 0.2);
     const chipMat = new THREE.MeshStandardMaterial({
-      color: 0x18191f,
-      roughness: 0.3,
-      metalness: 0.8
+      color: 0x181920,
+      roughness: 0.25,
+      metalness: 0.85
     });
     materials.push(chipMat);
     microchip = new THREE.Mesh(chipGeo, chipMat);
-    microchip.position.z = 0.12;
+    microchip.position.z = 0.14;
     coreRoot.add(microchip);
 
-    // Chip Pins (Gold-plated connectors)
+    // 5. Chip Pins (Gold-plated connectors)
     const pinMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9, roughness: 0.2 });
     materials.push(pinMat);
     for (let side = 0; side < 4; side++) {
       for (let i = -3; i <= 3; i++) {
         const pinGeo = new THREE.BoxGeometry(0.04, 0.1, 0.04);
         const pin = new THREE.Mesh(pinGeo, pinMat);
-        const offset = i * 0.09;
-        if (side === 0) pin.position.set(offset, 0.44, 0.1);
-        if (side === 1) pin.position.set(offset, -0.44, 0.1);
-        if (side === 2) pin.position.set(0.44, offset, 0.1);
-        if (side === 3) pin.position.set(-0.44, offset, 0.1);
+        const offset = i * 0.095;
+        if (side === 0) pin.position.set(offset, 0.46, 0.12);
+        if (side === 1) pin.position.set(offset, -0.46, 0.12);
+        if (side === 2) pin.position.set(0.46, offset, 0.12);
+        if (side === 3) pin.position.set(-0.46, offset, 0.12);
         coreRoot.add(pin);
-        floatingChips.push({ mesh: pin, baseZ: pin.position.z, spreadZ: 0.8, spreadXY: 1.2 });
+        floatingChips.push({ mesh: pin, baseZ: pin.position.z, spreadZ: 0.85, spreadXY: 1.15 });
       }
     }
 
-    // Nothing Signature Glyph LED Ring (Central Circle)
-    const glyphRingGeo = new THREE.TorusGeometry(0.65, 0.035, 16, 64);
+    // 6. Nothing Signature Glyph LED Ring (Central Halo)
+    const glyphRingGeo = new THREE.TorusGeometry(0.68, 0.038, 16, 64);
     const glyphRingMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0xffffff,
@@ -209,19 +234,19 @@
     });
     materials.push(glyphRingMat);
     glyphRing = new THREE.Mesh(glyphRingGeo, glyphRingMat);
-    glyphRing.position.z = 0.22;
+    glyphRing.position.z = 0.24;
     coreRoot.add(glyphRing);
 
-    // Glyph Peripheral Accent Light Strips (Nothing Phone / Headphone style)
+    // 7. Glyph Peripheral Accent Light Strips
     const stripConfigs = [
-      { width: 0.7, height: 0.05, x: 0.75, y: 0.85, z: 0.22, rot: 0 },
-      { width: 0.7, height: 0.05, x: -0.75, y: -0.85, z: 0.22, rot: 0 },
-      { width: 0.05, height: 0.6, x: -0.95, y: 0.2, z: 0.22, rot: 0.2 },
-      { width: 0.05, height: 0.6, x: 0.95, y: -0.2, z: 0.22, rot: -0.2 }
+      { width: 0.72, height: 0.05, x: 0.75, y: 0.88, z: 0.24, rot: 0 },
+      { width: 0.72, height: 0.05, x: -0.75, y: -0.88, z: 0.24, rot: 0 },
+      { width: 0.05, height: 0.65, x: -0.98, y: 0.2, z: 0.24, rot: 0.2 },
+      { width: 0.05, height: 0.65, x: 0.98, y: -0.2, z: 0.24, rot: -0.2 }
     ];
 
     stripConfigs.forEach(cfg => {
-      const stripGeo = new THREE.BoxGeometry(cfg.width, cfg.height, 0.03);
+      const stripGeo = new THREE.BoxGeometry(cfg.width, cfg.height, 0.032);
       const stripMat = new THREE.MeshStandardMaterial({
         color: 0xffffff,
         emissive: 0xffffff,
@@ -234,22 +259,22 @@
       strip.rotation.z = cfg.rot;
       coreRoot.add(strip);
       glyphStrips.push(strip);
-      floatingChips.push({ mesh: strip, baseZ: cfg.z, spreadZ: 1.4, spreadXY: 1.1 });
+      floatingChips.push({ mesh: strip, baseZ: cfg.z, spreadZ: 1.45, spreadXY: 1.1 });
     });
 
-    // Precision Stepper Motor Gears & Optical Lens Rings (ICM Buddy tribute)
-    const gearGeo1 = new THREE.TorusGeometry(0.95, 0.05, 12, 48);
+    // 8. Stepper Motor Gears & Optical Lens Rings (ICM Buddy Hardware)
+    const gearGeo1 = new THREE.TorusGeometry(1.0, 0.055, 12, 48);
     const gearMat1 = new THREE.MeshStandardMaterial({
-      color: 0x999da8,
+      color: 0x9ca0ab,
       metalness: 0.85,
       roughness: 0.25
     });
     materials.push(gearMat1);
     gearRing1 = new THREE.Mesh(gearGeo1, gearMat1);
-    gearRing1.position.z = 0.32;
+    gearRing1.position.z = 0.34;
     coreRoot.add(gearRing1);
 
-    const gearGeo2 = new THREE.TorusGeometry(1.15, 0.04, 12, 48);
+    const gearGeo2 = new THREE.TorusGeometry(1.2, 0.045, 12, 48);
     const gearMat2 = new THREE.MeshStandardMaterial({
       color: 0x5a5c66,
       metalness: 0.9,
@@ -257,17 +282,54 @@
     });
     materials.push(gearMat2);
     gearRing2 = new THREE.Mesh(gearGeo2, gearMat2);
-    gearRing2.position.z = -0.28;
+    gearRing2.position.z = -0.32;
     coreRoot.add(gearRing2);
 
     // Register primary layers for exploded transformation
     floatingChips.push(
-      { mesh: outerChassis, baseZ: 0, spreadZ: 2.2, spreadXY: 1.0 },
-      { mesh: microchip, baseZ: 0.12, spreadZ: 0.9, spreadXY: 1.0 },
-      { mesh: glyphRing, baseZ: 0.22, spreadZ: 1.6, spreadXY: 1.0 },
-      { mesh: gearRing1, baseZ: 0.32, spreadZ: 1.9, spreadXY: 1.2 },
-      { mesh: gearRing2, baseZ: -0.28, spreadZ: -1.6, spreadXY: 1.1 }
+      { mesh: outerChassis, baseZ: 0, spreadZ: 2.4, spreadXY: 1.0 },
+      { mesh: microchip, baseZ: 0.14, spreadZ: 0.95, spreadXY: 1.0 },
+      { mesh: glyphRing, baseZ: 0.24, spreadZ: 1.65, spreadXY: 1.0 },
+      { mesh: gearRing1, baseZ: 0.34, spreadZ: 2.0, spreadXY: 1.2 },
+      { mesh: gearRing2, baseZ: -0.32, spreadZ: -1.8, spreadXY: 1.1 }
     );
+  }
+
+  // Build 400-node particle constellation representing the 400 CCU Probow Network
+  function buildNetworkConstellation() {
+    const particleCount = 400;
+    const positions = new Float32Array(particleCount * 3);
+    const radius = 3.6;
+
+    for (let i = 0; i < particleCount; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = radius * (0.75 + Math.random() * 0.5);
+
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.sin(phi) * Math.sin(theta);
+      const z = r * Math.cos(phi);
+
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+    }
+
+    particleGeo = new THREE.BufferGeometry();
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    particleMat = new THREE.PointsMaterial({
+      color: 0x00f0ff,
+      size: 0.08,
+      transparent: true,
+      opacity: 0.25,
+      blending: THREE.AdditiveBlending
+    });
+
+    networkParticles = new THREE.Points(particleGeo, particleMat);
+    scene.add(networkParticles);
   }
 
   function setupEventListeners() {
@@ -284,7 +346,11 @@
 
     // Interactive Drag to Rotate Canvas
     window.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.model-controls-pill') || e.target.closest('a') || e.target.closest('button') || e.target.closest('input')) {
+      if (e.target.closest('.model-controls-pill') || 
+          e.target.closest('.hud-header') || 
+          e.target.closest('a') || 
+          e.target.closest('button') || 
+          e.target.closest('input')) {
         return;
       }
       state.isUserInteracting = true;
@@ -309,7 +375,7 @@
       state.isUserInteracting = false;
     });
 
-    // HUD & Controls Pill Actions
+    // Control Buttons
     setupControlButtons();
   }
 
@@ -319,7 +385,6 @@
   }
 
   function setupControlButtons() {
-    // Exploded View Button
     const btnExplode = document.getElementById('btn-explode');
     if (btnExplode) {
       btnExplode.addEventListener('click', () => {
@@ -329,7 +394,6 @@
       });
     }
 
-    // Wireframe Mode Button
     const btnWireframe = document.getElementById('btn-wireframe');
     if (btnWireframe) {
       btnWireframe.addEventListener('click', () => {
@@ -342,7 +406,6 @@
       });
     }
 
-    // Glyph LED Mode Switcher
     const btnGlyph = document.getElementById('btn-glyph');
     if (btnGlyph) {
       btnGlyph.addEventListener('click', () => {
@@ -351,7 +414,6 @@
       });
     }
 
-    // Reset Camera Button
     const btnReset = document.getElementById('btn-reset');
     if (btnReset) {
       btnReset.addEventListener('click', () => {
@@ -401,6 +463,106 @@
     }
   }
 
+  // =========================================================================
+  // DUAL COLORWAY THEME SWITCHER (BLACK VS WHITE EDITION)
+  // =========================================================================
+  function setTheme(theme) {
+    state.theme = theme;
+    if (!scene) return;
+
+    if (theme === 'white') {
+      scene.fog.color.setHex(0xf6f7f9);
+      if (ambientLight) {
+        ambientLight.color.setHex(0xe8ebf0);
+        ambientLight.intensity = 1.6;
+      }
+      if (keyLight) {
+        keyLight.color.setHex(0xffffff);
+        keyLight.intensity = 2.8;
+      }
+      if (fillLight) {
+        fillLight.color.setHex(0xbcc4d4);
+        fillLight.intensity = 1.4;
+      }
+      if (outerChassis) {
+        outerChassis.material.color.setHex(0xffffff);
+        outerChassis.material.roughness = 0.12;
+      }
+      if (pcbBoard) {
+        pcbBoard.material.color.setHex(0x1a1c24);
+      }
+      if (particleMat) {
+        particleMat.color.setHex(0x0077b6);
+      }
+    } else {
+      scene.fog.color.setHex(0x070709);
+      if (ambientLight) {
+        ambientLight.color.setHex(0x22242b);
+        ambientLight.intensity = 1.2;
+      }
+      if (keyLight) {
+        keyLight.color.setHex(0xffffff);
+        keyLight.intensity = 2.5;
+      }
+      if (fillLight) {
+        fillLight.color.setHex(0x8a99ad);
+        fillLight.intensity = 1.2;
+      }
+      if (outerChassis) {
+        outerChassis.material.color.setHex(0xffffff);
+        outerChassis.material.roughness = 0.18;
+      }
+      if (pcbBoard) {
+        pcbBoard.material.color.setHex(0x0c0d10);
+      }
+      if (particleMat) {
+        particleMat.color.setHex(0x00f0ff);
+      }
+    }
+  }
+
+  // =========================================================================
+  // 3D PROJECTED SCREEN CALLOUT ANNOTATION PINS
+  // =========================================================================
+  function updateCallouts(currentExplosion) {
+    if (!calloutsContainer || !camera) return;
+
+    // Show callouts only when explosion is visible
+    const isVisible = currentExplosion > 0.18;
+    const opacity = isVisible ? Math.min((currentExplosion - 0.18) / 0.35, 1) : 0;
+
+    const targets = [
+      { el: calloutChip, mesh: microchip },
+      { el: calloutGear, mesh: gearRing1 },
+      { el: calloutGlyph, mesh: glyphRing },
+      { el: calloutChassis, mesh: outerChassis }
+    ];
+
+    targets.forEach(({ el, mesh }) => {
+      if (!el || !mesh) return;
+
+      if (!isVisible) {
+        el.style.opacity = '0';
+        return;
+      }
+
+      tempVec.setFromMatrixPosition(mesh.matrixWorld);
+      tempVec.project(camera);
+
+      // Check if within view frustum
+      if (tempVec.z > 1.0) {
+        el.style.opacity = '0';
+        return;
+      }
+
+      const x = (tempVec.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-(tempVec.y * 0.5) + 0.5) * window.innerHeight;
+
+      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      el.style.opacity = String(opacity);
+    });
+  }
+
   function onWindowResize() {
     if (!camera || !renderer) return;
     const width = window.innerWidth;
@@ -413,7 +575,9 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   }
 
-  // Render Loop with Physics Easing
+  // =========================================================================
+  // RENDER LOOP & SCROLLYTELLING EASING
+  // =========================================================================
   let explosionAmount = 0;
   function renderLoop(now) {
     requestAnimationFrame(renderLoop);
@@ -428,13 +592,13 @@
       if (fpsDisplay) fpsDisplay.textContent = `${state.fps} FPS`;
     }
 
-    // Smooth Mouse Easing
+    // Smooth Mouse Gyro Easing
     state.mouseX += (state.targetMouseX - state.mouseX) * 0.05;
     state.mouseY += (state.targetMouseY - state.mouseY) * 0.05;
 
     // Scrollytelling Transformations
     const p = state.scrollProgress;
-    
+
     // Core Rotation: Continuous slow spin + scroll progression + manual drag
     const baseSpin = now * 0.0003;
     const scrollSpinY = p * Math.PI * 4;
@@ -444,36 +608,62 @@
     coreRoot.rotation.y += (targetRotY - coreRoot.rotation.y) * 0.08;
     coreRoot.rotation.x += (targetRotX - coreRoot.rotation.x) * 0.08;
 
-    // Stepper Gears Rotation (Internal mechanics)
+    // Stepper Gears Rotation (Internal hardware mechanics)
     if (gearRing1) gearRing1.rotation.z += 0.015;
     if (gearRing2) gearRing2.rotation.z -= 0.01;
 
-    // Dynamic Camera Pan / Offset
-    // At Hero: centered or right-shifted (for desktop text layout)
-    // At Stage 01 (Hardware): moves to right (x: 1.8)
-    // At Stage 02 (AI): moves to left (x: -1.8)
-    // At Stage 03 (Distributed): center-right (x: 1.2)
-    // At Project Hub & beyond: docks subtly into background
+    // Network Particle Rotation
+    if (networkParticles) {
+      networkParticles.rotation.y = now * 0.0002;
+      networkParticles.rotation.x = Math.sin(now * 0.00015) * 0.2;
+
+      // Particle intensity increases during Stage 04 (Probow 400 CCU)
+      const isNetworkStage = p >= 0.58 && p <= 0.76;
+      const targetParticleAlpha = isNetworkStage ? 0.85 : 0.2;
+      particleMat.opacity += (targetParticleAlpha - particleMat.opacity) * 0.05;
+    }
+
+    // Dynamic Camera Pan / Offset Choreography across All Stages
     const isMobile = window.innerWidth < 992;
     let targetCamX = 0;
     let targetCamY = 0;
     let targetCamZ = 7.5;
 
     if (!isMobile) {
-      if (p < 0.15) {
+      if (p < 0.12) {
+        // Hero: Centered-Right resting angle
         targetCamX = 1.6;
         targetCamY = 0.1;
-      } else if (p < 0.35) {
-        targetCamX = -1.8; // Left side while text is on right
+        targetCamZ = 7.5;
+      } else if (p < 0.26) {
+        // Stage 01 (AMD Silicon): Camera zooms tight into Central Microchip
+        targetCamX = -1.4;
+        targetCamY = 0.15;
+        targetCamZ = 5.6;
+      } else if (p < 0.44) {
+        // Stage 02 (ICM Buddy Hardware): Exploded Disassembly, wider view
+        targetCamX = 1.9;
         targetCamY = 0.2;
-      } else if (p < 0.55) {
-        targetCamX = 1.9;  // Right side while text is on left
+        targetCamZ = 8.2;
+      } else if (p < 0.60) {
+        // Stage 03 (Project LYON 2.0 AI): Camera shifts left, neural pulse
+        targetCamX = -1.8;
         targetCamY = -0.1;
-      } else if (p < 0.75) {
+        targetCamZ = 7.2;
+      } else if (p < 0.76) {
+        // Stage 04 (Probow 400 CCU): Constellation network focus
+        targetCamX = 1.8;
+        targetCamY = 0.1;
+        targetCamZ = 7.8;
+      } else if (p < 0.88) {
+        // Stage 05 (Novel Platform): Settled right quadrant
         targetCamX = -1.6;
+        targetCamY = 0.0;
+        targetCamZ = 8.0;
       } else {
+        // Web Hub & Datasheet: Ambient background docking
         targetCamX = 2.0;
-        targetCamZ = 9.0;
+        targetCamZ = 9.2;
       }
     }
 
@@ -482,8 +672,8 @@
     camera.position.z += (targetCamZ - camera.position.z) * 0.06;
 
     // Exploded View Interpolation
-    // Automated explosion during Hardware stage (p between 0.15 and 0.35) or when button active
-    const autoExplode = (p >= 0.14 && p <= 0.38) ? (Math.sin(((p - 0.14) / 0.24) * Math.PI) * 0.9) : 0;
+    // Automated explosion during Hardware stage (p between 0.26 and 0.44) or when button active
+    const autoExplode = (p >= 0.26 && p <= 0.44) ? (Math.sin(((p - 0.26) / 0.18) * Math.PI) * 0.95) : 0;
     const targetExplosion = state.exploded ? 1.0 : autoExplode;
     explosionAmount += (targetExplosion - explosionAmount) * 0.06;
 
@@ -492,14 +682,42 @@
       item.mesh.position.z = item.baseZ + (spread * explosionAmount);
     });
 
+    // Update 3D projected screen callout pins
+    updateCallouts(explosionAmount);
+
     // Glyph Pulse Mode Animation
     if (state.glyphMode === 'pulse') {
       const pulseIntensity = 1.5 + Math.sin(now * 0.005) * 1.5;
-      setGlyphIntensity(pulseIntensity, 0x00f0ff);
+      setGlyphIntensity(pulseIntensity, state.theme === 'white' ? 0x0077b6 : 0x00f0ff);
     }
 
     renderer.render(scene, camera);
   }
+
+  // Expose Public Engine Interface for UI Integration
+  window.ThreeEngine = {
+    setTheme,
+    cycleGlyphMode,
+    toggleExplode: () => {
+      state.exploded = !state.exploded;
+      const btn = document.getElementById('btn-explode');
+      if (btn) btn.classList.toggle('active', state.exploded);
+    },
+    toggleWireframe: () => {
+      state.wireframe = !state.wireframe;
+      materials.forEach(m => m.wireframe = state.wireframe);
+      const btn = document.getElementById('btn-wireframe');
+      if (btn) btn.classList.toggle('active', state.wireframe);
+    },
+    resetCamera: () => {
+      state.manualRotationX = 0;
+      state.manualRotationY = 0;
+      state.exploded = false;
+      const btn = document.getElementById('btn-explode');
+      if (btn) btn.classList.remove('active');
+    },
+    getState: () => state
+  };
 
   // Initialize on DOM ready
   if (document.readyState === 'loading') {
@@ -508,4 +726,3 @@
     init();
   }
 })();
-

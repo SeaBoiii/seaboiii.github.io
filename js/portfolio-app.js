@@ -1,21 +1,26 @@
 /**
  * A1E3M PORTFOLIO CLIENT APPLICATION
  * Author: Aleem (A1E3M)
- * Features: Web Audio Engine, Interactive Terminal, Bento Hub Filtering, Live Telemetry, Clipboard Toasts
+ * Features:
+ *  - Web Audio API Tactile Sound Engine (HUD Mute/Unmute, Micro-Synthesizer)
+ *  - Dual Colorway Manager (White & Black Edition with ?Color=White Support)
+ *  - Interactive Terminal ("A1E3M Shell" v2.6 with AMD, Silicon & Novel Commands)
+ *  - Bento Hub Filter Engine (9 Live Web Apps)
+ *  - Live Telemetry (Singapore SGT UTC+8 Clock & Dynamic Age Calculation)
+ *  - 1-Click Clipboard Email Transmission Toast
  */
 
 (function () {
   'use strict';
 
   // =========================================================================
-  // 1. WEB AUDIO API - TACTILE SOUND ENGINE (HUD TOGGLEABLE, MUTED BY DEFAULT)
+  // 1. WEB AUDIO API - TACTILE SOUND ENGINE (MUTED BY DEFAULT)
   // =========================================================================
   const AudioEngine = {
     audioCtx: null,
     muted: true,
 
     init() {
-      // AudioContext initialized on first user interaction to comply with browser autoplay policies
       const enableAudio = () => {
         if (!this.audioCtx) {
           const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -81,7 +86,66 @@
   AudioEngine.init();
 
   // =========================================================================
-  // 2. LIVE TELEMETRY (SINGAPORE SGT CLOCK & DYNAMIC AGE)
+  // 2. DUAL COLORWAY MANAGER (BLACK EDITION & WHITE EDITION ?Color=White)
+  // =========================================================================
+  function initColorway() {
+    // 1. Detect URL param (?Color=White or ?color=white)
+    const urlParams = new URLSearchParams(window.location.search);
+    const colorParam = (urlParams.get('Color') || urlParams.get('color') || '').toLowerCase();
+
+    // 2. Determine initial theme: URL param > localStorage > Default 'black'
+    let activeTheme = 'black';
+    if (colorParam === 'white' || colorParam === 'black') {
+      activeTheme = colorParam;
+    } else {
+      const storedTheme = localStorage.getItem('a1e3m_portfolio_colorway');
+      if (storedTheme === 'white' || storedTheme === 'black') {
+        activeTheme = storedTheme;
+      }
+    }
+
+    // Apply Theme Function
+    function applyTheme(theme, playSound = false) {
+      activeTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('a1e3m_portfolio_colorway', theme);
+
+      // Update HUD buttons
+      const colorwayBtns = document.querySelectorAll('.colorway-btn');
+      colorwayBtns.forEach(btn => {
+        const btnColor = btn.getAttribute('data-color');
+        btn.classList.toggle('active', btnColor === theme);
+      });
+
+      // Sync with Three.js WebGL Engine
+      if (window.ThreeEngine && typeof window.ThreeEngine.setTheme === 'function') {
+        window.ThreeEngine.setTheme(theme);
+      }
+
+      if (playSound && window.AudioEngine) {
+        window.AudioEngine.playClick();
+      }
+    }
+
+    // Apply on load
+    applyTheme(activeTheme, false);
+
+    // Attach click listeners to colorway buttons
+    const colorwayBtns = document.querySelectorAll('.colorway-btn');
+    colorwayBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetColor = btn.getAttribute('data-color');
+        if (targetColor && targetColor !== activeTheme) {
+          applyTheme(targetColor, true);
+        }
+      });
+    });
+
+    window.applyPortfolioTheme = applyTheme;
+  }
+
+  // =========================================================================
+  // 3. LIVE TELEMETRY (SINGAPORE SGT CLOCK & DYNAMIC AGE)
   // =========================================================================
   function initTelemetry() {
     const timeDisplay = document.getElementById('telemetry-time');
@@ -89,8 +153,8 @@
     const bioAgeDisplay = document.getElementById('bio-age');
     const footerYear = document.getElementById('footer-year');
 
-    // Age Calculation
-    const birthDate = new Date(1997, 4, 26); // May 26, 1997
+    // Dynamic Age Calculation (Born May 26, 1997)
+    const birthDate = new Date(1997, 4, 26);
     const now = new Date();
     let age = now.getFullYear() - birthDate.getFullYear();
     const m = now.getMonth() - birthDate.getMonth();
@@ -98,7 +162,7 @@
       age--;
     }
 
-    if (ageDisplay) ageDisplay.textContent = `${age} YRS`;
+    if (ageDisplay) ageDisplay.textContent = `${age} YRS · Active`;
     if (bioAgeDisplay) bioAgeDisplay.textContent = `${age}`;
     if (footerYear) footerYear.textContent = now.getFullYear();
 
@@ -116,7 +180,7 @@
   }
 
   // =========================================================================
-  // 3. SOUND TOGGLE BUTTON
+  // 4. SOUND TOGGLE BUTTON
   // =========================================================================
   function initSoundToggle() {
     const btnSound = document.getElementById('btn-sound-toggle');
@@ -132,16 +196,20 @@
   }
 
   // =========================================================================
-  // 4. SCROLL PROGRESS & ACTIVE NAVIGATION SPY
+  // 5. SCROLL PROGRESS & ACTIVE NAVIGATION SPY
   // =========================================================================
   function initScrollSpy() {
     const progressEl = document.getElementById('scroll-progress');
     const hudLinks = document.querySelectorAll('.hud-link');
     const sections = [
       { id: 'stage-hero', link: document.querySelector('.hud-link[href="#stage-hero"]') },
+      { id: 'stage-silicon', link: document.querySelector('.hud-link[href="#stage-silicon"]') },
       { id: 'stage-hardware', link: document.querySelector('.hud-link[href="#stage-hardware"]') },
+      { id: 'stage-ai', link: document.querySelector('.hud-link[href="#stage-ai"]') },
+      { id: 'stage-network', link: document.querySelector('.hud-link[href="#stage-network"]') },
+      { id: 'stage-novels', link: document.querySelector('.hud-link[href="#stage-novels"]') },
       { id: 'stage-projects', link: document.querySelector('.hud-link[href="#stage-projects"]') },
-      { id: 'stage-proficiency', link: document.querySelector('.hud-link[href="#stage-proficiency"]') },
+      { id: 'stage-specs', link: document.querySelector('.hud-link[href="#stage-specs"]') },
       { id: 'stage-terminal', link: document.querySelector('.hud-link[href="#stage-terminal"]') },
       { id: 'stage-contact', link: document.querySelector('.hud-link[href="#stage-contact"]') }
     ];
@@ -155,8 +223,8 @@
       }
 
       // Active Section Spy
-      const scrollPos = window.scrollY + 200;
-      let currentSectionId = '';
+      const scrollPos = window.scrollY + 220;
+      let currentSectionId = 'stage-hero';
       sections.forEach(sec => {
         const el = document.getElementById(sec.id);
         if (el && el.offsetTop <= scrollPos) {
@@ -173,7 +241,7 @@
   }
 
   // =========================================================================
-  // 5. PROJECT HUB BENTO FILTER
+  // 6. PROJECT HUB BENTO FILTER
   // =========================================================================
   function initProjectFilters() {
     const filterPills = document.querySelectorAll('.hub-filter-pill');
@@ -181,7 +249,7 @@
 
     filterPills.forEach(pill => {
       pill.addEventListener('click', () => {
-        AudioEngine.playClick();
+        if (window.AudioEngine) window.AudioEngine.playClick();
         filterPills.forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
 
@@ -202,7 +270,7 @@
   }
 
   // =========================================================================
-  // 6. INTERACTIVE TERMINAL ("A1E3M SHELL")
+  // 7. INTERACTIVE TERMINAL ("A1E3M SHELL" v2.6)
   // =========================================================================
   function initTerminal() {
     const termInput = document.getElementById('terminal-input');
@@ -214,63 +282,102 @@
     const commands = {
       help: () => [
         "A1E3M SHELL COMMAND MATRIX [v2.6]:",
-        "  skills     - Display primary engineering proficiencies",
-        "  projects   - List key hardware, AI and web projects",
-        "  hardware   - Details on ICM Buddy (Automated DSLR Controller)",
+        "  amd        - AMD Product Development Engineer details & console SoCs",
+        "  skills     - Display primary engineering proficiencies matrix",
+        "  projects   - List key silicon, hardware, AI, distributed and web projects",
+        "  hardware   - Details on ICM Buddy (Automated DSLR Controller in C/C++)",
         "  ai         - Details on LYON 2.0 (Google Cloud x NTU Chatbot)",
-        "  server     - Details on Probow Minecraft Network (400 CCU)",
+        "  server     - Details on Probow Minecraft Network (400 CCU concurrent)",
+        "  novels     - Details on 50 published serialized novels & publishing pipeline",
+        "  specs      - Full industrial hardware/software datasheet matrix",
+        "  color      - Switch colorway: 'color white' or 'color black'",
         "  contact    - Retrieve direct transmission channels",
         "  whoami     - Identity and engineering summary",
         "  date       - Current Singapore standard telemetry",
         "  clear      - Clear the terminal screen"
       ],
+      amd: () => [
+        "AMD PRODUCT DEVELOPMENT ENGINEER // TELEMETRY:",
+        "  Role     : Product Development Engineer @ AMD (2022 - Present)",
+        "  Focus    : New Product Bring-Up, Sustaining, Yield & Quality Engineering",
+        "  Silicon  : High-Volume Custom Console SoCs (PlayStation 5 & PS5 Pro)",
+        "  Accolade : 2nd Place Winner — AMD Asia Tech Showcase 2024",
+        "  Summary  : Silicon by day; firmware, tools and web platforms by night."
+      ],
       skills: () => [
         "CORE TECHNICAL MATRIX:",
         "  [MASTER] C/C++       : Microcontroller optimization, AtMega, Arduino, Data Structures",
-        "  [ADEPT]  Python      : AI & Machine Learning, Data Science, Pygame",
+        "  [ADEPT]  Python      : AI & Machine Learning, Data Science, Pygame, Tkinter",
         "  [ADEPT]  Java        : Distributed Server Infrastructure, Custom Plugins, OODP",
-        "  [MID]    JS/TS       : WebGL (Three.js), Game Loops, Reactive State Engines",
-        "  [ENG]    Embedded/IoT: Circuit Prototyping, Stepper Automation, Telemetry"
+        "  [MID]    JS/TS       : WebGL (Three.js), Game Loops, Reactive State Engines, Next.js",
+        "  [ENG]    Silicon     : SoC Bring-Up, Yield Engineering, Console Hardware"
       ],
       projects: () => [
         "PILLAR ENGINEERING PROJECTS:",
-        "  1. ICM Buddy         - Automated DSLR lens focus/zoom controller (C/C++ firmware)",
-        "  2. LYON 2.0 Chatbot  - NTU Campus AI assistant (Google Cloud & OniGroup, 6000+ users)",
-        "  3. Probow Network    - Distributed Minecraft network (400 CCU peak, sole architect)",
-        "  4. 9 Web Hub Apps    - Potionality, Classility, Novels Hub, Nizam, Age of War, Tetris, etc."
+        "  1. AMD Console SoCs  - High-volume SoC bring-up & yield improvements (PS5/Pro)",
+        "  2. ICM Buddy         - Automated DSLR lens focus/zoom controller (C/C++ firmware)",
+        "  3. LYON 2.0 Chatbot  - NTU Campus AI assistant (Google Cloud & OniGroup, 6000+ users)",
+        "  4. Probow Network    - Distributed Minecraft network (400 CCU peak, sole architect)",
+        "  5. Novel Platform    - 50 serialized novels, 818 chapters, Python Tkinter wizard",
+        "  6. 9 Web Hub Apps    - Potionality, Classility, Nizam, Age of War, Tetris, etc."
       ],
       hardware: () => [
         "ICM BUDDY SPEC SHEET:",
         "  Target  : Automated Intentional Camera Movement long exposures",
         "  HW Core : Arduino AtMega microcontroller + custom stepper driver gear assembly",
+        "  Firmware: Bare-metal C/C++ with acceleration profiles in memory-constrained MCU",
         "  Impact  : Allowed consistent, repeatable micro-movements on manual camera lenses."
       ],
       ai: () => [
         "LYON 2.0 CHATBOT SPEC SHEET:",
         "  Partners: Nanyang Technological University (NTU), Google Cloud, OniGroup",
-        "  Role    : AI learning algorithm development & virtual orientation assistant",
-        "  Scale   : Serviced 6,000+ incoming university students."
+        "  Scale   : Deployed to 6,000+ incoming university freshmen",
+        "  Core    : Natural Language Understanding, dialogue trees, cloud onboarding."
       ],
       server: () => [
         "PROBOW NETWORK SPEC SHEET:",
-        "  Arch    : High-concurrency Java game server cluster",
-        "  Peak    : 400 concurrent active players",
-        "  Role    : Sole programmer, sponsor management, advertising & custom plugin dev."
+        "  Peak CCU: 400 concurrent active players",
+        "  Stack   : Custom Java plugins, OODP, SQL state sync, packet optimization",
+        "  Role    : Sole programmer, systems architect, and hardware operator."
+      ],
+      novels: () => [
+        "NOVEL PUBLISHING PLATFORM:",
+        "  Catalog : 50 serialized novels, 818 published chapters",
+        "  Authoring: Custom 5,800-line Python Tkinter wizard (DOCX import, front-matter)",
+        "  Pipeline: Automated image optimizer (320/640/960px WebP/JPG variants)",
+        "  Reader  : Next.js + TypeScript static reader on GitHub Pages (/novel/)."
+      ],
+      specs: () => [
+        "INDUSTRIAL DATASHEET SPECIFICATIONS:",
+        "  Degree    : B.Eng Computer Engineering, NTU (AI & Cyber Security)",
+        "  Career    : Product Development Engineer @ AMD",
+        "  Firmware  : C, C++, Arduino AtMega AVR, Stepper Control",
+        "  Web & 3D  : TypeScript, React, Next.js, Three.js, Web Audio API",
+        "  Location  : Singapore (SGT // UTC+8)"
+      ],
+      color: (args) => {
+        const target = (args[0] || '').toLowerCase();
+        if (target === 'white' || target === 'black') {
+          if (window.applyPortfolioTheme) window.applyPortfolioTheme(target, true);
+          return [`Colorway switched to ${target.toUpperCase()} EDITION.`];
+        }
+        return ["Usage: color white  OR  color black"];
+      },
+      contact: () => [
+        "TRANSMISSION CHANNELS:",
+        "  Email     : seaboiiigamer@gmail.com (Click card on page to copy)",
+        "  LinkedIn  : https://linkedin.com/in/a1e3m",
+        "  GitHub    : https://github.com/SeaBoiii",
+        "  Telegram  : https://t.me/a1e3m",
+        "  Instagram : https://instagram.com/a1e3m"
       ],
       whoami: () => [
-        "USER: Aleem (A1E3M)",
-        "TITLE: Computer Engineer (B.Eng NTU, Specialised in AI & Cyber Security)",
-        "MISSION: Building high-precision software, hardware, and interactive web experiences."
-      ],
-      contact: () => [
-        "COMMUNICATION CHANNELS:",
-        "  Email    : seaboiiigamer@gmail.com",
-        "  LinkedIn : linkedin.com/in/a1e3m",
-        "  GitHub   : github.com/SeaBoiii",
-        "  Telegram : @a1e3m"
+        "A1E3M (Aleem):",
+        "  Computer Engineer, AMD Product Development Engineer, and Creative Author.",
+        "  Bridging the gap between silicon bring-up, bare-metal hardware, and interactive web software."
       ],
       date: () => [
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore" }) + " SGT"
+        `CURRENT TELEMETRY: ${new Date().toUTCString()} (SGT UTC+8)`
       ],
       clear: () => {
         termBody.innerHTML = '';
@@ -278,90 +385,68 @@
       }
     };
 
-    function executeCommand(rawCmd) {
-      const cmd = rawCmd.trim().toLowerCase();
-      if (!cmd) return;
+    function appendLine(text, className = '') {
+      const line = document.createElement('div');
+      line.className = `term-line-output ${className}`;
+      line.textContent = text;
+      termBody.appendChild(line);
+      termBody.scrollTop = termBody.scrollHeight;
+    }
 
-      // Echo prompt
-      const echoDiv = document.createElement('div');
-      echoDiv.className = 'term-line-output';
-      echoDiv.innerHTML = `<span class="term-prompt-user">guest@a1e3m</span>:<span class="term-prompt-path">~</span>$ ${escapeHtml(rawCmd)}`;
-      termBody.appendChild(echoDiv);
+    function executeCommand(rawInput) {
+      const trimmed = rawInput.trim();
+      if (!trimmed) return;
 
-      AudioEngine.playClick();
+      // Echo User Prompt
+      appendLine(`guest@a1e3m-core:~$ ${trimmed}`, 'highlight');
 
-      if (cmd === 'clear') {
-        commands.clear();
-        return;
-      }
+      const parts = trimmed.split(/\s+/);
+      const cmd = parts[0].toLowerCase();
+      const args = parts.slice(1);
 
       if (commands[cmd]) {
-        const lines = commands[cmd]();
-        lines.forEach(line => {
-          const lDiv = document.createElement('div');
-          lDiv.className = 'term-line-output';
-          if (line.startsWith('CORE') || line.startsWith('PILLAR') || line.startsWith('A1E3M')) {
-            lDiv.classList.add('highlight');
-          }
-          lDiv.textContent = line;
-          termBody.appendChild(lDiv);
-        });
+        const output = commands[cmd](args);
+        output.forEach(outLine => appendLine(outLine));
       } else {
-        const errDiv = document.createElement('div');
-        errDiv.className = 'term-line-output';
-        errDiv.innerHTML = `Command not recognized: <span style="color:var(--accent-red);">${escapeHtml(cmd)}</span>. Type <span class="highlight">help</span> for commands.`;
-        termBody.appendChild(errDiv);
+        appendLine(`Command not found: "${cmd}". Type "help" for available commands.`, 'term-line-output');
       }
 
-      termBody.scrollTop = termBody.scrollHeight;
+      if (window.AudioEngine) window.AudioEngine.playClick();
+      termInput.value = '';
     }
 
     termInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         executeCommand(termInput.value);
-        termInput.value = '';
       }
     });
 
+    // Quick Command Buttons
     termQuickBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const cmd = btn.getAttribute('data-cmd');
-        termInput.value = cmd;
-        executeCommand(cmd);
-        termInput.value = '';
+        if (cmd) executeCommand(cmd);
       });
     });
   }
 
-  function escapeHtml(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
-
   // =========================================================================
-  // 7. 1-CLICK EMAIL COPY TOAST
+  // 8. 1-CLICK CLIPBOARD COPY TOAST
   // =========================================================================
-  function initEmailCopy() {
+  function initCopyToast() {
     const copyTriggers = document.querySelectorAll('.copy-email-trigger');
     const toast = document.getElementById('copy-toast');
 
     copyTriggers.forEach(trigger => {
       trigger.addEventListener('click', (e) => {
-        e.preventDefault();
         const email = 'seaboiiigamer@gmail.com';
-        AudioEngine.playGlyph();
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(email).then(showToast);
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(email).then(() => {
+            showToast();
+          }).catch(() => {
+            showToast();
+          });
         } else {
-          // Fallback textarea copy
-          const ta = document.createElement('textarea');
-          ta.value = email;
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
           showToast();
         }
       });
@@ -369,23 +454,30 @@
 
     function showToast() {
       if (!toast) return;
+      if (window.AudioEngine) window.AudioEngine.playGlyph();
       toast.classList.add('show');
       setTimeout(() => {
         toast.classList.remove('show');
-      }, 2400);
+      }, 2600);
     }
   }
 
   // =========================================================================
-  // INITIALIZATION
+  // INITIALIZE ON DOM READY
   // =========================================================================
-  document.addEventListener('DOMContentLoaded', () => {
+  function initAll() {
+    initColorway();
     initTelemetry();
     initSoundToggle();
     initScrollSpy();
     initProjectFilters();
     initTerminal();
-    initEmailCopy();
-  });
-})();
+    initCopyToast();
+  }
 
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAll);
+  } else {
+    initAll();
+  }
+})();
