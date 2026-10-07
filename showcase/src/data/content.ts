@@ -28,6 +28,8 @@ export interface Project {
   year: string;
   image: string;
   alt: string;
+  logo: string;
+  accent: string;
   featured: boolean;
   role: string;
   scope: string;
@@ -41,11 +43,14 @@ export interface Project {
 }
 
 export interface Experiment {
+  slug: string;
   title: string;
   category: 'Interfaces' | 'Games' | 'Learning';
   description: string;
   href: string;
   code: string;
+  logo: string;
+  accent: string;
   image?: string;
 }
 
@@ -101,6 +106,8 @@ export const projects: Project[] = [
     year: '2022',
     image: '/showcase-assets/media/icm-prototype.webp',
     alt: 'The ICM Buddy prototype attached to a DSLR, with stepper motors controlling the lens rings',
+    logo: '/showcase-assets/logos/icm-buddy.svg',
+    accent: '#A99CFF',
     featured: true,
     role: 'Hardware, firmware and interaction design',
     scope: 'University final-year project',
@@ -159,6 +166,8 @@ export const projects: Project[] = [
     year: '2026',
     image: '/showcase-assets/media/tiny-ai.webp',
     alt: 'Train a Tiny AI interface with a drawing canvas, labelled examples and live prediction controls',
+    logo: '/showcase-assets/logos/train-a-tiny-ai.svg',
+    accent: '#66D5FF',
     featured: true,
     role: 'Interactive workflow and local inference',
     scope: 'Independent STEM learning project',
@@ -213,6 +222,8 @@ export const projects: Project[] = [
     year: '2026',
     image: '/showcase-assets/media/rover.webp',
     alt: 'AI Rover Challenge mission simulator with a rover map, telemetry and ordered control rules',
+    logo: '/showcase-assets/logos/ai-rover.svg',
+    accent: '#FFC36D',
     featured: true,
     role: 'Simulation, learning tools and interfaces',
     scope: 'Independent STEM learning project',
@@ -270,6 +281,8 @@ export const projects: Project[] = [
     year: '2026',
     image: '/showcase-assets/media/classility.webp',
     alt: 'Classility’s fantasy-styled interface and illustrated RPG class result',
+    logo: '/showcase-assets/logos/classility.svg',
+    accent: '#9ED1FF',
     featured: true,
     role: 'Quiz logic, visual experience and card export',
     scope: 'Independent web project',
@@ -327,6 +340,8 @@ export const projects: Project[] = [
     year: 'Ongoing',
     image: '/showcase-assets/media/novels.webp',
     alt: 'Aleem’s novel library showing illustrated covers and tools to find a story',
+    logo: '/showcase-assets/logos/novels-library.svg',
+    accent: '#EDD3A1',
     featured: true,
     role: 'Writing, content workflow and reader development',
     scope: 'Independent publishing project',
@@ -378,6 +393,8 @@ export const projects: Project[] = [
     year: 'Ongoing',
     image: '/showcase-assets/media/visual-novel.webp',
     alt: 'Crosswinds in Sapa visual novel showing a scene and the choices that branch its story',
+    logo: '/showcase-assets/logos/crosswinds-in-sapa.svg',
+    accent: '#C6ACF3',
     featured: true,
     role: 'Narrative experience, game engine and authoring tools',
     scope: 'Independent interactive fiction',
@@ -424,49 +441,67 @@ export const projects: Project[] = [
 
 export const experiments: Experiment[] = [
   {
+    slug: 'potionality',
     title: 'Potionality',
     category: 'Interfaces',
     description: 'A reflective personality quiz told through eight forces and a potion of your own.',
     href: 'https://seaboiii.github.io/potionality/',
     code: 'https://github.com/SeaBoiii/potionality',
+    logo: '/showcase-assets/logos/potionality.svg',
+    accent: '#F0D88E',
     image: '/showcase-assets/media/potionality.webp',
   },
   {
+    slug: 'chip-challenge',
     title: 'AMD Chip Challenge',
     category: 'Learning',
     description: 'An independent learning experiment about component budgets and hardware trade-offs.',
     href: 'https://github.com/SeaBoiii/amd_buildapc',
     code: 'https://github.com/SeaBoiii/amd_buildapc',
+    logo: '/showcase-assets/logos/chip-challenge.svg',
+    accent: '#FF8366',
   },
   {
+    slug: 'silicon-self',
     title: 'silicon·self',
     category: 'Interfaces',
     description: 'An independent AMD-themed personality quiz with silicon-inspired archetypes.',
     href: 'https://seaboiii.github.io/amd_personality/',
     code: 'https://github.com/SeaBoiii/amd_personality',
+    logo: '/showcase-assets/logos/silicon-self.svg',
+    accent: '#ED1C24',
   },
   {
+    slug: 'age-of-war',
     title: 'Age of War',
     category: 'Games',
     description: 'A browser strategy experiment inspired by the classic game.',
     href: 'https://seaboiii.github.io/age_of_war/',
     code: 'https://github.com/SeaBoiii/age_of_war',
+    logo: '/showcase-assets/logos/age-of-war.svg',
+    accent: '#F1B86B',
     image: '/showcase-assets/media/age-of-war.webp',
   },
   {
+    slug: 'nizam',
     title: 'Nizam',
     category: 'Games',
     description: 'An experimental browser world inspired by campaign strategy.',
     href: 'https://seaboiii.github.io/nizam/',
     code: 'https://github.com/SeaBoiii/nizam',
+    logo: '/showcase-assets/logos/nizam.svg',
+    accent: '#F0D88E',
     image: '/showcase-assets/media/nizam.webp',
   },
   {
+    slug: 'tetris',
     title: 'Tetris',
     category: 'Games',
     description: 'A familiar game loop, rebuilt for a quick browser session.',
     href: 'https://seaboiii.github.io/tetris/',
     code: 'https://github.com/SeaBoiii/tetris',
+    logo: '/showcase-assets/logos/tetris.svg',
+    accent: '#69BBF3',
     image: '/showcase-assets/media/tetris.webp',
   },
 ];

@@ -2,7 +2,7 @@
 
 Personal engineering portfolio, fiction library and browser experiments, published through GitHub Pages.
 
-The `revamp/interactive-fieldbook` branch adds a modern portfolio in [`showcase/`](showcase/README.md): an interactive 3D workbench, project demonstrations, six case studies, AMD experience and a substantial writing section. The original root `index.html` remains available for comparison. The existing novel reader and standalone pages are assembled alongside the new homepage.
+The `revamp/cinematic-dark` branch adds a cinematic dark portfolio in [`showcase/`](showcase/README.md): a three-world 3D journey, native scroll chapters, six on-page project stories, twelve project identities, popout details, AMD experience and fiction. The earlier light fieldbook is preserved at commit `7f497cf4` in its own worktree. The original root `index.html` remains available for comparison. The existing novel reader and standalone pages are assembled alongside the new homepage.
 
 ## Run the portfolio
 
@@ -17,7 +17,7 @@ npm --prefix showcase run assemble
 npm --prefix showcase run preview:site
 ```
 
-Open **http://127.0.0.1:4173** for the complete portfolio, novel reader and existing static pages. In a second terminal, run `npm --prefix showcase run preview:legacy` and open **http://127.0.0.1:4180** to compare the original homepage.
+Open **http://127.0.0.1:4174** for the complete portfolio, novel reader and existing static pages. The original worktree continues serving the light comparison at **http://127.0.0.1:4173** and the original homepage at **http://127.0.0.1:4180**.
 
 For portfolio development alone, run `npm --prefix showcase run dev`. Astro’s development server does not include the root reader or cover assets; use the combined preview to verify writing links, covers and preserved pages. See the [showcase guide](showcase/README.md) for browser checks and implementation details.
 

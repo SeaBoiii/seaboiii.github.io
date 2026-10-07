@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="crosswinds-title">
+  <title id="crosswinds-title">Crosswinds in Sapa mountain and wind mark</title>
+  <g fill="none" stroke="#C6ACF3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m17 104 30-37 17 19 23-31 25 49"/>
+    <path d="M18 39c15-17 38-15 52-2s28 13 39-1M18 54c20 12 36 9 48-7s28-22 41-20"/>
+  </g>
+  <circle cx="109" cy="36" r="4" fill="#E5D7FD"/>
+  <circle cx="107" cy="27" r="4" fill="#E5D7FD"/>
+</svg>

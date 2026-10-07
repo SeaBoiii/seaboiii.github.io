@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="nizam-title">
+  <title id="nizam-title">Nizam crescent and pavilion mark</title>
+  <path d="M85 25a45 45 0 1 0 0 78 39 39 0 0 1 0-78Z" fill="#F0D88E"/>
+  <path d="M52 103V87l22-16 22 16v16" fill="none" stroke="#F0D88E" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M46 103h56v8H46Z" fill="#F0D88E"/>
+  <circle cx="74" cy="66" r="5" fill="#F0D88E"/>
+</svg>

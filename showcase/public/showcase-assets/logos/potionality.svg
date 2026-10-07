@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="potionality-title">
+  <title id="potionality-title">Potionality potion flask mark</title>
+  <path d="M52 17h24v18l18 24c15 21 1 52-26 52h-8c-27 0-41-31-26-52l18-24Z" fill="none" stroke="#F0D88E" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M47 62h34" fill="none" stroke="#F0D88E" stroke-width="4" stroke-linecap="round"/>
+  <path d="M39 83c11-15 38-15 50 0-5 12-14 17-25 17S44 95 39 83Z" fill="#9766DF"/>
+  <circle cx="99" cy="33" r="4" fill="#F0D88E"/>
+  <circle cx="107" cy="46" r="3" fill="#F0D88E"/>
+</svg>

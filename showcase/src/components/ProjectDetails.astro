@@ -1,0 +1,44 @@
+---
+import DemoVideo from './DemoVideo.astro';
+import { type Project, type Experiment } from '../data/content';
+
+interface Props {
+  item: Project | Experiment;
+  prefix: string;
+  standalone?: boolean;
+}
+const { item, prefix, standalone = false } = Astro.props;
+const project = 'sections' in item ? item : null;
+const experiment = project ? null : item as Experiment;
+const Heading = standalone ? 'h1' : 'h2';
+const SectionHeading = standalone ? 'h2' : 'h3';
+const summary = project?.summary ?? experiment?.description ?? '';
+const links = project?.links ?? (experiment ? [
+  ...(experiment.href !== experiment.code ? [{ label: 'Open the experience', href: experiment.href }] : []),
+  { label: 'View source', href: experiment.code },
+] : []);
+---
+
+<article class:list={['project-detail', { 'detail-experiment': !!experiment }]} data-detail-slug={item.slug} style={`--project-accent:${item.accent}`}>
+  <header class="detail-header">
+    <div class="detail-identity"><img class="detail-logo" src={item.logo} alt="" width="96" height="96" loading={standalone ? 'eager' : 'lazy'} /><p class="detail-kicker">{item.category}</p></div>
+    <Heading id={`${prefix}-title`} class="detail-title" tabindex={standalone ? undefined : '-1'}>{item.title}</Heading>
+    <p class="detail-summary">{summary}</p>
+    {project && <>
+      <dl class="detail-meta"><div><dt>My contribution</dt><dd>{project.role}</dd></div><div><dt>Context</dt><dd>{project.scope}</dd></div><div><dt>Year</dt><dd>{project.year}</dd></div></dl>
+      <ul class="detail-stack" aria-label={`${item.title} technologies`}>{project.stack.map(technology => <li>{technology}</li>)}</ul>
+    </>}
+    <div class="detail-links">{links.map(link => <a class="text-link" href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}>{link.label}<span aria-hidden="true">↗</span></a>)}</div>
+  </header>
+
+  {(project?.media || item.image) && <figure class="detail-media case-media">
+    {project?.media ? <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={`${item.title} demonstration`} /> : <img src={item.image} alt={project?.alt ?? `${item.title} interface`} width="1366" height="768" loading={standalone ? 'eager' : 'lazy'} decoding="async" />}
+    <figcaption>{project?.media?.caption ?? project?.alt ?? `${item.title} preview.`}</figcaption>
+  </figure>}
+
+  {project && <>
+    <div class="detail-overview"><div><SectionHeading>What I contributed</SectionHeading><p>{project.contribution}</p></div><div><SectionHeading>What came out of it</SectionHeading><p>{project.outcome}</p></div></div>
+    <div class="detail-notes" id={`${prefix}-notes`}>{project.sections.map((section, index) => <section class="detail-section case-section" aria-labelledby={`${prefix}-note-${index + 1}`}><SectionHeading id={`${prefix}-note-${index + 1}`}>{section.heading}</SectionHeading>{section.body.map(paragraph => <p>{paragraph}</p>)}</section>)}</div>
+    <div class="detail-links detail-links-bottom">{links.map(link => <a class="text-link" href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}>{link.label}<span aria-hidden="true">↗</span></a>)}</div>
+  </>}
+</article>

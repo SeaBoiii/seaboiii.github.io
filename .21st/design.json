@@ -1,17 +1,27 @@
 {
   "version": 1,
-  "project": "Aleem Siddique — interactive fieldbook",
+  "project": "Aleem Siddique - cinematic portfolio",
   "framework": "Astro with isolated React / React Three Fiber islands",
   "tokens": {
-    "porcelain": "#f7f9fc", "paper": "#ffffff", "graphite": "#192938",
-    "cobalt": "#2553c7", "teal": "#137c72", "muted": "#526477"
+    "carbon": "#030405",
+    "graphite": "#101317",
+    "silverWhite": "#EDF0F2",
+    "mutedSilver": "#A9B1BA",
+    "iceBlue": "#A6D4E8",
+    "border": "#303840"
   },
-  "typography": { "interface": "IBM Plex Sans", "fiction": "Literata" },
+  "typography": {
+    "interface": "IBM Plex Sans",
+    "fiction": "Literata"
+  },
   "decisions": [
-    "User selected broad personal showcase, interactive fieldbook, and portfolio plus case studies.",
-    "A camera lens, circuit module and book connect engineering, interactive experiments and writing.",
-    "AMD experience supplies professional grounding; independent projects and fiction retain substantial prominence.",
-    "Native scrolling, one short desktop sticky scene, unpinned touch layouts, static-first content.",
-    "21st catalog search was unavailable without authentication; adapt inspected primary reference sites and existing project assets."
+    "User selected cinematic dark, substantial on-page stories with deeper popouts, a three-world 3D journey and full cinematic desktop scrolling.",
+    "Phones retain interactive 3D and the same content in a lighter vertical experience.",
+    "One native scroll controller drives five chapters; no replacement routing or animation framework.",
+    "Twelve transparent project marks replace screenshot-heavy experiment cards.",
+    "Native dialogs use shareable project fragments, restore focus and scroll, and suspend background media.",
+    "The light version remains at commit 7f497cf4 in its original worktree; this branch is revamp/cinematic-dark.",
+    "No additional paid asset generation. Existing media, authored SVG and procedural 3D capture supply the redesign.",
+    "21st catalog search remains unavailable without authentication; the selected Nothing reference and existing project assets ground the implementation."
   ]
 }
