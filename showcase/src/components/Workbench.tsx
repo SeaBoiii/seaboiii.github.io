@@ -1,17 +1,15 @@
-import { Component, useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
-import WorkbenchScene, { type WorkbenchControls, type WorkbenchObject } from './WorkbenchScene';
+import { Component, Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import type { WorkbenchControls, WorkbenchObject } from './WorkbenchScene';
 
-interface CaptureController {
+// The WebGL runtime is a separate chunk. Capability checks precede its download.
+const WorkbenchCanvas = lazy(() => import('./WorkbenchScene'));
+export interface CaptureController {
   canvas: HTMLCanvasElement;
   setProgress(progress: number): Promise<void>;
   setProgressAsync(progress: number): Promise<void>;
   reset(): void;
 }
-
-declare global {
-  interface Window { __workbenchCapture?: CaptureController }
-}
+declare global { interface Window { __workbenchCapture?: CaptureController } }
 
 class SceneBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
   state = { failed: false };
@@ -19,7 +17,6 @@ class SceneBoundary extends Component<{ children: ReactNode; onError: () => void
   componentDidCatch() { this.props.onError(); }
   render() { return this.state.failed ? null : this.props.children; }
 }
-
 function canRenderWebGL() {
   const canvas = document.createElement('canvas');
   try {
@@ -29,51 +26,59 @@ function canRenderWebGL() {
     return true;
   } catch { return false; }
 }
+const clamp = (value: number) => Math.max(0, Math.min(1, value));
+const phaseAt = (progress: number): WorkbenchObject => progress < 0.34 ? 'lens' : progress < 0.67 ? 'circuit' : 'book';
 
-function InputController({ controls, container }: { controls: RefObject<WorkbenchControls>; container: RefObject<HTMLDivElement | null> }) {
-  const { invalidate, gl } = useThree();
+export default function Workbench() {
+  const container = useRef<HTMLDivElement>(null);
+  const controls = useRef<WorkbenchControls>({ progress: 0, selected: null, pointerX: 0, pointerY: 0, motion: true, cinematic: true, visible: true, chapterActive: true, modal: false, capture: false });
+  const [supported, setSupported] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'fallback'>('loading');
+  const capability = useRef<boolean | null>(null);
+  const ready = useCallback(() => setStatus('ready'), []);
+  const fail = useCallback(() => { setStatus('fallback'); setSupported(false); }, []);
+  const activate = useCallback(() => {
+    if (capability.current === null) {
+      const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+      capability.current = !connection?.saveData && canRenderWebGL();
+    }
+    if (!capability.current) { fail(); return; }
+    setSupported(true);
+  }, [fail]);
+  useEffect(() => { if (document.documentElement.dataset.modal !== 'open') activate(); }, [activate]);
   useEffect(() => {
-    const section = container.current?.closest<HTMLElement>('[data-workbench]') ?? document.getElementById('workbench');
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-    const desktop = window.matchMedia('(min-width: 1024px)');
-    let scrollFrame = 0;
-    let lastScrollY = window.scrollY;
-    let lastPhase: WorkbenchObject | null = null;
+    let phase: WorkbenchObject = 'lens';
+    let intersecting = true;
+    const invalidate = () => controls.current.invalidate?.();
+    const refreshVisibility = () => {
+      controls.current.visible = intersecting && !document.hidden && controls.current.chapterActive;
+      if (controls.current.visible && !controls.current.modal) invalidate();
+    };
     const focus = (key: WorkbenchObject) => {
-      if (lastPhase === key) return;
-      lastPhase = key;
+      if (phase === key) return;
+      phase = key;
       window.dispatchEvent(new CustomEvent('workbench:focus', { detail: key }));
     };
-    const updateMotion = (event?: Event) => {
+    const motion = (event?: Event) => {
       const enabled = (event as CustomEvent<{ enabled?: boolean }> | undefined)?.detail?.enabled;
       const preference = document.documentElement.dataset.motion;
-      controls.current.motion = typeof enabled === 'boolean' ? enabled : preference === 'on' || (preference !== 'off' && !reducedMotion.matches);
+      controls.current.motion = typeof enabled === 'boolean' ? enabled : preference === 'on' || (preference !== 'off' && !reduced.matches);
+      controls.current.cinematic = document.documentElement.dataset.cinematic !== 'off';
       invalidate();
     };
-    const scroll = () => {
-      if (scrollFrame || controls.current.capture || !controls.current.visible) return;
-      scrollFrame = requestAnimationFrame(() => {
-        scrollFrame = 0;
-        if (!section || !desktop.matches) { controls.current.progress = 0; invalidate(); return; }
-        const bounds = section.getBoundingClientRect();
-        const distance = Math.max(1, bounds.height - window.innerHeight);
-        controls.current.progress = Math.max(0, Math.min(1, -bounds.top / distance));
-        if (Math.abs(window.scrollY - lastScrollY) > 3) controls.current.selected = null;
-        lastScrollY = window.scrollY;
-        if (!controls.current.selected) focus(controls.current.progress < 0.34 ? 'lens' : controls.current.progress < 0.67 ? 'circuit' : 'book');
-        invalidate();
-      });
+    const chapter = (event: Event) => {
+      const detail = (event as CustomEvent<{ key: string; progress: number; active: boolean }>).detail;
+      if (detail?.key !== 'hero' || controls.current.capture) return;
+      const next = Number.isFinite(detail.progress) ? clamp(detail.progress) : 0;
+      if (Math.abs(next - controls.current.progress) > 0.002) controls.current.selected = null;
+      controls.current.progress = next;
+      controls.current.chapterActive = detail.active;
+      controls.current.cinematic = document.documentElement.dataset.cinematic !== 'off';
+      if (controls.current.motion && controls.current.cinematic && !controls.current.selected) focus(phaseAt(next));
+      refreshVisibility();
     };
-    const pointer = (event: PointerEvent) => {
-      if (!finePointer.matches || !controls.current.motion || !controls.current.visible || controls.current.capture) return;
-      const bounds = container.current?.getBoundingClientRect();
-      if (!bounds) return;
-      controls.current.pointerX = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - 0.5) * 2));
-      controls.current.pointerY = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2));
-      invalidate();
-    };
-    const leave = () => { controls.current.pointerX = 0; controls.current.pointerY = 0; invalidate(); };
     const select = (event: Event) => {
       const detail = (event as CustomEvent<WorkbenchObject | { key?: WorkbenchObject }>).detail;
       const key = typeof detail === 'string' ? detail : detail?.key;
@@ -82,89 +87,60 @@ function InputController({ controls, container }: { controls: RefObject<Workbenc
       focus(key);
       invalidate();
     };
-    const visibility = () => {
+    const modal = (event: Event) => {
+      controls.current.modal = !!(event as CustomEvent<{ open?: boolean }>).detail?.open;
+      if (!controls.current.modal) { activate(); invalidate(); }
+    };
+    const pointer = (event: PointerEvent) => {
+      const state = controls.current;
+      if (!finePointer.matches || !state.motion || !state.cinematic || !state.visible || state.modal || state.capture) return;
       const bounds = container.current?.getBoundingClientRect();
-      controls.current.visible = !document.hidden && !!bounds && bounds.bottom > 0 && bounds.top < window.innerHeight;
-      if (controls.current.visible) { scroll(); invalidate(); }
-    };
-    const observer = new IntersectionObserver(entries => {
-      controls.current.visible = entries[0].isIntersecting && !document.hidden;
-      if (controls.current.visible) { scroll(); invalidate(); }
-    }, { rootMargin: '80px' });
-    if (container.current) observer.observe(container.current);
-    updateMotion();
-    scroll();
-    window.addEventListener('scroll', scroll, { passive: true });
-    window.addEventListener('resize', scroll, { passive: true });
-    window.addEventListener('workbench:select', select);
-    window.addEventListener('portfolio:motion', updateMotion);
-    reducedMotion.addEventListener('change', updateMotion);
-    document.addEventListener('visibilitychange', visibility);
-    container.current?.addEventListener('pointermove', pointer, { passive: true });
-    container.current?.addEventListener('pointerleave', leave);
-    const setProgress = (progress: number) => {
-      controls.current.capture = true;
-      controls.current.selected = null;
-      controls.current.pointerX = 0;
-      controls.current.pointerY = 0;
-      controls.current.progress = Math.max(0, Math.min(1, progress));
-      focus(progress < 0.34 ? 'lens' : progress < 0.67 ? 'circuit' : 'book');
+      if (!bounds) return;
+      state.pointerX = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - 0.72) * 2));
+      state.pointerY = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2));
       invalidate();
-      return new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     };
-    const capture: CaptureController = {
-      canvas: gl.domElement,
-      setProgress,
-      setProgressAsync: setProgress,
-      reset() { controls.current.capture = false; scroll(); invalidate(); },
-    };
-    window.__workbenchCapture = capture;
+    const leave = () => { controls.current.pointerX = 0; controls.current.pointerY = 0; invalidate(); };
+    const observer = new IntersectionObserver(entries => { intersecting = entries[0].isIntersecting; refreshVisibility(); }, { rootMargin: '80px' });
+    const node = container.current;
+    if (node) observer.observe(node);
+    const datasets = new MutationObserver(() => motion());
+    datasets.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion', 'data-cinematic'] });
+    const initialChapter = document.querySelector<HTMLElement>('[data-scroll-chapter="hero"]');
+    const initialProgress = Number(initialChapter?.dataset.progress ?? 0);
+    controls.current.progress = Number.isFinite(initialProgress) ? clamp(initialProgress) : 0;
+    controls.current.chapterActive = initialChapter?.dataset.chapterActive !== 'false';
+    controls.current.modal = document.documentElement.dataset.modal === 'open';
+    motion();
+    // A world may be selected while this lazy island is still downloading.
+    const initialWorld = document.querySelector<HTMLButtonElement>('[data-workbench-select][aria-pressed="true"]')?.dataset.workbenchSelect;
+    if (initialWorld === 'lens' || initialWorld === 'circuit' || initialWorld === 'book') {
+      if (initialWorld !== phaseAt(controls.current.progress) || (!controls.current.cinematic && initialWorld !== 'lens')) controls.current.selected = initialWorld;
+      focus(initialWorld);
+    } else if (controls.current.motion && controls.current.cinematic) focus(phaseAt(controls.current.progress));
+    refreshVisibility();
+    window.addEventListener('portfolio:chapter', chapter);
+    window.addEventListener('portfolio:motion', motion);
+    window.addEventListener('portfolio:modal', modal);
+    window.addEventListener('workbench:select', select);
+    document.addEventListener('visibilitychange', refreshVisibility);
+    reduced.addEventListener('change', motion);
+    node?.addEventListener('pointermove', pointer, { passive: true });
+    node?.addEventListener('pointerleave', leave);
     return () => {
-      observer.disconnect();
-      cancelAnimationFrame(scrollFrame);
-      window.removeEventListener('scroll', scroll);
-      window.removeEventListener('resize', scroll);
+      observer.disconnect(); datasets.disconnect();
+      window.removeEventListener('portfolio:chapter', chapter);
+      window.removeEventListener('portfolio:motion', motion);
+      window.removeEventListener('portfolio:modal', modal);
       window.removeEventListener('workbench:select', select);
-      window.removeEventListener('portfolio:motion', updateMotion);
-      reducedMotion.removeEventListener('change', updateMotion);
-      document.removeEventListener('visibilitychange', visibility);
-      container.current?.removeEventListener('pointermove', pointer);
-      container.current?.removeEventListener('pointerleave', leave);
-      if (window.__workbenchCapture === capture) delete window.__workbenchCapture;
+      document.removeEventListener('visibilitychange', refreshVisibility);
+      reduced.removeEventListener('change', motion);
+      node?.removeEventListener('pointermove', pointer);
+      node?.removeEventListener('pointerleave', leave);
     };
-  }, [controls, container, gl, invalidate]);
-  return null;
-}
-
-export default function Workbench() {
-  const container = useRef<HTMLDivElement>(null);
-  const controls = useRef<WorkbenchControls>({ progress: 0, selected: null, pointerX: 0, pointerY: 0, motion: true, visible: true, capture: false });
-  const [supported, setSupported] = useState(false);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'fallback'>('loading');
-  const ready = useCallback(() => setStatus('ready'), []);
-  const fail = useCallback(() => { setStatus('fallback'); setSupported(false); }, []);
-  useEffect(() => {
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (connection?.saveData || !canRenderWebGL()) { fail(); return; }
-    setSupported(true);
-  }, [fail]);
-  useEffect(() => {
-    if (!supported) return;
-    const canvas = container.current?.querySelector('canvas');
-    if (!canvas) return;
-    const lost = (event: Event) => { event.preventDefault(); fail(); };
-    canvas.addEventListener('webglcontextlost', lost);
-    return () => canvas.removeEventListener('webglcontextlost', lost);
-  }, [supported, status, fail]);
-  return (
-    <div ref={container} className="workbench-canvas" data-scene-status={status} style={{ width: '100%', height: '100%', minHeight: '260px', position: 'relative', isolation: 'isolate' }}>
-      <img className="workbench-fallback" src="/showcase-assets/media/workbench-poster.webp" alt="A camera lens, a detailed circuit board and a book on a bright creative workbench." decoding="async" fetchPriority="high" width={1600} height={900} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: status === 'ready' ? 0 : 1, pointerEvents: 'none' }} />
-      {supported && <SceneBoundary onError={fail}>
-        <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 2.25, 8.6], fov: 36, near: 0.1, far: 40 }} gl={{ antialias: true, alpha: true, powerPreference: 'low-power', failIfMajorPerformanceCaveat: true }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: status === 'ready' ? 1 : 0, touchAction: 'pan-y' }} aria-hidden="true" onCreated={({ gl, camera }) => { gl.setClearAlpha(0); camera.lookAt(0, 0, 0); }}>
-          <WorkbenchScene controls={controls} ready={ready} />
-          <InputController controls={controls} container={container} />
-        </Canvas>
-      </SceneBoundary>}
-    </div>
-  );
+  }, [activate]);
+  return <div ref={container} className="workbench-canvas" data-scene-status={status} style={{ width: '100%', height: '100%', minHeight: '320px', position: 'relative', isolation: 'isolate' }}>
+    <picture><source media="(max-width: 899px)" srcSet="/showcase-assets/media/workbench-poster-mobile.webp" /><img className="workbench-fallback" src="/showcase-assets/media/workbench-poster.webp" alt="A precision lens, lit in silver and ice blue against a carbon background." decoding="async" fetchPriority="high" width={1600} height={1000} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: status === 'ready' ? 0 : 1, pointerEvents: 'none' }} /></picture>
+    {supported && <SceneBoundary onError={fail}><Suspense fallback={null}><WorkbenchCanvas controls={controls} ready={ready} fail={fail} /></Suspense></SceneBoundary>}
+  </div>;
 }

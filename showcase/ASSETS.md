@@ -60,3 +60,18 @@ The final OpenAI prompt is saved in `scripts/media-workbench-prompt.txt` (not us
 The generated result was inspected at 1, 4, and 7 seconds. It preserves the intended three objects and restrained palette; it does not return to precisely the original framing. The implementation therefore does not claim a seamless generated loop.
 
 All supplied MP4/WebM files passed complete ffmpeg decoding. Fresh project posters and stable recorded results were visually inspected. The actual scene's render is also verified by the workbench pipeline.
+
+## Cinematic revision
+
+The `revamp/cinematic-dark` version uses the same paid provider outputs and incurs **no additional generation spend**. Its macro lens, circuit and opening book are authored Three.js geometry with local lighting and textures. Updated `workbench-poster.webp`, `workbench-poster-mobile.webp`, `workbench-render.mp4`, `workbench-render.webm` and `social-card.jpg` are captures of that scene. The mobile poster uses a centred composition rather than cropping the desktop scene.
+
+All twelve marks under `public/showcase-assets/logos/` are transparent 128×128 native SVGs, about 6.7 KB combined. They contain no embedded raster images, external resources or typeset project names.
+
+| Mark | Source |
+| --- | --- |
+| ICM Buddy | Aperture geometry derived from the owner’s [original FYP logo](https://raw.githubusercontent.com/SeaBoiii/FYP/main/.images/logo.png), preserving its purple identity. |
+| Classility, Novels Library, Potionality, Age of War, Nizam, Tetris | Mark-only adaptations of the owner’s existing `images/hub/*-logo.svg` artwork: shield, book, flask, blades, crescent/pavilion and blocks. Backgrounds and banner wordmarks removed. |
+| silicon·self | Geometry adapted from the owner’s [public project favicon](https://raw.githubusercontent.com/SeaBoiii/amd_personality/main/public/favicon.svg). |
+| Train a Tiny AI, AI Rover Challenge, AMD Chip Challenge, Crosswinds in Sapa | New original vector compositions: converging example nodes, sensor rover, modular chip and mountain/wind paths. |
+
+The independent project marks do not use AMD’s corporate logo. The actual employer identity remains in the career section. New logos were checked as XML and rendered together on a dark contact sheet; asset requests passed.

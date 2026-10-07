@@ -7,11 +7,11 @@ const home = Astro.url.pathname === '/';
 const anchor = (id: string) => `${home ? '' : '/'}#${id}`;
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-cinematic="off">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f9fc" />
+    <meta name="theme-color" content="#080b10" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -28,6 +28,7 @@ const anchor = (id: string) => `${home ? '' : '/'}#${id}`;
         const saved = localStorage.getItem('fieldbook-motion');
         document.documentElement.dataset.motion = saved === 'off' || (saved !== 'on' && matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'off' : 'on';
       } catch { document.documentElement.dataset.motion = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'off' : 'on'; }
+      document.documentElement.dataset.cinematic = document.documentElement.dataset.motion === 'on' && matchMedia('(min-width: 1024px) and (min-height: 700px) and (hover: hover) and (pointer: fine)').matches ? 'on' : 'off';
     </script>
   </head>
   <body>
@@ -35,7 +36,7 @@ const anchor = (id: string) => `${home ? '' : '/'}#${id}`;
     <header class="site-header">
       <a class="wordmark" href="/" aria-label="Aleem Siddique, home">
         <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M16 2 28 9v14L16 30 4 23V9Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m16 8 7 4v8l-7 4-7-4v-8Zm0 0v8m-7-4 7 4 7-4m-7 4v8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-        <span>Aleem Siddique<span class="wordmark-note">A fieldbook of work &amp; imagination</span></span>
+        <span>Aleem Siddique<span class="wordmark-note">Engineering &amp; imagination</span></span>
       </a>
       <button class="menu-toggle" aria-expanded="false" aria-controls="site-nav">Menu <span aria-hidden="true">+</span></button>
       <nav id="site-nav" class="site-nav" aria-label="Main navigation">
@@ -50,104 +51,8 @@ const anchor = (id: string) => `${home ? '' : '/'}#${id}`;
       <span>© {new Date().getFullYear()}</span>
     </footer>
     <script>
-      const html = document.documentElement;
-      const motionButton = document.querySelector<HTMLButtonElement>('[data-motion-toggle]');
-      const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-      const motionEnabled = () => html.dataset.motion !== 'off';
-      function syncMotionButton() {
-        if (!motionButton) return;
-        motionButton.setAttribute('aria-pressed', String(!motionEnabled()));
-        motionButton.querySelector('span')!.textContent = motionEnabled() ? 'Pause motion' : 'Enable motion';
-      }
-      syncMotionButton();
-      motionButton?.addEventListener('click', () => {
-        const viewportTop = document.querySelector('.site-header')?.getBoundingClientRect().bottom ?? 0;
-        // Keep the section occupying most of the viewport, rather than a thin
-        // trailing edge of the sticky workbench above it.
-        const context = [...document.querySelectorAll<HTMLElement>('main > section, main > article')]
-          .map(section => {
-            const bounds = section.getBoundingClientRect();
-            return { section, visible: Math.max(0, Math.min(bounds.bottom, innerHeight) - Math.max(bounds.top, viewportTop)) };
-          })
-          .sort((a, b) => b.visible - a.visible)[0]?.section;
-        const reference = context?.id === 'workbench' ? context.querySelector<HTMLElement>('.hero') : context;
-        const previousTop = reference?.getBoundingClientRect().top;
-        const previousAnchoring = html.style.overflowAnchor;
-        // The motion preference changes the hero's height. Apply our own
-        // compensation once, without browser scroll anchoring applying it again.
-        html.style.overflowAnchor = 'none';
-        const enabled = !motionEnabled();
-        html.dataset.motion = enabled ? 'on' : 'off';
-        try { localStorage.setItem('fieldbook-motion', html.dataset.motion); } catch {}
-        syncMotionButton();
-        window.dispatchEvent(new CustomEvent('portfolio:motion', { detail: { enabled } }));
-        if (reference && previousTop !== undefined) {
-          window.scrollBy({ top: reference.getBoundingClientRect().top - previousTop, behavior: 'instant' });
-        }
-        requestAnimationFrame(() => { html.style.overflowAnchor = previousAnchoring; });
-      });
-      motionPreference.addEventListener('change', () => {
-        let saved: string | null = null;
-        try { saved = localStorage.getItem('fieldbook-motion'); } catch {}
-        if (!saved) {
-          html.dataset.motion = motionPreference.matches ? 'off' : 'on';
-          syncMotionButton();
-          window.dispatchEvent(new CustomEvent('portfolio:motion', { detail: { enabled: motionEnabled() } }));
-        }
-      });
-      const menu = document.querySelector<HTMLButtonElement>('.menu-toggle');
-      const nav = document.querySelector<HTMLElement>('.site-nav');
-      const closeMenu = () => { menu?.setAttribute('aria-expanded', 'false'); nav?.classList.remove('is-open'); };
-      menu?.addEventListener('click', () => {
-        const open = menu.getAttribute('aria-expanded') !== 'true';
-        menu.setAttribute('aria-expanded', String(open)); nav?.classList.toggle('is-open', open);
-      });
-      nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
-      document.addEventListener('keydown', e => { if (e.key === 'Escape' && menu?.getAttribute('aria-expanded') === 'true') { closeMenu(); menu.focus(); } });
-      const sceneButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-workbench-select]')];
-      function syncScene(key: string) {
-        sceneButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.workbenchSelect === key)));
-        document.querySelectorAll<HTMLElement>('[data-focus-caption]').forEach(caption => caption.hidden = caption.dataset.focusCaption !== key);
-      }
-      sceneButtons.forEach(button => button.addEventListener('click', () => {
-        const key = button.dataset.workbenchSelect!; syncScene(key);
-        window.dispatchEvent(new CustomEvent('workbench:select', { detail: key }));
-      }));
-      window.addEventListener('workbench:focus', ((event: CustomEvent<string>) => syncScene(event.detail)) as EventListener);
-      const filters = [...document.querySelectorAll<HTMLButtonElement>('[data-project-filter]')];
-      filters.forEach(button => button.addEventListener('click', () => {
-        filters.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
-        const category = button.dataset.projectFilter;
-        let count = 0;
-        document.querySelectorAll<HTMLElement>('[data-project-category]').forEach(card => {
-          card.hidden = category !== 'all' && card.dataset.projectCategory !== category;
-          if (!card.hidden) count++;
-        });
-        const status = document.querySelector('[data-filter-status]');
-        if (status) status.textContent = `${count} project${count === 1 ? '' : 's'} shown`;
-      }));
-      const videos = [...document.querySelectorAll<HTMLVideoElement>('video[data-motion-video]')];
-      const visible = new Set<HTMLVideoElement>();
-      const manualPaused = new WeakSet<HTMLVideoElement>();
-      const managedPause = new WeakSet<HTMLVideoElement>();
-      const pauseVideo = (video: HTMLVideoElement) => { if (!video.paused) { managedPause.add(video); video.pause(); } };
-      function updateVideo(video: HTMLVideoElement) {
-        if (motionEnabled() && visible.has(video) && !document.hidden && !manualPaused.has(video) && !(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) {
-          video.play().catch(() => {});
-        } else pauseVideo(video);
-      }
-      const videoObserver = new IntersectionObserver(entries => entries.forEach(entry => {
-        const video = entry.target as HTMLVideoElement;
-        if (entry.isIntersecting) visible.add(video); else visible.delete(video);
-        updateVideo(video);
-      }), { threshold: 0.25 });
-      videos.forEach(video => {
-        video.addEventListener('pause', () => { if (managedPause.has(video)) managedPause.delete(video); else manualPaused.add(video); });
-        video.addEventListener('play', () => manualPaused.delete(video));
-        videoObserver.observe(video);
-      });
-      window.addEventListener('portfolio:motion', () => videos.forEach(updateVideo));
-      document.addEventListener('visibilitychange', () => videos.forEach(updateVideo));
+      import { initializeExperience } from '../scripts/experience';
+      initializeExperience();
     </script>
   </body>
 </html>

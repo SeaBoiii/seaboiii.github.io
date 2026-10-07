@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="tetris-title">
+  <title id="tetris-title">Tetris coloured block mark</title>
+  <rect x="19" y="34" width="28" height="28" rx="2" fill="#FF595E"/>
+  <rect x="50" y="34" width="28" height="28" rx="2" fill="#FFCA3A"/>
+  <rect x="81" y="34" width="28" height="28" rx="2" fill="#8AC926"/>
+  <rect x="50" y="65" width="28" height="28" rx="2" fill="#4AA6E0"/>
+</svg>

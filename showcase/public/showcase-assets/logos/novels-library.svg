@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="novels-library-title">
+  <title id="novels-library-title">Novels Library open book mark</title>
+  <path d="M18 35h27c9 0 15 3 19 9v58c-6-5-13-8-21-8H18Zm46 9c4-6 10-9 19-9h27v59H85c-8 0-15 3-21 8Z" fill="#EDD3A1"/>
+  <g fill="none" stroke="#AF8752" stroke-width="3" stroke-linecap="round">
+    <path d="M64 45v57M28 54h24m-24 12h24m-24 12h24M76 54h24M76 66h24M76 78h24"/>
+  </g>
+</svg>

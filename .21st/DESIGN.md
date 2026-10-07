@@ -1,9 +1,11 @@
-# Aleem's fieldbook
+# Aleem’s cinematic portfolio
 
-The site joins three tangible worlds: silicon product development, working interactive experiments, and fiction. Keep the professional introduction specific; the memorable visual is a small creative workbench, not a decorative animation on every section.
+The opening treats a lens, circuit and book as physical worlds to explore. Large close-ups, material detail and native scrolling connect product engineering, working experiments and fiction.
 
-Use cool porcelain, white, graphite, cobalt and teal. Set interface text in IBM Plex Sans, fiction in Literata. Mix spacious project photographs with practical summaries, model diagrams and book covers. Avoid skill bars, decorative metrics, ticker noise and identical card grids.
+Use carbon, graphite, silver-white and restrained ice-blue. Keep project-specific colours in transparent marks. Set engineering and interface text in IBM Plex Sans; reserve Literata for fiction. Anchor large opening typography to a quiet left area while one macro object occupies the right.
 
-References: Nothing's Headphone (1) Pro page for purposeful visual chapters; Rauno's Craft for actual demonstration videos; the existing ICM prototype and fiction covers for genuine subject matter. The user selected a brighter fieldbook rather than a cinematic dark treatment.
+Five desktop chapters have distinct jobs: a camera and mechanism journey; a career narrative; substantial horizontal project stories; moving book covers; and a compact playground of twelve individual identities across the page. Biography and contact use normal document flow. Avoid uniform screenshot cards, empty image slots and mandatory navigation to learn about a project.
 
-Keep semantic content and object navigation outside the 3D island. Use native scrolling, visible focus, reduced-motion controls, and a composed poster when 3D is unavailable.
+Deeper material opens in native modal dialogs with shareable fragments. Main content stays readable without opening them. Real demonstrations, team attribution and existing reader content remain the evidence.
+
+Phones, reduced motion, short windows and no JavaScript get stacked content. The poster keeps the initial composition legible before WebGL loads. No ongoing animation draws when idle or behind a popout.

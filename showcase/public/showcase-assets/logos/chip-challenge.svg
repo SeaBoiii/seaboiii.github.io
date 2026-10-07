@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="chip-challenge-title">
+  <title id="chip-challenge-title">Chip Challenge modular processor mark</title>
+  <g fill="none" stroke="#DCE5EF" stroke-width="5" stroke-linecap="round">
+    <path d="M45 20v14m19-14v14m19-14v14M45 94v14m19-14v14m19-14v14M20 45h14m-14 19h14m-14 19h14M94 45h14M94 64h14M94 83h14"/>
+  </g>
+  <path d="M43 34h42a9 9 0 0 1 9 9v42a9 9 0 0 1-9 9H43a9 9 0 0 1-9-9V43a9 9 0 0 1 9-9Z" fill="none" stroke="#FF8366" stroke-width="6"/>
+  <path d="M47 47h16v16H47Zm18 18h16v16H65Z" fill="#FF8366"/>
+  <path d="M70 47h11v11M47 70v11h11" fill="none" stroke="#FF8366" stroke-width="4" stroke-linecap="round"/>
+</svg>

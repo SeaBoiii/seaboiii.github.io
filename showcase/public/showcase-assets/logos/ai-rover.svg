@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="ai-rover-title">
+  <title id="ai-rover-title">AI Rover Challenge sensor rover mark</title>
+  <g fill="none" stroke="#FFC36D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="31" y="59" width="66" height="33" rx="8"/>
+    <path d="M64 59V48M45 41a27 27 0 0 1 38 0M34 30a43 43 0 0 1 60 0"/>
+    <circle cx="64" cy="42" r="6"/>
+  </g>
+  <g fill="none" stroke="#DCE5EF" stroke-width="6">
+    <circle cx="40" cy="98" r="10"/>
+    <circle cx="88" cy="98" r="10"/>
+  </g>
+  <path d="M48 74h13m10 0h9" fill="none" stroke="#FFC36D" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="104" cy="19" r="5" fill="#66D5FF"/>
+</svg>

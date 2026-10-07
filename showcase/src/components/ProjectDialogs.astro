@@ -1,0 +1,16 @@
+---
+import ProjectDetails from './ProjectDetails.astro';
+import { projects, experiments, type Project, type Experiment } from '../data/content';
+
+const entries: (Project | Experiment)[] = [...projects, ...experiments];
+const fallback = (entry: Project | Experiment) => 'sections' in entry ? `/work/${entry.slug}/` : entry.href;
+---
+
+{entries.map((item, index) => {
+  const previous = entries[(index - 1 + entries.length) % entries.length];
+  const next = entries[(index + 1) % entries.length];
+  return <dialog class="project-dialog" data-project-dialog={item.slug} aria-labelledby={`dialog-${item.slug}-title`}>
+    <div class="dialog-topbar"><span class="dialog-count">Project file {String(index + 1).padStart(2, '0')} / {String(entries.length).padStart(2, '0')}</span><button class="dialog-close" data-dialog-close aria-label={`Close ${item.title}`}>Close <span aria-hidden="true">×</span></button></div>
+    <div class="dialog-content"><ProjectDetails item={item} prefix={`dialog-${item.slug}`} /><nav class="dialog-project-nav" aria-label="Explore another project"><a href={fallback(previous)} data-project-open={previous.slug}><span aria-hidden="true">←</span> {previous.title}</a><a href={fallback(next)} data-project-open={next.slug}>{next.title} <span aria-hidden="true">→</span></a></nav></div>
+  </dialog>;
+})}

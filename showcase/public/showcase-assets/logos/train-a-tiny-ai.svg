@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="tiny-ai-title">
+  <title id="tiny-ai-title">Train a Tiny AI learning mark</title>
+  <g fill="none" stroke="#91A4B8" stroke-width="4" stroke-linecap="round">
+    <path d="M32 30c24 0 22 28 47 28M28 60h51M33 92c23 0 21-34 46-34M59 101c0-25 2-43 20-43"/>
+    <path d="M79 58h6"/>
+  </g>
+  <circle cx="25" cy="30" r="8" fill="#66D5FF"/>
+  <circle cx="20" cy="60" r="8" fill="#80DDAD"/>
+  <circle cx="25" cy="92" r="8" fill="#FFC36D"/>
+  <circle cx="59" cy="109" r="8" fill="#E7A1D0"/>
+  <circle cx="101" cy="58" r="16" fill="none" stroke="#66D5FF" stroke-width="6"/>
+  <circle cx="101" cy="58" r="5" fill="#66D5FF"/>
+</svg>

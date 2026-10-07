@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const legacy = process.argv.includes('--legacy');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), legacy ? '../..' : '../site-dist');
-const port = Number(process.env.PORT || (legacy ? 4180 : 4173));
+const port = Number(process.env.PORT || (legacy ? 4180 : 4174));
 const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json', '.txt':'text/plain; charset=utf-8', '.svg':'image/svg+xml', '.webp':'image/webp', '.png':'image/png', '.jpg':'image/jpeg', '.gif':'image/gif', '.ico':'image/x-icon', '.woff2':'font/woff2', '.mp4':'video/mp4', '.webm':'video/webm' };
 createServer(async (request, response) => {
   let pathname;
