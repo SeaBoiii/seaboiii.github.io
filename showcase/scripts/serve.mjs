@@ -1,10 +1,13 @@
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { stat, readFile } from 'node:fs/promises';
 import { resolve, dirname, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const legacy = process.argv.includes('--legacy');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), legacy ? '../..' : '../site-dist');
+const normalizedRoot = root.replaceAll('\\', '/');
+const previewId = createHash('sha256').update(process.platform === 'win32' ? normalizedRoot.toLowerCase() : normalizedRoot).digest('hex').slice(0, 16);
 const requestedPort = process.argv.find(argument => argument.startsWith('--port='))?.slice(7);
 const port = Number(requestedPort || process.env.PORT || (legacy ? 4180 : 4174));
 const mime = { '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json', '.txt':'text/plain; charset=utf-8', '.svg':'image/svg+xml', '.webp':'image/webp', '.png':'image/png', '.jpg':'image/jpeg', '.gif':'image/gif', '.ico':'image/x-icon', '.woff2':'font/woff2', '.mp4':'video/mp4', '.webm':'video/webm' };
@@ -18,7 +21,7 @@ createServer(async (request, response) => {
     if (info.isDirectory()) file = resolve(file, 'index.html');
     const bytes = await readFile(file);
     const range = request.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
-    const headers = { 'Content-Type':mime[extname(file)] || 'application/octet-stream', 'Accept-Ranges':'bytes', 'Cache-Control':'no-cache' };
+    const headers = { 'Content-Type':mime[extname(file)] || 'application/octet-stream', 'Accept-Ranges':'bytes', 'Cache-Control':'no-cache', 'X-Portfolio-Preview':previewId };
     if (range) {
       const start = Number(range[1]); const end = Math.min(range[2] ? Number(range[2]) : bytes.length - 1, bytes.length - 1);
       if (start >= bytes.length || end < start) { response.writeHead(416, { 'Content-Range':`bytes */${bytes.length}` }).end(); return; }

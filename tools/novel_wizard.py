@@ -1,7 +1,7 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Tkinter Novel Wizard for GitHub Pages + Jekyll
+Novel Wizard · Literary Studio for the current Next.js library and reader
 - Mode 1: Create New (create novel, chapters, cover, relationship metadata)
 - Mode 2: Edit Current (edit metadata/relationships, append chapters, replace cover)
 - Formatted paste (HTML/RTF -> Markdown) + single DOCX/Markdown import
@@ -9,13 +9,19 @@ Tkinter Novel Wizard for GitHub Pages + Jekyll
 - Bulk character replacement with live preview across chapter files
 - Optional app icon loaded from tools/novel_wizard_icon.png or .ico
 - Built-in git commit (summary + description); user handles git push
+- Book, chapter, artwork and readiness workspaces with local draft recovery
+- Separate transactional save and scoped commit; actual-page preview builds
 
 Run from your repo root: python3 tools/novel_wizard.py
 """
 
 import importlib
 import json, re, shutil, struct, sys, subprocess
+import os
+import tempfile
+import hashlib
 import difflib
+import hashlib
 from collections import Counter
 from html import escape as html_escape
 from pathlib import Path
@@ -108,8 +114,17 @@ def pretty(slug: str) -> str:
 
 def write_text(p: Path, text: str):
     p.parent.mkdir(parents=True, exist_ok=True)
-    with p.open("w", encoding="utf-8", newline="\n") as f:
-        f.write(text)
+    # Never truncate an existing manuscript until the complete replacement is ready.
+    fd, temporary = tempfile.mkstemp(prefix=f".{p.name}.", suffix=".tmp", dir=p.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, p)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
 
 def _ensure_wizard_state_table(conn):
     conn.execute(
@@ -437,7 +452,13 @@ def upsert_relationship_registry_entry(slug: str, entry: Optional[dict]):
     slug = slugify(slug)
     if not slug:
         return
-    registry = load_relationship_registry()
+    # Preserve other books verbatim, including fields added by other authoring tools.
+    if RELATIONSHIPS_JSON.exists():
+        registry = json.loads(RELATIONSHIPS_JSON.read_text(encoding="utf-8"))
+        if not isinstance(registry, dict):
+            raise ValueError("Relationship registry must be a JSON object.")
+    else:
+        registry = {}
     if entry:
         clean = _normalize_relationship_entry(entry)
         if clean:
@@ -446,7 +467,7 @@ def upsert_relationship_registry_entry(slug: str, entry: Optional[dict]):
             registry.pop(slug, None)
     else:
         registry.pop(slug, None)
-    save_relationship_registry(registry)
+    write_text(RELATIONSHIPS_JSON, json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
 
 def relationship_entry_for_slug(slug: str) -> dict:
     return load_relationship_registry().get(slugify(slug), {})
@@ -581,7 +602,12 @@ def _site_url_to_local_path(url: str) -> Optional[Path]:
     u = (url or "").strip()
     if not u or u.startswith(("http://", "https://")):
         return None
-    return (REPO_ROOT / u.lstrip("/")) if u.startswith("/") else (REPO_ROOT / u)
+    candidate = (REPO_ROOT / u.lstrip("/")).resolve()
+    try:
+        candidate.relative_to(REPO_ROOT.resolve())
+    except ValueError:
+        return None
+    return candidate
 
 def _local_path_from_site_url(url: str) -> Optional[Path]:
     p = _site_url_to_local_path(url)
@@ -1206,7 +1232,7 @@ def build_chapter_md(
     header = (
         "---\n"
         f"layout: chapter\n"
-        f"Title: {title.strip()}\n"
+        f"Title: {_yaml_quote_string(title.strip())}\n"
         f"novel: {slug}\n"
         f"order: {order}\n"
         f"music_mode: {music_mode_key}\n"
@@ -1442,6 +1468,8 @@ def build_index_md(
     chapter_music_title: str = "",
     title: Optional[str] = None,
     body: Optional[str] = None,
+    cover: Optional[str] = None,
+    order: int = 0,
 ) -> str:
     t = (title or pretty(slug)).strip() or pretty(slug)
     body_text = body if body is not None else DEFAULT_NOVEL_INDEX_BODY
@@ -1456,7 +1484,7 @@ def build_index_md(
     return (
         "---\n"
         f"layout: novel\n"
-        f"Title: {t}\n"
+        f"Title: {_yaml_quote_string(t)}\n"
         f"novel: {slug}\n"
         f"status: {status}\n"
         f"blurb: >-\n"
@@ -1467,7 +1495,8 @@ def build_index_md(
         f"{gallery_yaml}"
         f"{chapter_music_url_yaml}"
         f"{chapter_music_title_yaml}"
-        f"order: 0\n"
+        f"{('cover: ' + _yaml_quote_string(cover) + chr(10)) if cover else ''}"
+        f"order: {order}\n"
         "---\n\n"
         f"{body_text}"
     )
@@ -1579,16 +1608,15 @@ def list_existing_chapter_paths(slug: str, include_index: bool = False) -> list[
 
 def copy_cover_to_images(src_path: str, slug: str) -> str:
     if not src_path:
-        return f"/images/{slug}-cover.png"
+        raise ValueError("Choose a cover image before saving a new novel.")
     sp = Path(src_path).expanduser()
     if not sp.exists() or not sp.is_file():
-        return f"/images/{slug}-cover.png"
+        raise FileNotFoundError(f"Cover image not found: {sp}")
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-    ext = sp.suffix.lower() or ".png"
-    if ext not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
-        ext = ".png"
-    dst = IMAGES_DIR / f"{slug}-cover{ext}"
-    shutil.copyfile(sp, dst)
+    # The current reader's responsive-image contract uses canonical PNG originals.
+    dst = IMAGES_DIR / f"{slug}-cover.png"
+    if sp.resolve() != dst.resolve():
+        _copy_image_as_png(sp, dst)
     return f"/images/{dst.name}"
 
 def copy_music_to_assets(src_path: str, slug: str, key: str) -> tuple[str, list[Path]]:
@@ -1764,7 +1792,10 @@ def materialize_gallery_items_for_commit(
 
     removed = []
     for url in sorted(existing_urls - kept_existing_urls):
-        removed.extend(remove_gallery_asset_variants(url))
+        local = _site_url_to_local_path(url)
+        # Removing a gallery entry must not delete an image shared with another book.
+        if local is not None and local.parent == IMAGES_DIR.resolve() and local.name.startswith(f"{slug}-gallery-"):
+            removed.extend(remove_gallery_asset_variants(url))
 
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     next_idx = _next_gallery_index(slug, sorted(kept_existing_urls))
@@ -1778,15 +1809,13 @@ def materialize_gallery_items_for_commit(
 
         if source_path:
             src = Path(source_path).expanduser()
-            ext = src.suffix.lower() or ".png"
-            if ext not in SUPPORTED_COVER_EXTS:
-                ext = ".png"
+            ext = ".png"
             idx = next_idx
             while (IMAGES_DIR / f"{slug}-gallery-{idx}{ext}").exists():
                 idx += 1
             next_idx = idx + 1
             dst = IMAGES_DIR / f"{slug}-gallery-{idx}{ext}"
-            shutil.copyfile(src, dst)
+            _copy_image_as_png(src, dst)
             url = f"/images/{dst.name}"
             added_urls.append(url)
 
@@ -3519,7 +3548,7 @@ def _parse_front_matter_values(fm_block: str) -> dict:
                 buf.append(nxt[2:] if nxt.startswith("  ") else nxt.strip())
                 i += 1
             val = "\n".join(buf).strip()
-        out[key] = val.strip()
+        out[key] = _yaml_parse_inline_string(val.strip())
         i += 1
     return out
 
@@ -3534,6 +3563,7 @@ def read_novel_index_metadata(slug: str) -> dict:
         "genre": "",
         "tone": "",
         "setting": "",
+        "cover": "",
         "gallery": [],
         "chapter_music_url": "",
         "chapter_music_title": "",
@@ -3546,7 +3576,7 @@ def read_novel_index_metadata(slug: str) -> dict:
     fm_block, body = _split_front_matter_and_body(text)
     fm = _parse_front_matter_values(fm_block)
 
-    title = str(fm.get("Title") or fm.get("title") or "").strip()
+    title = _yaml_parse_inline_string(str(fm.get("Title") or fm.get("title") or "").strip())
     if title:
         data["title"] = _clean_novel_title_for_editor(title)
 
@@ -3564,6 +3594,7 @@ def read_novel_index_metadata(slug: str) -> dict:
             data[key] = value
 
     data["gallery"] = _parse_gallery_items_from_front_matter(fm_block)
+    data["cover"] = _yaml_parse_inline_string(str(fm.get("cover") or "").strip())
     data["chapter_music_url"] = _normalize_music_source_input(str(fm.get("chapter_music_url") or "").strip())
     data["chapter_music_title"] = str(fm.get("chapter_music_title") or "").strip()
 
@@ -3571,6 +3602,44 @@ def read_novel_index_metadata(slug: str) -> dict:
         data["body"] = body if body.endswith("\n") else body + "\n"
 
     return data
+
+def _front_matter_field_blocks(block: str) -> list[tuple[str, str]]:
+    """Keep raw top-level YAML blocks, including unfamiliar metadata and nested values."""
+    starts = list(re.finditer(r"(?m)^([A-Za-z_][A-Za-z0-9_-]*)\s*:", block or ""))
+    result = []
+    if starts and starts[0].start():
+        result.append(("", block[:starts[0].start()]))
+    elif not starts and block:
+        result.append(("", block))
+    for i, match in enumerate(starts):
+        end = starts[i + 1].start() if i + 1 < len(starts) else len(block)
+        result.append((match.group(1), block[match.start():end]))
+    return result
+
+def _merge_front_matter_fields(original: str, replacements: dict[str, str], remove: set[str] = None) -> str:
+    """Update owned fields without reserializing YAML the author tool does not understand."""
+    pending = dict(replacements)
+    output = []
+    for key, raw in _front_matter_field_blocks(original):
+        if key in (remove or set()):
+            continue
+        if key in pending:
+            replacement = pending.pop(key)
+            if replacement:
+                output.append(replacement.rstrip("\n") + "\n")
+        else:
+            output.append(raw.rstrip("\n") + "\n")
+    for raw in pending.values():
+        if raw:
+            output.append(raw.rstrip("\n") + "\n")
+    return "".join(output).rstrip("\n")
+
+def _update_document_front_matter(original: str, replacements: dict[str, str], remove: set[str] = None) -> str:
+    match = re.match(r"^(\ufeff?---[ \t]*\r?\n)(.*?)(\r?\n---[ \t]*(?:\r?\n)?)(.*)$", original, re.S)
+    if not match:
+        raise ValueError("Existing Markdown has no valid YAML front matter; repair it before saving.")
+    front_matter = _merge_front_matter_fields(match.group(2), replacements, remove)
+    return match.group(1) + front_matter + match.group(3) + match.group(4)
 
 def write_novel_index_metadata(
     slug: str,
@@ -3583,14 +3652,12 @@ def write_novel_index_metadata(
     gallery_items = None,
     chapter_music_url: str = "",
     chapter_music_title: str = "",
+    cover: Optional[str] = None,
 ) -> Path:
     slug = slugify(slug)
     idx = NOVEL_DIR / slug / "index.md"
     existing = read_novel_index_metadata(slug)
-    normalized_title = _canonical_novel_title(
-        slug=slug,
-        preferred_title=title or existing.get("title") or "",
-    )
+    normalized_title = _clean_novel_title_for_editor(title or existing.get("title") or pretty(slug))
     normalized_gallery = (
         _normalize_gallery_items(gallery_items)
         if gallery_items is not None
@@ -3608,7 +3675,15 @@ def write_novel_index_metadata(
         chapter_music_title=chapter_music_title,
         title=normalized_title,
         body=existing.get("body") or DEFAULT_NOVEL_INDEX_BODY,
+        cover=cover if cover is not None else existing.get("cover") or None,
     )
+    if idx.exists():
+        generated_fm, _ = _split_front_matter_and_body(md)
+        fields = dict(_front_matter_field_blocks(generated_fm))
+        fields.pop("order", None)
+        if cover is None:
+            fields.pop("cover", None)
+        md = _update_document_front_matter(read_text_with_fallback(idx), fields, {"title"})
     write_text(idx, md)
     return idx
 
@@ -3858,46 +3933,173 @@ def _normalize_import_stem(name: str) -> str:
     return re.sub(r"\s+", " ", norm).strip()
 
 def _extract_import_sequence(name: str, fallback_order: Optional[int] = None) -> Optional[Tuple[str, int]]:
-    stem = _normalize_import_stem(name)
-    fallback_num = None
+    """Use the current reader contract, parsing Roman markers before letters."""
     try:
-        if fallback_order is not None:
-            cand = int(fallback_order)
-            if cand > 0:
-                fallback_num = cand
-    except Exception:
-        fallback_num = None
-
-    m_ep = re.search(r"(?i)\bepilogue\b(?:\s*[:.\-–—]*\s*([0-9]+))?", stem)
-    if m_ep:
-        val = m_ep.group(1)
-        if val and str(val).isdigit():
-            return ("epilogue", int(val))
-        # Support lettered epilogues like "Epilogue A".
-        tail = stem[m_ep.end():]
-        m_alpha = re.match(r"\s*([A-Za-z])\b", tail)
-        if m_alpha:
-            return ("epilogue", ord(m_alpha.group(1).upper()) - ord("A") + 1)
-        return ("epilogue", fallback_num if fallback_num is not None else 1)
-
-    m_ch = re.search(r"(?i)\bchapter\b(?:\s*[:.\-–—]*\s*([0-9]+))", stem)
-    if m_ch:
-        return ("chapter", int(m_ch.group(1)))
-
-    if fallback_num is not None:
-        return ("chapter", fallback_num)
-
-    m_any = re.search(r"([0-9]+)", stem)
-    if m_any:
-        return ("chapter", int(m_any.group(1)))
-
-    return None
+        from .novel_studio_model import extract_import_sequence
+    except ImportError:
+        from novel_studio_model import extract_import_sequence
+    return extract_import_sequence(name, fallback_order)
 
 def _extract_chapter_num_from_name(name: str) -> int:
     slot = _extract_import_sequence(name)
     if not slot:
         return 10**9
     return int(slot[1])
+
+def _require_repository_path(path: Path) -> Path:
+    candidate = Path(path).resolve()
+    try:
+        candidate.relative_to(REPO_ROOT.resolve())
+    except ValueError:
+        raise ValueError(f"Save path is outside this repository: {path}")
+    return candidate
+
+def _novel_save_files(slug: str) -> set[Path]:
+    """Files this novel operation can change; unrelated novels are never snapshotted."""
+    files = {NOVELS_INDEX_HTML.resolve(), RELATIONSHIPS_JSON.resolve()}
+    for folder in (NOVEL_DIR / slug, AUDIO_DIR / slug):
+        if folder.exists():
+            files.update(p.resolve() for p in folder.rglob("*") if p.is_file())
+    for pattern in (f"{slug}-cover*", f"{slug}-gallery-*"):
+        files.update(p.resolve() for p in IMAGES_DIR.glob(pattern) if p.is_file())
+    return {_require_repository_path(p) for p in files}
+
+class _NovelSaveTransaction:
+    """Restore exactly the pre-save bytes if any manuscript/media/index write fails."""
+    def __init__(self, slug: str):
+        self.slug = slug
+        self.before = {}
+        self.initial_directories = {}
+
+    def __enter__(self):
+        for folder in (NOVEL_DIR / self.slug, AUDIO_DIR / self.slug, IMAGES_DIR):
+            resolved = _require_repository_path(folder)
+            self.initial_directories[resolved] = resolved.exists()
+        for path in _novel_save_files(self.slug):
+            if path.exists():
+                stat = path.stat()
+                self.before[path] = (path.read_bytes(), stat.st_mode, stat.st_atime_ns, stat.st_mtime_ns)
+        return self
+
+    def changed_paths(self) -> set[Path]:
+        changed = set()
+        for path in _novel_save_files(self.slug) | set(self.before):
+            previous = self.before.get(path)
+            if not path.exists():
+                if previous is not None:
+                    changed.add(path)
+            elif previous is None or path.read_bytes() != previous[0]:
+                changed.add(path)
+        return changed
+
+    def __exit__(self, error_type, error, traceback):
+        if error_type is None:
+            return False
+        for path in _novel_save_files(self.slug) - set(self.before):
+            if path.exists():
+                _require_repository_path(path).unlink()
+        for path, (content, mode, accessed, modified) in self.before.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+            try:
+                with os.fdopen(fd, "wb") as stream:
+                    stream.write(content)
+                os.replace(temporary, path)
+                os.chmod(path, mode)
+                os.utime(path, ns=(accessed, modified))
+            finally:
+                if os.path.exists(temporary):
+                    os.unlink(temporary)
+        for directory, existed in self.initial_directories.items():
+            if not existed and directory.exists():
+                for child in sorted(directory.rglob("*"), key=lambda p: len(p.parts), reverse=True):
+                    if child.is_dir():
+                        try:
+                            _require_repository_path(child).rmdir()
+                        except OSError:
+                            pass
+                try:
+                    directory.rmdir()
+                except OSError:
+                    pass
+        return False
+
+def _preflight_local_image(raw: str, label: str):
+    source = Path(raw).expanduser()
+    if not source.exists() or not source.is_file():
+        raise ValueError(f"{label} not found: {source}")
+    if source.suffix.lower() not in SUPPORTED_COVER_EXTS:
+        raise ValueError(f"{label} must be a PNG, JPEG, WebP, or GIF image.")
+    if _PILImage is None:
+        raise ValueError("Install pillow to validate and prepare responsive image variants before saving media.")
+    try:
+        with _PILImage.open(source) as image:
+            image.verify()
+    except Exception as exc:
+        raise ValueError(f"{label} could not be read: {source.name} ({exc})")
+
+def _copy_image_as_png(source: Path, destination: Path):
+    if _PILImage is None:
+        raise ValueError("Install pillow to prepare image assets.")
+    from PIL import ImageOps
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with _PILImage.open(source) as original:
+        oriented = ImageOps.exif_transpose(original)
+        mode = "RGBA" if "A" in oriented.getbands() else "RGB"
+        oriented.convert(mode).save(destination, format="PNG", optimize=True)
+
+def _preflight_music_source(raw: str, label: str):
+    source = _normalize_music_source_input(raw)
+    if not source or _is_remote_music_source(source):
+        return
+    if source.startswith("/"):
+        local = _site_url_to_local_path(source)
+        if local is None or not local.is_file():
+            raise ValueError(f"{label} not found in this repository: {source}")
+        return
+    local = Path(source).expanduser()
+    if not local.is_file():
+        raise ValueError(f"{label} not found: {source}")
+    if local.suffix.lower() not in SUPPORTED_AUDIO_EXTS:
+        raise ValueError(f"{label} has an unsupported audio file type: {local.suffix}")
+
+def _chapter_save_path(slug: str, record: dict, editing_existing: bool) -> Path:
+    destination = (NOVEL_DIR / slug).resolve()
+    source = record.get("source_path")
+    if source:
+        source = Path(source)
+        target = source if source.is_absolute() else REPO_ROOT / source
+    elif record.get("source_slug"):
+        basename = str(record["source_slug"])
+        target = destination / (basename if basename.lower().endswith(".md") else basename + ".md")
+    else:
+        target = destination / f"Chapter{int(record['order'])}.md"
+    target = _require_repository_path(target)
+    if target.parent != destination or not re.match(r"^(?:Chapter\d+|Epilogue[^/\\]*)\.md$", target.name, re.I):
+        raise ValueError(f"Invalid chapter destination: {target.name}")
+    if target.exists() and not editing_existing:
+        raise ValueError(f"{target.name} already exists. Use Edit Current Chapters to change it.")
+    if editing_existing and not target.is_file():
+        raise ValueError(f"The original chapter no longer exists: {target.name}. Reload this novel before saving.")
+    return target
+
+def _chapter_markdown_for_save(slug: str, record: dict) -> str:
+    text = build_chapter_md(slug, record["order"], record["title"], record["body"],
+                            music_mode=record["music_mode"], music_url=record["music_url"],
+                            music_title=record["music_title"])
+    path = record["path"]
+    if not path.exists():
+        return text
+    original = read_text_with_fallback(path)
+    generated_fm, _ = _split_front_matter_and_body(text)
+    replacements = dict(_front_matter_field_blocks(generated_fm))
+    for key in ("music_url", "music_title"):
+        replacements.setdefault(key, "")
+    updated = _update_document_front_matter(original, replacements, {"title"})
+    _, original_body = _split_front_matter_and_body(original)
+    match = re.match(r"^(\ufeff?---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n)?)(.*)$", updated, re.S)
+    body = original_body if original_body.rstrip() == record["body"].rstrip() else record["body"].rstrip() + "\n"
+    return match.group(1) + body
 
 class Wizard(tk.Tk):
     def __init__(self):
@@ -3907,10 +4109,10 @@ class Wizard(tk.Tk):
         if not isinstance(saved_ui, dict):
             saved_ui = {}
 
-        mode_default = str(saved_ui.get("mode") or MODE_CREATE)
+        mode_default = str(saved_ui.get("mode") or MODE_EDIT)
         if mode_default not in {MODE_CREATE, MODE_EDIT}:
             mode_default = MODE_CREATE
-        edit_submode_default = str(saved_ui.get("edit_submode") or EDIT_SUBMODE_APPEND)
+        edit_submode_default = str(saved_ui.get("edit_submode") or EDIT_SUBMODE_EDIT)
         if edit_submode_default not in {EDIT_SUBMODE_APPEND, EDIT_SUBMODE_EDIT}:
             edit_submode_default = EDIT_SUBMODE_APPEND
         existing_default = slugify(str(saved_ui.get("existing_slug") or ""))
@@ -3925,7 +4127,7 @@ class Wizard(tk.Tk):
         self._state_save_job = None
         self._saved_geometry = str(saved_ui.get("geometry") or "").strip()
         set_windows_app_user_model_id("seaboiii.novelwizard")
-        self.title("Novel Wizard")
+        self.title("Novel Wizard — Literary Studio")
         self._configure_window()
         self._configure_app_icon()
         self._configure_styles()
@@ -3981,17 +4183,14 @@ class Wizard(tk.Tk):
             self.existing_slug_var.set(existing_default)
             self._on_existing_selected()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
-        self.after(120, self._prompt_optional_dependency_install)
+        self.studio.end_load()
 
     def _configure_window(self):
-        sw = int(self.winfo_screenwidth())
-        sh = int(self.winfo_screenheight())
-        w = min(1380, max(1120, int(sw * 0.88)))
-        h = min(1160, max(860, int(sh * 0.94)))
-        x = max(0, (sw - w) // 2)
-        y = max(0, (sh - h) // 2 - 24)
-        self.geometry(f"{w}x{h}+{x}+{y}")
-        self.minsize(1060, 760)
+        try:
+            from .novel_studio_ui import configure_window
+        except ImportError:
+            from novel_studio_ui import configure_window
+        configure_window(self)
 
     def _configure_app_icon(self):
         icon_path = resolve_wizard_icon_path()
@@ -4036,11 +4235,11 @@ class Wizard(tk.Tk):
                 pass
 
     def _configure_styles(self):
-        style = ttk.Style(self)
-        if "clam" in style.theme_names():
-            style.theme_use("clam")
-        style.configure("Primary.TButton", padding=(18, 10))
-        style.configure("Hint.TLabel", foreground="#475569")
+        try:
+            from .novel_studio_ui import configure_styles
+        except ImportError:
+            from novel_studio_ui import configure_styles
+        configure_styles(self)
 
     def _queue_ui_state_save(self):
         if self._state_save_job is not None:
@@ -4055,17 +4254,26 @@ class Wizard(tk.Tk):
         state = load_wizard_state()
         if not isinstance(state, dict):
             state = {}
+        try:
+            draft_count = int(self.count_var.get() or 1)
+        except (ValueError, tk.TclError):
+            draft_count = max(1, len(self.chapter_tabs))
         state["wizard_ui"] = {
             "mode": str(self.mode_var.get() or MODE_CREATE),
             "edit_submode": str(self.edit_submode_var.get() or EDIT_SUBMODE_APPEND),
             "existing_slug": slugify(self.existing_slug_var.get() or ""),
-            "chapter_count": int(self.count_var.get() or 1),
+            "chapter_count": max(1, min(200, draft_count)),
             "geometry": str(self.geometry() or ""),
         }
         save_wizard_state(state)
 
     def _on_close(self):
-        self._save_ui_state()
+        try:
+            self.studio.stash()
+            self._save_ui_state()
+        except Exception as exc:
+            messagebox.showerror("Draft recovery", f"Could not retain this draft. Keep the editor open and save your files.\n{exc}", parent=self)
+            return
         self.destroy()
 
     def _show_manual_dependency_instructions(self, deps: list[dict]):
@@ -4153,320 +4361,11 @@ class Wizard(tk.Tk):
 
     # UI layout
     def _build_ui(self):
-        self.main = ttk.Frame(self, padding=12)
-        self.main.pack(fill="both", expand=True)
-        self.main.columnconfigure(0, weight=1)
-        self.main.rowconfigure(3, weight=1)
-
-        mode_bar = ttk.Frame(self.main)
-        mode_bar.grid(row=0, column=0, sticky="we")
-        mode_bar.columnconfigure(5, weight=1)
-
-        ttk.Label(mode_bar, text="Mode").grid(row=0, column=0, sticky="w")
-        self.mode_combo = ttk.Combobox(
-            mode_bar,
-            textvariable=self.mode_var,
-            values=[MODE_CREATE, MODE_EDIT],
-            state="readonly",
-            width=16,
-        )
-        self.mode_combo.grid(row=0, column=1, sticky="w", padx=(8, 18))
-        self.mode_combo.bind("<<ComboboxSelected>>", lambda e: self._on_mode_change())
-
-        self.lbl_existing = ttk.Label(mode_bar, text="Novel")
-        self.lbl_existing.grid(row=0, column=2, sticky="e")
-        self.existing_combo = ttk.Combobox(mode_bar, textvariable=self.existing_slug_var, width=34)
-        self.existing_combo.grid(row=0, column=3, sticky="we", padx=(8, 8))
-        self.existing_combo.bind("<<ComboboxSelected>>", lambda e: self._on_existing_selected())
-        self.existing_combo.bind("<Return>", lambda e: self._on_existing_selected())
-        self.existing_combo.bind("<FocusOut>", lambda e: self._on_existing_selected())
-        self.existing_combo.bind("<KeyRelease>", lambda e: self._on_existing_query_change())
-
-        self.btn_reload = ttk.Button(mode_bar, text="Reload", command=self._refresh_catalog)
-        self.btn_reload.grid(row=0, column=4, sticky="e")
-
-        top = ttk.Frame(self.main)
-        top.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
-        top.columnconfigure(0, weight=3)
-        top.columnconfigure(1, weight=2)
-
-        form = ttk.LabelFrame(top, text="Novel Details", padding=(10, 8))
-        form.grid(row=0, column=0, sticky="nsew")
-        form.columnconfigure(1, weight=1)
-        form.columnconfigure(3, weight=1)
-
-        self.lbl_title = ttk.Label(form, text="Novel Title")
-        self.lbl_title.grid(row=0, column=0, sticky="w")
-        self.title_entry = ttk.Entry(form, textvariable=self.title_var)
-        self.title_entry.grid(row=0, column=1, columnspan=3, sticky="we", padx=(8, 0))
-
-        self.lbl_slug = ttk.Label(form, text="Slug")
-        self.lbl_slug.grid(row=1, column=0, sticky="w", pady=(6, 0))
-        self.slug_entry = ttk.Entry(form, textvariable=self.slug_var, state="readonly")
-        self.slug_entry.grid(row=1, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(6, 0))
-
-        self.lbl_status = ttk.Label(form, text="Status")
-        self.lbl_status.grid(row=2, column=0, sticky="w", pady=(8, 0))
-        self.status_combo = ttk.Combobox(
-            form,
-            textvariable=self.status_var,
-            values=["Complete", "Incomplete"],
-            state="readonly",
-            width=14,
-        )
-        self.status_combo.grid(row=2, column=1, sticky="w", padx=(8, 8), pady=(8, 0))
-
-        self.status_chip = tk.Label(form, text="", padx=8, pady=2, bd=1, relief="solid")
-        self.status_chip.grid(row=2, column=2, sticky="w", pady=(8, 0))
-
-        self.check_hidden = ttk.Checkbutton(form, text="Hidden novel", variable=self.hidden_var)
-        self.check_hidden.grid(row=2, column=3, sticky="e", pady=(8, 0))
-
-        self.lbl_blurb = ttk.Label(form, text="Blurb")
-        self.lbl_blurb.grid(row=3, column=0, sticky="w", pady=(8, 0))
-        self.blurb_entry = ttk.Entry(form, textvariable=self.blurb_var)
-        self.blurb_entry.grid(row=3, column=1, columnspan=3, sticky="we", padx=(8, 0), pady=(8, 0))
-
-        self.discovery_frame = ttk.LabelFrame(form, text="Landing Page Chips", padding=(8, 6))
-        self.discovery_frame.grid(row=4, column=0, columnspan=4, sticky="we", pady=(10, 0))
-        self.discovery_frame.columnconfigure(1, weight=1)
-
-        ttk.Label(self.discovery_frame, text="Genre").grid(row=0, column=0, sticky="w")
-        self.genre_entry = ttk.Entry(self.discovery_frame, textvariable=self.genre_var)
-        self.genre_entry.grid(row=0, column=1, sticky="we", padx=(8, 0))
-
-        ttk.Label(self.discovery_frame, text="Tone").grid(row=1, column=0, sticky="w", pady=(6, 0))
-        self.tone_entry = ttk.Entry(self.discovery_frame, textvariable=self.tone_var)
-        self.tone_entry.grid(row=1, column=1, sticky="we", padx=(8, 0), pady=(6, 0))
-
-        ttk.Label(self.discovery_frame, text="Setting").grid(row=2, column=0, sticky="w", pady=(6, 0))
-        self.setting_entry = ttk.Entry(self.discovery_frame, textvariable=self.setting_var)
-        self.setting_entry.grid(row=2, column=1, sticky="we", padx=(8, 0), pady=(6, 0))
-
-        ttk.Label(
-            self.discovery_frame,
-            text="Use comma-separated chips and try to reuse shared catalog terms, for example: contemporary romance, bittersweet, Singapore.",
-            style="Hint.TLabel",
-        ).grid(row=3, column=0, columnspan=2, sticky="w", pady=(8, 0))
-
-        self.lbl_cover = ttk.Label(form, text="Cover Image")
-        self.lbl_cover.grid(row=5, column=0, sticky="w", pady=(8, 0))
-        self.cover_entry = ttk.Entry(form, textvariable=self.cover_var)
-        self.cover_entry.grid(row=5, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
-        self.btn_browse = ttk.Button(form, text="Browse...", command=self._pick_cover)
-        self.btn_browse.grid(row=5, column=3, sticky="e", pady=(8, 0))
-
-        self.lbl_gallery = ttk.Label(form, text="Gallery")
-        self.lbl_gallery.grid(row=6, column=0, sticky="w", pady=(8, 0))
-        self.gallery_entry = ttk.Entry(form, textvariable=self.gallery_summary_var, state="readonly")
-        self.gallery_entry.grid(row=6, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(8, 0))
-        gallery_btns = ttk.Frame(form)
-        gallery_btns.grid(row=6, column=3, sticky="e", pady=(8, 0))
-        self.btn_gallery_manage = ttk.Button(gallery_btns, text="Manage...", command=self._open_gallery_manager)
-        self.btn_gallery_manage.pack(side="left")
-        self.btn_gallery_reset = ttk.Button(gallery_btns, text="Reset", command=self._reset_gallery_selection)
-        self.btn_gallery_reset.pack(side="left", padx=(6, 0))
-
-        self.rel_frame = ttk.LabelFrame(form, text="Relationships", padding=(8, 6))
-        self.rel_frame.grid(row=7, column=0, columnspan=4, sticky="we", pady=(10, 0))
-        self.rel_frame.columnconfigure(1, weight=1)
-        self.rel_frame.columnconfigure(3, weight=1)
-
-        ttk.Label(self.rel_frame, text="Series label").grid(row=0, column=0, sticky="w")
-        self.series_entry = ttk.Entry(self.rel_frame, textvariable=self.series_label_var)
-        self.series_entry.grid(row=0, column=1, sticky="we", padx=(8, 12))
-
-        ttk.Label(self.rel_frame, text="Book #").grid(row=0, column=2, sticky="e")
-        self.series_order_entry = ttk.Entry(self.rel_frame, textvariable=self.series_order_var, width=8)
-        self.series_order_entry.grid(row=0, column=3, sticky="w", padx=(8, 0))
-
-        ttk.Label(self.rel_frame, text="Relation").grid(row=1, column=0, sticky="w", pady=(6, 0))
-        self.relation_combo = ttk.Combobox(
-            self.rel_frame,
-            textvariable=self.relation_type_var,
-            values=RELATION_TYPE_CHOICES,
-            state="readonly",
-            width=16,
-        )
-        self.relation_combo.grid(row=1, column=1, sticky="w", padx=(8, 12), pady=(6, 0))
-
-        ttk.Label(self.rel_frame, text="Related slug").grid(row=1, column=2, sticky="e", pady=(6, 0))
-        self.related_to_combo = ttk.Combobox(self.rel_frame, textvariable=self.related_to_var, width=28)
-        self.related_to_combo.grid(row=1, column=3, sticky="we", padx=(8, 0), pady=(6, 0))
-        self.related_to_combo.bind("<KeyRelease>", lambda e: self._on_related_query_change())
-        self.related_to_combo.bind("<<ComboboxSelected>>", lambda e: self._on_related_query_change())
-        self.related_to_combo.bind("<FocusOut>", lambda e: self._refresh_related_cover_preview())
-
-        ttk.Label(
-            form,
-            text="Related slug is searchable. Type a few letters to narrow likely novels.",
-            style="Hint.TLabel",
-        ).grid(row=8, column=0, columnspan=4, sticky="w", pady=(8, 0))
-
-        self.music_frame = ttk.LabelFrame(form, text="Chapter Music", padding=(8, 6))
-        self.music_frame.grid(row=9, column=0, columnspan=4, sticky="we", pady=(10, 0))
-        self.music_frame.columnconfigure(1, weight=1)
-        self.music_frame.columnconfigure(2, weight=1)
-
-        ttk.Label(self.music_frame, text="Shared source").grid(row=0, column=0, sticky="w")
-        self.shared_music_entry = ttk.Entry(self.music_frame, textvariable=self.shared_music_source_var)
-        self.shared_music_entry.grid(row=0, column=1, columnspan=2, sticky="we", padx=(8, 8))
-        shared_music_btns = ttk.Frame(self.music_frame)
-        shared_music_btns.grid(row=0, column=3, sticky="e")
-        self.btn_shared_music_browse = ttk.Button(
-            shared_music_btns,
-            text="Browse...",
-            command=lambda: self._pick_music_source(self.shared_music_source_var),
-        )
-        self.btn_shared_music_browse.pack(side="left")
-        self.btn_shared_music_clear = ttk.Button(
-            shared_music_btns,
-            text="Clear",
-            command=self._clear_shared_music,
-        )
-        self.btn_shared_music_clear.pack(side="left", padx=(6, 0))
-
-        ttk.Label(self.music_frame, text="Shared label").grid(row=1, column=0, sticky="w", pady=(6, 0))
-        self.shared_music_title_entry = ttk.Entry(self.music_frame, textvariable=self.shared_music_title_var)
-        self.shared_music_title_entry.grid(row=1, column=1, columnspan=2, sticky="we", padx=(8, 8), pady=(6, 0))
-        shared_music_actions = ttk.Frame(self.music_frame)
-        shared_music_actions.grid(row=1, column=3, sticky="e", pady=(6, 0))
-        self.btn_apply_shared_music = ttk.Button(
-            shared_music_actions,
-            text="Use for all chapters",
-            command=self._apply_shared_music_to_all_chapters,
-        )
-        self.btn_apply_shared_music.pack(side="left")
-        self.btn_clear_chapter_music = ttk.Button(
-            shared_music_actions,
-            text="Clear chapter music",
-            command=self._clear_all_chapter_music,
-        )
-        self.btn_clear_chapter_music.pack(side="left", padx=(6, 0))
-
-        ttk.Label(
-            self.music_frame,
-            text="Accepts local files, direct audio URLs, and SoundCloud / Spotify / YouTube links. Set one shared source here, then override specific chapters only when needed.",
-            style="Hint.TLabel",
-        ).grid(row=2, column=0, columnspan=4, sticky="w", pady=(8, 0))
-
-        preview_col = ttk.Frame(top)
-        preview_col.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
-        preview_col.columnconfigure(1, weight=1)
-
-        self.selected_preview_title_var = tk.StringVar(value="")
-        self.selected_preview_note_var = tk.StringVar(value="")
-        self.selected_preview_frame = ttk.LabelFrame(preview_col, text="Selected Novel Preview", padding=(8, 6))
-        self.selected_preview_frame.grid(row=0, column=0, sticky="we")
-        self.selected_preview_frame.columnconfigure(1, weight=1)
-        self.selected_cover_preview = ttk.Label(self.selected_preview_frame, text="No preview", anchor="center", justify="center")
-        self.selected_cover_preview.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
-        ttk.Label(self.selected_preview_frame, textvariable=self.selected_preview_title_var).grid(row=0, column=1, sticky="w")
-        ttk.Label(self.selected_preview_frame, textvariable=self.selected_preview_note_var, wraplength=270).grid(
-            row=1, column=1, sticky="w", pady=(6, 0)
-        )
-
-        self.upload_preview_title_var = tk.StringVar(value="")
-        self.upload_preview_note_var = tk.StringVar(value="")
-        self.upload_preview_frame = ttk.LabelFrame(preview_col, text="Cover Upload Preview", padding=(8, 6))
-        self.upload_preview_frame.grid(row=1, column=0, sticky="we", pady=(10, 0))
-        self.upload_preview_frame.columnconfigure(1, weight=1)
-        self.upload_cover_preview = ttk.Label(self.upload_preview_frame, text="No preview", anchor="center", justify="center")
-        self.upload_cover_preview.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
-        ttk.Label(self.upload_preview_frame, textvariable=self.upload_preview_title_var).grid(row=0, column=1, sticky="w")
-        ttk.Label(self.upload_preview_frame, textvariable=self.upload_preview_note_var, wraplength=270).grid(
-            row=1, column=1, sticky="w", pady=(6, 0)
-        )
-
-        self.related_preview_title_var = tk.StringVar(value="")
-        self.related_preview_note_var = tk.StringVar(value="")
-        self.related_preview_frame = ttk.LabelFrame(preview_col, text="Related Novel Preview", padding=(8, 6))
-        self.related_preview_frame.grid(row=2, column=0, sticky="we", pady=(10, 0))
-        self.related_preview_frame.columnconfigure(1, weight=1)
-        self.related_cover_preview = ttk.Label(self.related_preview_frame, text="No preview", anchor="center", justify="center")
-        self.related_cover_preview.grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 10))
-        ttk.Label(self.related_preview_frame, textvariable=self.related_preview_title_var).grid(row=0, column=1, sticky="w")
-        ttk.Label(self.related_preview_frame, textvariable=self.related_preview_note_var, wraplength=270).grid(
-            row=1, column=1, sticky="w", pady=(6, 0)
-        )
-
-        chapter_bar = ttk.Frame(self.main)
-        chapter_bar.grid(row=2, column=0, sticky="we", pady=(10, 0))
-        self.lbl_edit_submode = ttk.Label(chapter_bar, text="Edit mode")
-        self.lbl_edit_submode.pack(side="left")
-        self.edit_submode_combo = ttk.Combobox(
-            chapter_bar,
-            textvariable=self.edit_submode_var,
-            values=[EDIT_SUBMODE_APPEND, EDIT_SUBMODE_EDIT],
-            state="readonly",
-            width=24,
-        )
-        self.edit_submode_combo.pack(side="left", padx=(8, 14))
-        self.edit_submode_combo.bind("<<ComboboxSelected>>", lambda e: self._on_edit_submode_change())
-
-        self.lbl_count = ttk.Label(chapter_bar, text="# Chapters")
-        self.lbl_count.pack(side="left")
-        self.spin_count = ttk.Spinbox(
-            chapter_bar,
-            from_=1,
-            to=200,
-            textvariable=self.count_var,
-            width=8,
-            command=self._build_chapter_tabs,
-        )
-        self.spin_count.pack(side="left", padx=(8, 12))
-        self.chapter_hint_var = tk.StringVar(value="")
-        ttk.Label(chapter_bar, textvariable=self.chapter_hint_var, style="Hint.TLabel").pack(side="left")
-        self.btn_bulk = ttk.Button(chapter_bar, text="Bulk Import Files...", command=self._bulk_import_docx)
-        self.btn_bulk.pack(side="right")
-        self.btn_bulk_replace = ttk.Button(
-            chapter_bar,
-            text="Bulk Replace Characters...",
-            command=self._open_bulk_replace_dialog,
-        )
-        self.btn_bulk_replace.pack(side="right", padx=(0, 8))
-
-        self.nb = ttk.Notebook(self.main)
-        self.nb.grid(row=3, column=0, sticky="nsew", pady=(8, 0))
-
-        self._supports_x11_hwheel_buttons = (self.tk.call("tk", "windowingsystem") == "x11")
-        self.nb.bind("<Shift-MouseWheel>", self._on_hmousewheel)
-        if self._supports_x11_hwheel_buttons:
-            self.nb.bind("<Button-6>", self._on_hmousewheel)
-            self.nb.bind("<Button-7>", self._on_hmousewheel)
-
-        nav = ttk.Frame(self.main)
-        nav.grid(row=4, column=0, sticky="w", pady=(8, 0))
-        ttk.Button(nav, text="Prev Chapter", width=14, command=self._prev_tab).pack(side="left")
-        ttk.Button(nav, text="Next Chapter", width=14, command=self._next_tab).pack(side="left", padx=(8, 0))
-
-        commit_frame = ttk.LabelFrame(self.main, text="Commit Message", padding=(8, 6))
-        commit_frame.grid(row=5, column=0, sticky="we", pady=(10, 0))
-        commit_frame.columnconfigure(1, weight=1)
-        ttk.Label(commit_frame, text="Summary").grid(row=0, column=0, sticky="w")
-        self.commit_summary_entry = ttk.Entry(commit_frame, textvariable=self.commit_summary_var)
-        self.commit_summary_entry.grid(row=0, column=1, sticky="we", padx=(8, 0))
-        ttk.Label(commit_frame, text="Description").grid(row=1, column=0, sticky="nw", pady=(8, 0))
-        self.commit_desc_text = tk.Text(commit_frame, height=3, wrap="word")
-        self.commit_desc_text.grid(row=1, column=1, sticky="we", padx=(8, 0), pady=(8, 0))
-
-        self.action_row = ttk.Frame(self.main)
-        self.action_row.grid(row=6, column=0, sticky="we", pady=(10, 0))
-        self.action_row.columnconfigure(0, weight=1)
-        self.action_row.columnconfigure(1, weight=1)
-        self.action_row.columnconfigure(2, weight=1)
-        self.btn_commit = ttk.Button(self.action_row, text="Create & Commit", style="Primary.TButton", command=self._commit)
-        self.btn_commit.grid(row=0, column=2, sticky="e")
-
-        self.title_var.trace_add("write", lambda *_: self._on_title_changed())
-        self.status_var.trace_add("write", lambda *_: self._update_status_chip())
-        self.cover_var.trace_add("write", lambda *_: self._refresh_upload_cover_preview())
-        self.count_var.trace_add("write", lambda *_: self._build_chapter_tabs())
-        self.mode_var.trace_add("write", lambda *_: self._queue_ui_state_save())
-        self.edit_submode_var.trace_add("write", lambda *_: self._queue_ui_state_save())
-        self.existing_slug_var.trace_add("write", lambda *_: self._queue_ui_state_save())
-        self.count_var.trace_add("write", lambda *_: self._queue_ui_state_save())
-        self.shared_music_source_var.trace_add("write", lambda *_: self._refresh_chapter_music_widgets())
+        try:
+            from .novel_studio_ui import build_ui
+        except ImportError:
+            from novel_studio_ui import build_ui
+        build_ui(self, sys.modules[__name__])
 
     def _get_commit_description(self) -> str:
         return self.commit_desc_text.get("1.0", "end").strip()
@@ -4479,11 +4378,11 @@ class Wizard(tk.Tk):
     def _update_status_chip(self):
         status = _normalize_status_choice(self.status_var.get())
         if status == "Complete":
-            self.status_chip.configure(text="Complete", bg="#dcfce7", fg="#166534")
+            self.status_chip.configure(text="Complete", bg="#151B28", fg="#AFD8C4", bd=0)
         else:
-            self.status_chip.configure(text="Incomplete", bg="#fee2e2", fg="#991b1b")
+            self.status_chip.configure(text="Incomplete", bg="#151B28", fg="#E5C790", bd=0)
 
-    def _load_preview_image(self, path: Optional[Path], size: tuple[int, int] = (84, 126)):
+    def _load_preview_image(self, path: Optional[Path], size: tuple[int, int] = (132, 198)):
         if path is None:
             return None, "No local image found."
         if not path.exists():
@@ -4575,6 +4474,9 @@ class Wizard(tk.Tk):
         self._refresh_related_cover_preview()
 
     def _open_bulk_replace_dialog(self):
+        if hasattr(self, "studio") and self.studio.fingerprint(self.studio.snapshot()) != self.studio.baseline:
+            messagebox.showinfo("Save your draft first", "Save your current edits before replacing names in manuscript files. Your recovery copy is retained.", parent=self)
+            return
         if self.mode_var.get() != MODE_EDIT:
             messagebox.showinfo(
                 "Bulk Replace",
@@ -4605,11 +4507,10 @@ class Wizard(tk.Tk):
         active_slug = slugify(self.existing_slug_var.get() or self.slug_var.get())
         if active_slug != slug:
             return
-        if self._is_edit_chapter_mode():
-            self.chapter_hint_var.set(
-                f"Applied {total_replacements} replacements in {changed_files} files. "
-                "Re-select the novel to reload tabs."
-            )
+        if hasattr(self, "studio"):
+            self.studio.mark_saved()
+        self._on_existing_selected()
+        self.chapter_hint_var.set(f"Applied {total_replacements} replacements in {changed_files} files; the editor is refreshed.")
 
     def _is_edit_chapter_mode(self) -> bool:
         return self.mode_var.get() == MODE_EDIT and self.edit_submode_var.get() == EDIT_SUBMODE_EDIT
@@ -4628,7 +4529,9 @@ class Wizard(tk.Tk):
     def _on_edit_submode_change(self):
         if self.mode_var.get() != MODE_EDIT:
             return
+        self.studio.begin_load()
         self._refresh_edit_submode_state(rebuild_tabs=True)
+        self.studio.end_load()
 
     def _refresh_edit_submode_state(self, rebuild_tabs: bool = True):
         if self.mode_var.get() != MODE_EDIT:
@@ -4721,6 +4624,8 @@ class Wizard(tk.Tk):
                 pass
 
     def _refresh_gallery_summary(self):
+        if hasattr(self, "studio"):
+            self.studio.changed()
         total = len(self.gallery_items)
         described = sum(1 for item in self.gallery_items if str(item.get("description") or "").strip())
         missing = max(0, total - described)
@@ -4887,6 +4792,7 @@ class Wizard(tk.Tk):
         )
 
     def _on_mode_change(self):
+        self.studio.begin_load()
         mode = self.mode_var.get()
         if mode == MODE_CREATE:
             self.title_var.set("")
@@ -4915,22 +4821,14 @@ class Wizard(tk.Tk):
             self.btn_bulk.state(["!disabled"])
             self.btn_bulk_replace.state(["disabled"])
 
-            self.lbl_existing.grid_remove()
-            self.existing_combo.grid_remove()
-            self.btn_reload.grid_remove()
             self._hide_edit_submode_controls()
 
-            self.btn_commit.configure(text="Create & Commit")
-            self.btn_commit.grid_configure(column=0, columnspan=3, sticky="ew")
+            self.btn_commit.configure(text="Create & commit")
             self.selected_preview_frame.grid_remove()
         else:
-            self.lbl_existing.grid()
-            self.existing_combo.grid()
-            self.btn_reload.grid()
             self._show_edit_submode_controls()
 
-            self.btn_commit.configure(text="Update & Commit")
-            self.btn_commit.grid_configure(column=2, columnspan=1, sticky="e")
+            self.btn_commit.configure(text="Save & commit")
             self.selected_preview_frame.grid()
             self._refresh_existing_choices(self.existing_slug_var.get())
             if self._existing_slugs and not slugify(self.existing_slug_var.get()):
@@ -4949,6 +4847,7 @@ class Wizard(tk.Tk):
         self._update_status_chip()
         self._set_auto_commit_message(force=True)
         self._queue_ui_state_save()
+        self.studio.end_load()
 
     def _on_existing_selected(self):
         if self.mode_var.get() != MODE_EDIT:
@@ -4962,6 +4861,7 @@ class Wizard(tk.Tk):
                 return
             slug = matches[0]
 
+        self.studio.begin_load()
         self.existing_slug_var.set(slug)
         self.slug_var.set(slug)
         idx_meta = read_novel_index_metadata(slug)
@@ -4971,7 +4871,7 @@ class Wizard(tk.Tk):
 
         card_title = _clean_novel_title_for_editor(str(card_meta.get("title") or ""))
         idx_title = _clean_novel_title_for_editor(str(idx_meta.get("title") or ""))
-        loaded_title = card_title or idx_title or pretty(slug)
+        loaded_title = idx_title or card_title or pretty(slug)
         self.title_var.set(loaded_title.strip())
         self.status_var.set(_normalize_status_choice(str(idx_meta.get("status") or card_meta.get("status") or "Incomplete")))
         self.blurb_var.set(str(idx_meta.get("blurb") or ""))
@@ -5002,15 +4902,23 @@ class Wizard(tk.Tk):
         self._refresh_related_cover_preview()
         self._set_auto_commit_message(force=True)
         self._queue_ui_state_save()
+        self.studio.end_load()
 
     def _build_chapter_tabs(self):
         # Preserve existing content by order before rebuild
-        preserved = {}
+        buffer_key = (self.mode_var.get(), self.slug_var.get() if self.mode_var.get() == MODE_EDIT else "new", self.edit_submode_var.get())
+        if getattr(self, "_chapter_buffer_key", None) != buffer_key:
+            self._chapter_buffer_cache = {}
+            self._chapter_buffer_key = buffer_key
+        preserved = dict(getattr(self, "_chapter_buffer_cache", {}))
         for rec in getattr(self, 'chapter_tabs', []) or []:
             try:
                 preserved[int(rec['order'])] = {
                     'title': rec['title_var'].get(),
-                    'body': rec['text'].get('1.0', 'end'),
+                    'body': rec['text'].get('1.0', 'end-1c'),
+                    'source_path': rec.get('source_path'),
+                    'source_slug': rec.get('source_slug'),
+                    'source_digest': rec.get('source_digest'),
                     'music_mode': rec['music_mode_var'].get(),
                     'music_source': rec['music_source_var'].get(),
                     'music_title': rec['music_title_var'].get(),
@@ -5018,12 +4926,13 @@ class Wizard(tk.Tk):
             except Exception:
                 pass
 
+        self._chapter_buffer_cache = preserved
         # clear existing
-        for _ in range(len(self.nb.tabs())):
-            self.nb.forget(self.nb.tabs()[0])
+        for tab_id in self.nb.tabs():
+            self.nametowidget(tab_id).destroy()
         self.chapter_tabs = []
 
-        MAX_TITLE_LEN = 100  # Prevent UI crashes from overly long titles
+        MAX_TITLE_LEN = 10000  # Preserve manuscript headings; navigation abbreviates visually.
         source_by_order = {}
         if self._is_edit_chapter_mode():
             entries = list(self._existing_chapter_entries or [])
@@ -5058,7 +4967,7 @@ class Wizard(tk.Tk):
             title_entry.pack(fill="x", pady=(2,8))
 
             music_frame = ttk.LabelFrame(frame, text="Music", padding=(8, 6))
-            music_frame.pack(fill="x", pady=(0, 8))
+            # Legacy audio controls expand only on request.
             music_frame.columnconfigure(1, weight=1)
             music_frame.columnconfigure(2, weight=1)
 
@@ -5148,11 +5057,18 @@ class Wizard(tk.Tk):
             tools = ttk.Frame(frame)
             tools.pack(fill="x", pady=(0,6))
 
+            def _toggle_legacy_audio(panel=music_frame, before=tools):
+                if panel.winfo_manager():
+                    panel.pack_forget()
+                else:
+                    panel.pack(fill="x", pady=(0, 8), before=before)
+            ttk.Button(tools, text="Legacy audio", command=_toggle_legacy_audio).pack(side="right")
+
             # text area with scrollbar
             txt_frame = ttk.Frame(frame)
             txt_frame.pack(fill="both", expand=True)
             yscroll = ttk.Scrollbar(txt_frame, orient="vertical")
-            text = tk.Text(txt_frame, wrap="word", height=18, undo=True, yscrollcommand=yscroll.set)
+            text = tk.Text(txt_frame, wrap="word", width=30, height=18, undo=True, yscrollcommand=yscroll.set, font=(self._studio_serif, 12), padx=16, pady=12, spacing1=4, spacing3=8, relief="flat", highlightthickness=1, highlightbackground="#353D4D", highlightcolor="#B9C2E4")
             yscroll.config(command=text.yview)
             yscroll.pack(side="right", fill="y")
 
@@ -5208,6 +5124,9 @@ class Wizard(tk.Tk):
             self.chapter_tabs.append(
                 {
                     "order": order,
+                    "source_path": preserved.get(order, {}).get("source_path") or source_by_order.get(order, {}).get("path"),
+                    "source_slug": preserved.get(order, {}).get("source_slug") or (Path(source_by_order[order]["path"]).stem if source_by_order.get(order, {}).get("path") else f"Chapter{order}"),
+                    "source_digest": preserved.get(order, {}).get("source_digest") or (hashlib.sha256(Path(source_by_order[order]["path"]).read_bytes()).hexdigest() if source_by_order.get(order, {}).get("path") else ""),
                     "title_var": title_var,
                     "text": text,
                     "music_mode_var": music_mode_var,
@@ -5217,6 +5136,8 @@ class Wizard(tk.Tk):
                 }
             )
 
+        if hasattr(self, "studio"):
+            self.studio.refresh_chapter_list()
 
     def _bulk_import_docx(self):
         if self._is_edit_chapter_mode():
@@ -5297,15 +5218,22 @@ class Wizard(tk.Tk):
             stem = ent["path"].stem
             stem_guess = _normalize_import_stem(stem).title()
             if ent["kind"] == "epilogue":
-                stem_after = re.sub(r"(?i)^.*?\bepilogue\b\s*\d*\s*[:.\-–—]*\s*", "", stem_guess).strip()
+                # Imported files become ChapterN.md. Keep the ending marker in
+                # Title so the current reader retains sequential/branching
+                # navigation instead of relying on the source filename.
+                marker = re.search(r"(?i)\bepilogue\b(?:\s+(\d+|[IVX]+|[A-Z])\b)?", stem_guess)
+                key = (marker.group(1) or "").upper() if marker else ""
+                label = "Epilogue" + (f" {key}" if key else "")
+                imported_title = str(info.get("title") or "").strip()
+                imported_title = re.sub(r"(?i)^epilogue(?=(?:\d+|[IVX]+|[A-Z])\b)", "Epilogue ", imported_title)
+                if re.match(r"(?i)^epilogue\b", imported_title):
+                    title_guess = imported_title
+                else:
+                    subtitle = imported_title or (stem_guess[marker.end():].strip(" :.-–—") if marker else "")
+                    title_guess = label + (f" -- {subtitle}" if subtitle else "")
             else:
                 stem_after = re.sub(r"(?i)^.*?\bchapter\s*\d+\b\s*[:.\-–—]*\s*", "", stem_guess).strip()
-
-            title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after or stem_guess)
-            if ent["kind"] == "epilogue" and re.fullmatch(r"[A-Za-z]", title_guess or ""):
-                title_guess = f"Epilogue {title_guess.upper()}"
-            if not title_guess and ent["kind"] == "epilogue":
-                title_guess = f"Epilogue {ent['num']}"
+                title_guess = (info.get("title") or "").strip() or _strip_chapter_prefix_title(stem_after or stem_guess)
             title_guess = _sanitize_auto_chapter_title(title_guess)
             if not title_guess:
                 title_guess = f"Chapter {rec['order']}"
@@ -5460,11 +5388,8 @@ class Wizard(tk.Tk):
     def _stage_and_commit(self, paths: set[Path], summary: str, description: str) -> tuple[bool, str]:
         rel_paths = []
         for p in sorted(paths, key=lambda x: str(x).lower()):
-            pp = p if p.is_absolute() else (REPO_ROOT / p)
-            try:
-                rp = pp.relative_to(REPO_ROOT)
-            except Exception:
-                continue
+            pp = _require_repository_path(p if p.is_absolute() else (REPO_ROOT / p))
+            rp = pp.relative_to(REPO_ROOT.resolve())
             rel_paths.append(str(rp).replace("\\", "/"))
         rel_paths = sorted(set(rel_paths))
         if not rel_paths:
@@ -5480,9 +5405,11 @@ class Wizard(tk.Tk):
         if add_res.returncode != 0:
             raise RuntimeError((add_res.stderr or add_res.stdout or "git add failed").strip())
 
-        commit_cmd = ["git", "commit", "-m", summary]
+        # A plain commit would silently include unrelated files the author had already staged.
+        commit_cmd = ["git", "commit", "--only", "-m", summary]
         if description:
             commit_cmd += ["-m", description]
+        commit_cmd += ["--"] + rel_paths
         commit_res = subprocess.run(
             commit_cmd,
             cwd=REPO_ROOT,
@@ -5499,325 +5426,209 @@ class Wizard(tk.Tk):
             raise RuntimeError(out or "git commit failed")
         return True, out
 
-    def _commit(self):
-        if not NOVEL_DIR.exists():
-            messagebox.showerror("Error", f"Cannot find {NOVEL_DIR}. Run from your repo root.")
-            return
-
-        summary = self.commit_summary_var.get().strip()
-        description = self._get_commit_description().strip()
-        if not summary:
-            messagebox.showerror("Commit message", "Commit summary is required.")
-            return
-        if not description:
-            messagebox.showerror("Commit message", "Commit description is required.")
-            return
-
-        mode = self.mode_var.get()
-        if mode == MODE_CREATE:
-            novel_title = self.title_var.get().strip()
-            if not novel_title:
-                messagebox.showerror("Error", "Please enter a novel title.")
-                return
-            if not self.cover_var.get().strip():
-                messagebox.showerror("Error", "Please choose a cover image for Create New.")
-                return
-            if not self.blurb_var.get().strip():
-                messagebox.showerror("Error", "Please enter a blurb for Create New.")
-                return
-            slug = slugify(self.slug_var.get().strip() or novel_title)
-        else:
-            slug = slugify(self.existing_slug_var.get().strip() or self.slug_var.get().strip())
-            if not slug:
-                messagebox.showerror("Error", "Select an existing novel to edit.")
-                return
-            novel_title = self.title_var.get().strip() or pretty(slug)
-            catalog_entry = self.catalog.get(slug) or {}
-            card_exists = bool(catalog_entry.get("exists"))
-            if not card_exists:
-                card_exists = bool(novel_card_details(slug).get("exists"))
-            if not card_exists:
-                messagebox.showerror(
-                    "Edit Current",
-                    f"No existing novel card found for '{slug}' in {NOVELS_INDEX_HTML.name}.\n"
-                    "Edit mode will not create a new card.",
-                )
-                return
-
-        rel_entry, rel_err = self._build_relationship_entry_from_form(slug)
-        if rel_err:
-            messagebox.showerror("Relationship metadata", rel_err)
-            return
-
-        dest = NOVEL_DIR / slug
-        dest.mkdir(parents=True, exist_ok=True)
-
-        if mode == MODE_CREATE and any(dest.glob("Chapter*.md")):
-            if not messagebox.askyesno(
-                "Existing slug",
-                f"/novel/{slug}/ already has chapter files.\nContinue and write into this slug?",
-            ):
-                return
-
-        staged_paths = set()
-        written = 0
-        shared_music_source_raw = self.shared_music_source_var.get().strip()
-        shared_music_title = self.shared_music_title_var.get().strip()
-        shared_music_url = ""
-        chapter_source_plans = []
-        for rec in self.chapter_tabs:
-            order = int(rec["order"])
-            ch_title = rec["title_var"].get().strip() or f"Chapter {order}"
-            body = rec["text"].get("1.0", "end").rstrip()
-            if not body:
-                continue
-            music_mode = _normalize_music_mode(rec["music_mode_var"].get())
-            music_source_raw = rec["music_source_var"].get().strip()
-            music_title = rec["music_title_var"].get().strip()
-            music_url = ""
-
-            if music_mode == "shared":
-                if not shared_music_source_raw:
-                    messagebox.showerror(
-                        "Chapter music",
-                        f"Chapter {order} is set to Shared music, but no shared track is configured.",
-                    )
-                    return
-            elif music_mode == "custom":
-                if not music_source_raw:
-                    messagebox.showerror(
-                        "Chapter music",
-                        f"Chapter {order} is set to Custom music, but no music source was provided.",
-                    )
-                    return
-            else:
-                music_title = ""
-
-            chapter_source_plans.append(
-                {
-                    "order": order,
-                    "title": ch_title,
-                    "body": body,
-                    "music_mode": music_mode,
-                    "music_source": music_source_raw,
-                    "music_title": music_title,
-                }
-            )
-
-        if mode == MODE_CREATE and not chapter_source_plans:
-            messagebox.showerror("No chapters", "Please enter at least one chapter body.")
-            return
-
-        if shared_music_source_raw:
-            shared_music_url, shared_music_assets, shared_music_err = resolve_music_source_for_commit(
-                shared_music_source_raw,
-                slug,
-                "shared",
-            )
-            if shared_music_err:
-                messagebox.showerror("Chapter music", shared_music_err)
-                return
-            for p in shared_music_assets:
-                staged_paths.add(p)
-        else:
-            shared_music_title = ""
-
-        chapter_writes = []
-        for rec in chapter_source_plans:
-            order = int(rec["order"])
-            music_mode = str(rec["music_mode"])
-            music_url = ""
-            if music_mode == "custom":
-                music_url, music_assets, music_err = resolve_music_source_for_commit(
-                    str(rec["music_source"]),
-                    slug,
-                    _chapter_music_asset_key(order),
-                )
-                if music_err:
-                    messagebox.showerror("Chapter music", f"Chapter {order}: {music_err}")
-                    return
-                for p in music_assets:
-                    staged_paths.add(p)
-            chapter_writes.append(
-                {
-                    "order": order,
-                    "title": str(rec["title"]),
-                    "body": str(rec["body"]),
-                    "music_mode": music_mode,
-                    "music_url": music_url,
-                    "music_title": str(rec["music_title"]),
-                }
-            )
-
-        for rec in chapter_writes:
-            order = int(rec["order"])
-            ch_path = dest / f"Chapter{order}.md"
-            write_text(
-                ch_path,
-                build_chapter_md(
-                    slug,
-                    order,
-                    str(rec["title"]),
-                    str(rec["body"]),
-                    music_mode=str(rec["music_mode"]),
-                    music_url=str(rec["music_url"]),
-                    music_title=str(rec["music_title"]),
-                ),
-            )
-            staged_paths.add(ch_path)
-            written += 1
-
-        existing_idx_meta = read_novel_index_metadata(slug) if mode == MODE_EDIT else {"gallery": []}
-        gallery_source_items = _normalize_gallery_items(existing_idx_meta.get("gallery"))
-        gallery_items, gallery_optimize_targets, removed_gallery, gallery_err = materialize_gallery_items_for_commit(
-            self.gallery_items,
-            slug,
-            existing_items=gallery_source_items,
-        )
-        if gallery_err:
-            messagebox.showerror("Gallery images", gallery_err)
-            return
-
-        gallery_uploaded_this_run = bool(gallery_optimize_targets)
-        for p in removed_gallery:
-            staged_paths.add(p)
-        for item in gallery_items:
-            local = _local_path_from_site_url(str(item.get("url") or ""))
-            if local is not None:
-                staged_paths.add(local)
-
-        idx = write_novel_index_metadata(
-            slug=slug,
-            title=novel_title,
-            status=self.status_var.get(),
-            blurb=self.blurb_var.get(),
-            genre=self.genre_var.get(),
-            tone=self.tone_var.get(),
-            setting=self.setting_var.get(),
-            gallery_items=gallery_items,
-            chapter_music_url=shared_music_url,
-            chapter_music_title=shared_music_title,
-        )
-        staged_paths.add(idx)
-
-        try:
-            upsert_relationship_registry_entry(slug, rel_entry)
-            staged_paths.add(RELATIONSHIPS_JSON)
-        except Exception as exc:
-            messagebox.showerror("Relationship metadata", f"Could not save relationship metadata.\n{exc}")
-            return
-
-        cover_rel = ""
-        cover_base = ""
-        optimize_needed = False
-
-        if mode == MODE_CREATE:
-            cover_rel = copy_cover_to_images(self.cover_var.get().strip(), slug)
-            local_cover = _local_path_from_site_url(cover_rel)
-            if local_cover is not None:
-                staged_paths.add(local_cover)
-            append_card_to_novels_index(
-                novel_title=novel_title,
-                slug=slug,
-                cover_rel=cover_rel,
-                status_choice=self.status_var.get(),
-                hidden=self.hidden_var.get(),
-            )
-            staged_paths.add(NOVELS_INDEX_HTML)
-            cover_base = Path(cover_rel).stem
-            optimize_needed = True
-        else:
-            replacement = self.cover_var.get().strip()
-            if replacement:
-                cover_rel, removed = copy_cover_to_images_and_cleanup(replacement, slug)
-                local_cover = _local_path_from_site_url(cover_rel)
-                if local_cover is not None:
-                    staged_paths.add(local_cover)
-                for p in removed:
-                    staged_paths.add(p)
-                cover_base = Path(cover_rel).stem
-                optimize_needed = True
-
+    def _commit(self, commit_to_git=True):
+        if hasattr(getattr(self, "studio", None), "validate_for_save"):
             try:
-                update_novel_card_in_novels_index(
-                    slug=slug,
-                    novel_title=novel_title,
-                    status_choice=self.status_var.get(),
-                    hidden=self.hidden_var.get(),
-                    cover_rel=cover_rel or None,
-                )
-            except Exception as exc:
-                messagebox.showerror("Update card", str(exc))
-                return
-
-            staged_paths.add(NOVELS_INDEX_HTML)
+                self.studio.validate_for_save()
+            except ValueError as error:
+                messagebox.showerror("Review before saving", str(error), parent=self)
+                return False
+        """Validate first, save one novel atomically, and optionally commit only its files."""
+        try:
+            if not NOVEL_DIR.exists():
+                raise ValueError(f"Cannot find {NOVEL_DIR}.")
+            mode = self.mode_var.get()
+            raw_slug = self.slug_var.get().strip() if mode == MODE_CREATE else self.existing_slug_var.get().strip()
+            title = self.title_var.get().strip()
+            if mode == MODE_CREATE:
+                if not title:
+                    raise ValueError("Enter a novel title.")
+                slug = slugify(raw_slug or title)
+                if (NOVEL_DIR / slug).exists():
+                    raise ValueError(f"'{slug}' already exists. Select Edit Current to update it.")
+                if not self.cover_var.get().strip():
+                    raise ValueError("Choose a cover image for the new novel.")
+                if not self.blurb_var.get().strip():
+                    raise ValueError("Enter a synopsis for the new novel.")
+            else:
+                if not raw_slug:
+                    raise ValueError("Select an existing novel.")
+                slug = slugify(raw_slug)
+                if not (NOVEL_DIR / slug / "index.md").is_file():
+                    raise ValueError("The selected novel no longer exists. Reload the library before saving.")
+                title = title or read_novel_index_metadata(slug)["title"]
+            _require_repository_path(NOVEL_DIR / slug)
+            if _BeautifulSoup is None:
+                raise ValueError("Install beautifulsoup4 to maintain the legacy shelf order and compatibility pages.")
+            if RELATIONSHIPS_JSON.exists():
+                registry = json.loads(RELATIONSHIPS_JSON.read_text(encoding="utf-8"))
+                if not isinstance(registry, dict):
+                    raise ValueError("Relationship metadata must be a JSON object; repair it before saving.")
+            if (NOVEL_DIR / slug / "index.md").exists():
+                _update_document_front_matter(read_text_with_fallback(NOVEL_DIR / slug / "index.md"), {})
+            relationship, relationship_error = self._build_relationship_entry_from_form(slug)
+            if relationship_error:
+                raise ValueError(relationship_error)
+            summary = self.commit_summary_var.get().strip()
+            description = self._get_commit_description().strip()
+            if commit_to_git:
+                if not summary:
+                    raise ValueError("Enter a commit summary, or use Save files without committing.")
+                result = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=REPO_ROOT,
+                                        text=True, capture_output=True, check=False)
+                if result.returncode or Path(result.stdout.strip()).resolve() != REPO_ROOT.resolve():
+                    raise ValueError("This workspace is not the expected Git repository.")
+                result = subprocess.run(["git", "diff", "--name-only", "--diff-filter=U"],
+                                        cwd=REPO_ROOT, text=True, capture_output=True, check=False)
+                if result.returncode or result.stdout.strip():
+                    raise ValueError("Resolve Git merge conflicts before saving and committing, or use Save files.")
+            cover_source = self.cover_var.get().strip()
+            if cover_source:
+                _preflight_local_image(cover_source, "Cover image")
+            for item in _clone_gallery_editor_items(self.gallery_items):
+                raw = str(item.get("source_path") or "").strip()
+                if raw:
+                    _preflight_local_image(raw, "Gallery image")
+                else:
+                    url = str(item.get("url") or "").strip()
+                    if url and not url.startswith(("http://", "https://")):
+                        local = _site_url_to_local_path(url)
+                        if local is None or not local.is_file():
+                            raise ValueError(f"Gallery image not found in this repository: {url}")
+            shared_source = self.shared_music_source_var.get().strip()
+            shared_title = self.shared_music_title_var.get().strip()
+            _preflight_music_source(shared_source, "Shared music")
+            editing_existing = self._is_edit_chapter_mode()
+            plans = []
+            targets = set()
+            for record in self.chapter_tabs:
+                body = record["text"].get("1.0", "end").rstrip()
+                if not body:
+                    if editing_existing:
+                        raise ValueError(f"Chapter {record['order']} is empty. Restore its text before saving.")
+                    continue
+                path = _chapter_save_path(slug, record, editing_existing)
+                if path in targets:
+                    raise ValueError(f"Two editors target {path.name}; reload the chapter list before saving.")
+                targets.add(path)
+                if path.exists():
+                    loaded_digest = record.get("source_digest")
+                    if loaded_digest and hashlib.sha256(path.read_bytes()).hexdigest() != loaded_digest:
+                        raise ValueError(f"{path.name} changed on disk after it was opened. Keep your recovered draft and reload the file before saving.")
+                    _update_document_front_matter(read_text_with_fallback(path), {})
+                music_mode = _normalize_music_mode(record["music_mode_var"].get())
+                music_source = record["music_source_var"].get().strip()
+                if music_mode == "shared" and not shared_source:
+                    raise ValueError(f"Chapter {record['order']} uses shared music, but no shared source is selected.")
+                if music_mode == "custom":
+                    if not music_source:
+                        raise ValueError(f"Chapter {record['order']} uses custom music, but no source is selected.")
+                    _preflight_music_source(music_source, f"Chapter {record['order']} music")
+                plans.append({
+                    "order": int(record["order"]), "title": record["title_var"].get().strip() or f"Chapter {record['order']}",
+                    "body": body, "path": path, "music_mode": music_mode, "music_source": music_source,
+                    "music_title": record["music_title_var"].get().strip() if music_mode == "custom" else "",
+                })
+            if mode == MODE_CREATE and not plans:
+                raise ValueError("Enter at least one chapter before saving a new novel.")
+            existing_metadata = read_novel_index_metadata(slug)
+            current_card = novel_card_details(slug)
+            cover_url = existing_metadata.get("cover") or f"/images/{slug}-cover.png"
+            if not cover_source and _local_path_from_site_url(cover_url) is None:
+                cover_url = current_card.get("image_url") or cover_url
+                if _local_path_from_site_url(cover_url) is None and not cover_url.startswith(("http://", "https://")):
+                    raise ValueError("The current cover is missing. Choose a replacement cover before saving.")
+        except Exception as error:
+            messagebox.showerror("Cannot save yet", str(error), parent=self)
+            return False
 
         try:
-            sync_relationship_badges_in_novels_index()
-            staged_paths.add(NOVELS_INDEX_HTML)
-        except Exception as exc:
-            messagebox.showwarning("Sync badges", f"Could not sync relationship badges.\n{exc}")
+            with _NovelSaveTransaction(slug) as transaction:
+                (NOVEL_DIR / slug).mkdir(parents=True, exist_ok=True)
+                shared_url = ""
+                if shared_source:
+                    shared_url, _, error = resolve_music_source_for_commit(shared_source, slug, "shared")
+                    if error:
+                        raise ValueError(error)
+                else:
+                    shared_title = ""
+                for plan in plans:
+                    plan["music_url"] = ""
+                    if plan["music_mode"] == "custom":
+                        plan["music_url"], _, error = resolve_music_source_for_commit(
+                            plan["music_source"], slug, _chapter_music_asset_key(plan["order"]))
+                        if error:
+                            raise ValueError(error)
+                    markdown = _chapter_markdown_for_save(slug, plan)
+                    if not plan["path"].exists() or read_text_with_fallback(plan["path"]) != markdown:
+                        write_text(plan["path"], markdown)
+                gallery, gallery_targets, _, error = materialize_gallery_items_for_commit(
+                    self.gallery_items, slug, existing_items=existing_metadata.get("gallery", []))
+                if error:
+                    raise ValueError(error)
+                image_targets = list(gallery_targets)
+                if cover_source:
+                    cover_url, _ = copy_cover_to_images_and_cleanup(cover_source, slug)
+                    image_targets.append(cover_url)
+                _, issues = generate_responsive_variants_for_site_images(image_targets)
+                if issues:
+                    raise ValueError("Responsive image preparation failed:\n" + "\n".join(issues))
+                write_novel_index_metadata(
+                    slug=slug, title=title, status=self.status_var.get(), blurb=self.blurb_var.get(),
+                    genre=self.genre_var.get(), tone=self.tone_var.get(), setting=self.setting_var.get(),
+                    gallery_items=gallery, chapter_music_url=shared_url, chapter_music_title=shared_title,
+                    cover=cover_url)
+                upsert_relationship_registry_entry(slug, relationship)
+                if current_card.get("exists"):
+                    update_novel_card_in_novels_index(
+                        slug=slug, novel_title=title, status_choice=self.status_var.get(),
+                        hidden=self.hidden_var.get(), cover_rel=cover_url if cover_source else None)
+                else:
+                    append_card_to_novels_index(title, slug, cover_url, self.status_var.get(), self.hidden_var.get())
+                sync_relationship_badges_in_novels_index()
+                changed_paths = transaction.changed_paths()
+        except Exception as error:
+            messagebox.showerror("Save rolled back",
+                                 "No manuscript, media, or library changes were kept.\n\n" + str(error), parent=self)
+            return False
 
-        if optimize_needed:
-            ok, optimize_msg = self._run_optimize_script()
-            if not ok:
-                messagebox.showwarning(
-                    "Optimize failed",
-                    "The optimize/update script returned a non-zero exit code.\n"
-                    f"{optimize_msg}",
-                )
-            staged_paths.add(NOVELS_INDEX_HTML)
-            base = cover_base or f"{slug}-cover"
-            for ext in ("jpg", "webp"):
-                for p in IMAGES_DIR.glob(f"{base}-*.{ext}"):
-                    staged_paths.add(p)
-
-        if gallery_uploaded_this_run:
-            generated_variants, gallery_optimize_issues = generate_responsive_variants_for_site_images(gallery_optimize_targets)
-            for p in generated_variants:
-                staged_paths.add(p)
-            if gallery_optimize_issues:
-                messagebox.showwarning(
-                    "Gallery optimize",
-                    "Some gallery variants could not be generated:\n"
-                    + "\n".join(gallery_optimize_issues[:8]),
-                )
-
-        commit_failed = False
-        try:
-            committed, git_msg = self._stage_and_commit(staged_paths, summary, description)
-        except Exception as exc:
-            committed = False
-            commit_failed = True
-            git_msg = str(exc).strip() or "git commit failed"
-
+        committed = False
+        git_failed = False
+        git_message = ""
+        if commit_to_git:
+            try:
+                committed, git_message = self._stage_and_commit(changed_paths, summary, description)
+            except Exception as error:
+                git_failed = True
+                git_message = str(error)
+                messagebox.showwarning("Files saved; commit needs attention",
+                                       "Your novel files were saved successfully. Git did not create a commit.\n\n"
+                                       + git_message, parent=self)
+        # Clear the recoverable draft only after every file has been saved successfully.
+        studio = getattr(self, "studio", None)
+        if studio is not None:
+            studio.mark_saved()
         self._refresh_catalog()
+        if mode == MODE_CREATE:
+            self.mode_var.set(MODE_EDIT)
+            self.existing_slug_var.set(slug)
+            self.edit_submode_var.set(EDIT_SUBMODE_EDIT)
+            self._on_mode_change()
+        else:
+            self._on_existing_selected()
         self._refresh_selected_cover_preview()
         self._refresh_upload_cover_preview()
         self._refresh_chapter_music_widgets()
         self._refresh_related_cover_preview()
-
-        action = "Created" if mode == MODE_CREATE else "Updated"
-        if committed:
-            messagebox.showinfo(
-                "Done",
-                f"{action} /novel/{slug}/ with {written} chapter(s).\n\n"
-                "Commit completed. Please run git push manually.\n\n"
-                f"{git_msg}",
-            )
-            self.destroy()
-        elif commit_failed:
-            messagebox.showwarning(
-                "Done with warning",
-                f"{action} /novel/{slug}/ with {written} chapter(s).\n\n"
-                "Auto-commit failed. Please run git add/commit manually.\n\n"
-                f"{git_msg}",
-            )
-        else:
-            messagebox.showinfo(
-                "No commit",
-                f"{action} /novel/{slug}/ with {written} chapter(s), but nothing was committed.\n\n{git_msg}",
-            )
+        if not commit_to_git:
+            messagebox.showinfo("Novel saved", f"Saved /novel/{slug}/ with {len(plans)} chapter editor(s).\n\n"
+                                "Refresh the preview build to see these source changes.", parent=self)
+        elif committed:
+            messagebox.showinfo("Novel saved and committed",
+                                f"Saved /novel/{slug}/.\n\n{git_message}\n\nPush remains a separate manual action.", parent=self)
+        elif not git_failed:
+            messagebox.showinfo("Novel saved", "The novel files are saved; no new changes needed a Git commit.", parent=self)
+        return True
 
 # ---------- entry ----------
 def main():
@@ -5829,4 +5640,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

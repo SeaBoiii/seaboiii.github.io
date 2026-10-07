@@ -47,7 +47,7 @@ Asset sources, generation prompts and estimated provider costs are documented in
 
 Use the wizard to create or append chapters and keep the novel index up to date:
 
-1. Run `python3 tools/novel_wizard.py` from the repository root.
+1. Run `python tools/novel_wizard.py` from this novels worktree, or double-click `tools/launch_novel_wizard.cmd`. The rebuilt Literary Studio includes book/chapter/artwork workspaces, draft recovery, current-page checks and background preview builds. See the [tool guide](tools/README.md).
 2. Fill in the novel details and chapters, then select **Create / Append**.
 3. The wizard also runs the optimizer to update `novel/index.html` and image variants.
 4. Rebuild `web/` and assemble the site to preview the updated reader.

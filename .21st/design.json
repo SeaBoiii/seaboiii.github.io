@@ -48,6 +48,16 @@
       "Native scrolling, static content and reduced motion work across phones and keyboard navigation.",
       "Source text, routes, relationships and authoring workflow stay compatible."
     ],
-    "previewPort": 4175
+    "previewPort": 4175,
+    "authoring": {
+      "tool": "Novel Wizard - Literary Studio",
+      "framework": "Native Python Tkinter desktop app",
+      "principles": [
+        "Separate book, chapter, artwork and review workspaces share the literary palette and real cover identity.",
+        "Draft recovery stays local; transactional source saves and scoped Git commits are distinct actions.",
+        "Native writing focus, selectable four-theme prose previews and verified public URLs support the current pages.",
+        "Preview identity prevents reuse of another comparison worktree."
+      ]
+    }
   }
 }

@@ -15,3 +15,5 @@ Five desktop chapters have distinct jobs: a camera and mechanism journey; a care
 Deeper material opens in native modal dialogs with shareable fragments. Main content stays readable without opening them. Real demonstrations, team attribution and existing reader content remain the evidence.
 
 Phones, reduced motion, short windows and no JavaScript get stacked content. The poster keeps the initial composition legible before WebGL loads. No ongoing animation draws when idle or behind a popout.
+
+Novel Wizard follows the literary identity in a native desktop authoring workspace. Searchable books, chapters, artwork and readiness have distinct places; previews use real covers and the actual public pages. Focus mode and a four-theme reading preview support manuscript work. Recovery copies stay separate from public source, transactional saves retain original routes and metadata, and local previews identify their worktree before reuse.
