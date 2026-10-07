@@ -14,3 +14,12 @@ tools/novel_wizard_state.db
 tools/novel_wizard_state.db-*
 *.log
 .codex-preview.out.log
+
+# Local build output and cached assets from earlier portfolio previews
+/deploy/
+/portfolio/node_modules/
+/portfolio/dist/
+/portfolio/artifacts/
+/portfolio/qa/artifacts/
+/portfolio/tsconfig.tsbuildinfo
+/portfolio/public/portfolio-assets/

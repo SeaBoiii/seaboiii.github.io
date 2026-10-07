@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "project": "Aleem Siddique — interactive fieldbook",
+  "framework": "Astro with isolated React / React Three Fiber islands",
+  "tokens": {
+    "porcelain": "#f7f9fc", "paper": "#ffffff", "graphite": "#192938",
+    "cobalt": "#2553c7", "teal": "#137c72", "muted": "#526477"
+  },
+  "typography": { "interface": "IBM Plex Sans", "fiction": "Literata" },
+  "decisions": [
+    "User selected broad personal showcase, interactive fieldbook, and portfolio plus case studies.",
+    "A camera lens, circuit module and book connect engineering, interactive experiments and writing.",
+    "AMD experience supplies professional grounding; independent projects and fiction retain substantial prominence.",
+    "Native scrolling, one short desktop sticky scene, unpinned touch layouts, static-first content.",
+    "21st catalog search was unavailable without authentication; adapt inspected primary reference sites and existing project assets."
+  ]
+}

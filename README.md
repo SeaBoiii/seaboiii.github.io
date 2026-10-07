@@ -1,90 +1,78 @@
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/SeaBoiii/seaboiii.github.io">
-    <img src="img/A1E3M-logos_black.png" alt="Logo" width="500" height="500">
-  </a>
+# Aleem Siddique’s portfolio
 
-<h3 align="center">My Portfolio Website</h3>
+Personal engineering portfolio, fiction library and browser experiments, published through GitHub Pages.
 
-  <p align="center">
-    A website to display everything about me!
-    <br />
-    <br />
-    <br />
-  </p>
-</div>
+The `revamp/interactive-fieldbook` branch adds a modern portfolio in [`showcase/`](showcase/README.md): an interactive 3D workbench, project demonstrations, six case studies, AMD experience and a substantial writing section. The original root `index.html` remains available for comparison. The existing novel reader and standalone pages are assembled alongside the new homepage.
 
-# SeaBoiii.github.io
+## Run the portfolio
 
-Personal portfolio + novels hub + mini projects, published via GitHub Pages.
+Use **Node.js 24**. Run these commands from the repository root:
 
-This repo powers:
-- A portfolio homepage and static pages
-- A novels library under `novel/`
-- Mini web projects (`tetris/`, `wordle/`)
-- Utility scripts that keep the novel index and chapters consistent
-
-## What’s Inside
-- `index.html`: main landing page
-- `novel/`: novel listings and chapter content
-- `_layouts/`: Jekyll layouts used by the novel pages
-- `images/`: cover images and optimized variants
-- `assets/`, `css/`, `js/`: site styling and scripts
-- `tools/`: helper scripts for novels and images
-- `.github/workflows/`: automation (CI/maintenance)
-
-## Novel Workflow (Recommended)
-Use the wizard to create or append chapters and keep the index up to date.
-
-1. Run the wizard from the repo root:
-```bash
-python3 tools/novel_wizard.py
+```powershell
+npm --prefix web ci
+npm --prefix showcase ci
+npm --prefix web run build
+npm --prefix showcase run build
+npm --prefix showcase run assemble
+npm --prefix showcase run preview:site
 ```
-2. Fill in the novel details and chapters, then click `Create / Append`.
-3. The wizard will also run the optimizer to update `novel/index.html` and image variants.
 
-### Wizard Features
-- Create a new novel or append chapters to an existing one
-- Auto-slug and order handling
-- Formatted paste (HTML/RTF → Markdown)
-- DOCX import (single or bulk)
-- Chapter navigation with prev/next and horizontal scroll
+Open **http://127.0.0.1:4173** for the complete portfolio, novel reader and existing static pages. In a second terminal, run `npm --prefix showcase run preview:legacy` and open **http://127.0.0.1:4180** to compare the original homepage.
 
-## Image Optimization
-This script upgrades the novel index cards to `<picture>` + responsive `srcset` and generates 320/640/960 JPG+WebP variants.
+For portfolio development alone, run `npm --prefix showcase run dev`. Astro’s development server does not include the root reader or cover assets; use the combined preview to verify writing links, covers and preserved pages. See the [showcase guide](showcase/README.md) for browser checks and implementation details.
 
-```bash
+## Repository structure
+
+| Location | Purpose |
+| --- | --- |
+| `showcase/` | Astro portfolio, isolated React/Three.js interactions, case studies and new media |
+| `web/` | Next.js static-export novel library and chapter reader |
+| `novel/` | Markdown stories, chapter metadata and legacy indexes |
+| `index.html` | Original portfolio homepage, retained for comparison |
+| `images/`, `img/`, `assets/`, `css/`, `js/` | Existing covers, photographs and static-page resources |
+| `tools/` | Novel authoring, metadata and image utilities |
+| `.github/workflows/` | Build, comparison artifacts and deployment automation |
+
+The build combines the existing 875-page reader export with the new portfolio. The Astro homepage overlays the reader’s root entrypoint; the `/novel/` routes, reading settings, bookmarks and alternate endings remain available.
+
+## Deployment and comparison
+
+The workflow builds `main`, `revamp/**` branches and pull requests targeting `main`. Comparison builds upload a **`portfolio-comparison`** artifact containing `showcase/site-dist/`. Only `main` uploads and deploys a GitHub Pages artifact. Working on the revamp branch does not automatically publish the redesign live.
+
+Asset sources, generation prompts and estimated provider costs are documented in [`showcase/ASSETS.md`](showcase/ASSETS.md). The current paid media estimate is **about US$0.83**, within the **SGD$28 Gemini cap** and **US$30 combined asset cap**. Credentials are used only during offline generation and are absent from the website.
+
+## Novel workflow
+
+Use the wizard to create or append chapters and keep the novel index up to date:
+
+1. Run `python3 tools/novel_wizard.py` from the repository root.
+2. Fill in the novel details and chapters, then select **Create / Append**.
+3. The wizard also runs the optimizer to update `novel/index.html` and image variants.
+4. Rebuild `web/` and assemble the site to preview the updated reader.
+
+The wizard supports novel creation and chapter appending, automatic slugs and ordering, formatted HTML/RTF paste, DOCX import, and chapter navigation. Its legacy index output remains useful to the content workflow; the deployed reader is generated from the Markdown content by `web/`.
+
+### Image optimization
+
+The optimizer updates legacy cover markup with responsive image sources and generates 320/640/960 JPG and WebP variants:
+
+```powershell
+pip install pillow beautifulsoup4
 python3 tools/optimize_and_update_index.py
 ```
 
-Dependencies:
-```bash
-pip install pillow beautifulsoup4
-```
+### Useful authoring scripts
 
-## Helpful Scripts
-- `tools/novel_wizard.py`: primary authoring tool
-- `tools/optimize_and_update_index.py`: optimize covers + update `novel/index.html`
-- `tools/optimize_images.py`: legacy/utility image optimizer
-- `tools/generate_indexes.py`: index helpers
-- `tools/add_front_matter.py`, `tools/fix_front_matter.py`: front-matter maintenance
-
-## Development Notes
-This is a static site. You can open `index.html` directly or serve the repo with any static file server.
+- `tools/novel_wizard.py`: primary authoring tool.
+- `tools/optimize_and_update_index.py`: cover optimization and legacy-index updates.
+- `tools/optimize_images.py`: legacy image optimizer.
+- `tools/generate_indexes.py`: index helpers.
+- `tools/add_front_matter.py`, `tools/fix_front_matter.py`: metadata maintenance.
 
 ## Contact
-[![LinkedIn][linkedin-shield]][linkedin-url]
-[![Facebook][facebook-shield]][facebook-url]
-[![Instagram][insta-shield]][insta-url]
+
+[LinkedIn](https://www.linkedin.com/in/a1e3m/) · [GitHub](https://github.com/SeaBoiii) · [Email](mailto:seaboiiigamer@gmail.com)
 
 ## Acknowledgments
-- Billy – original website template inspiration
 
-<!-- Reference links -->
-[linkedin-shield]: https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white
-[linkedin-url]: https://linkedin.com/in/a1e3m
-[facebook-shield]: https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white
-[facebook-url]: https://www.facebook.com/seaboiii/
-[insta-shield]: https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white
-[insta-url]: https://www.instagram.com/a1e3m/
+Billy’s original website template remains the starting point for the legacy homepage. The redesigned portfolio uses the project’s existing photographs, screenshots and writing alongside newly authored 3D and documented generated media.

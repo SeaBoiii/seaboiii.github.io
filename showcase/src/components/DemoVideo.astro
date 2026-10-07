@@ -1,0 +1,9 @@
+---
+interface Props { mp4: string; webm?: string; poster: string; label: string; loop?: boolean; class?: string }
+const { mp4, webm, poster, label, loop = true, class: className = '' } = Astro.props;
+---
+<video class={className} controls muted loop={loop} playsinline preload="none" poster={poster} aria-label={label} data-motion-video>
+  {webm && <source src={webm} type="video/webm" />}
+  <source src={mp4} type="video/mp4" />
+  <p>{label}. <a href={mp4}>Download the video</a>.</p>
+</video>

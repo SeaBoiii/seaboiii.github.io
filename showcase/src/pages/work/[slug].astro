@@ -1,0 +1,115 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import DemoVideo from '../../components/DemoVideo.astro';
+import { projects, type Project } from '../../data/content';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+const projectIndex = projects.findIndex((entry) => entry.slug === project.slug);
+const nextProject = projects[(projectIndex + 1) % projects.length];
+---
+
+<Layout title={`${project.title} — Aleem Siddique`} description={project.summary} image={project.image}>
+  <article class={`case-study case-${project.slug}`} aria-labelledby="case-title">
+    <header class="case-hero wrap">
+      <a href="/#work" class="text-link case-back"><span aria-hidden="true">←</span> All selected work</a>
+      <p class="eyebrow">{project.category}</p>
+      <h1 id="case-title">{project.title}</h1>
+      <p class="case-summary">{project.summary}</p>
+      <dl class="case-meta">
+        <div><dt>My contribution</dt><dd>{project.role}</dd></div>
+        <div><dt>Context</dt><dd>{project.scope}</dd></div>
+        <div><dt>Year</dt><dd>{project.year}</dd></div>
+      </dl>
+      <ul class="case-stack" aria-label={`${project.title} technologies`}>
+        {project.stack.map((technology) => <li>{technology}</li>)}
+      </ul>
+      <div class="case-links">
+        {project.links.map((link) => (
+          <a class="text-link" href={link.href}>
+            {link.label}<span aria-hidden="true"> {link.href.startsWith('http') ? '↗' : '→'}</span>
+          </a>
+        ))}
+      </div>
+    </header>
+
+    <figure class="case-media wrap">
+      {project.media ? (
+        <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={`${project.title} demonstration`} />
+      ) : (
+        <img src={project.image} alt={project.alt} width="1366" height="768" fetchpriority="high" decoding="async" />
+      )}
+      <figcaption>{project.media?.caption ?? project.alt}</figcaption>
+    </figure>
+
+    <div class="case-body wrap">
+      <aside class="case-overview" aria-label="Project at a glance">
+        <p class="eyebrow">At a glance</p>
+        <div class="case-role">
+          <div><h2>What I contributed</h2><p>{project.contribution}</p></div>
+          <div><h2>What came out of it</h2><p>{project.outcome}</p></div>
+        </div>
+        <a href="#case-notes" class="text-link">Explore the project <span aria-hidden="true">↓</span></a>
+      </aside>
+      <div id="case-notes" class="case-notes">
+        {project.sections.map((section, index) => (
+          <section class="case-section" aria-labelledby={`note-${index + 1}`}>
+            <h2 id={`note-${index + 1}`}>{section.heading}</h2>
+            {section.body.map((paragraph) => <p>{paragraph}</p>)}
+          </section>
+        ))}
+        <div class="case-links case-links-bottom">
+          {project.links.map((link) => (
+            <a class="text-link" href={link.href}>
+              {link.label}<span aria-hidden="true"> {link.href.startsWith('http') ? '↗' : '→'}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+    <nav class="next-project wrap" aria-label="Next case study">
+      <div><p class="eyebrow">Keep exploring</p><a href={`/work/${nextProject.slug}/`}>{nextProject.title} <span aria-hidden="true">↗</span></a></div>
+      <a href="/#work" class="text-link">Back to selected work <span aria-hidden="true">↑</span></a>
+    </nav>
+  </article>
+</Layout>
+
+<style>
+  .eyebrow {
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: .055em;
+    color: var(--teal);
+  }
+  .case-hero > .eyebrow { margin-bottom: 18px; }
+  .case-meta {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr .5fr;
+    gap: 22px;
+    margin: 32px 0 0;
+  }
+  .case-meta dt { font-size: 11px; color: var(--muted); }
+  .case-meta dd { margin: 6px 0 0; font-size: 14px; color: var(--ink); line-height: 1.5; }
+  .case-overview { padding-top: 8px; }
+  .case-role { margin-top: 16px; }
+  .case-overview > .text-link { margin-top: 24px; }
+  .case-links-bottom { margin-top: 45px; }
+  .next-project { margin-bottom: 65px; }
+  .next-project > div > .eyebrow { margin-bottom: 12px; }
+  .next-project > .text-link { font-size: 13px; letter-spacing: 0; flex-shrink: 0; }
+  @media (max-width: 767px) {
+    .case-meta { grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 26px; }
+    .case-meta > div:first-child { grid-column: 1 / -1; }
+    .next-project { flex-direction: column; align-items: flex-start; margin-top: 0; margin-bottom: 48px; }
+  }
+</style>
