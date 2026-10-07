@@ -1,0 +1,10 @@
+node_modules/
+.astro/
+dist/
+site-dist/
+qa/*
+!qa/site.mjs
+.env*
+output/
+*.log
+*.tsbuildinfo

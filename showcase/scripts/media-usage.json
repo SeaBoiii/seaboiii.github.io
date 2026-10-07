@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-07",
+  "authorized_caps": {
+    "combined_usd": 30,
+    "gemini_sgd": 28
+  },
+  "estimated_combined_usd": 0.83,
+  "conservative_reservations": {
+    "combined_usd": 1,
+    "gemini_sgd": 2
+  },
+  "invoice_note": "Estimates only. SGD reservation is an allowance, not an exchange-rate conversion. Provider billing is authoritative.",
+  "providers": [
+    {
+      "provider": "OpenAI",
+      "model": "gpt-image-2.5-sunburst-2026-09-08",
+      "requests": 1,
+      "status": "authentication_failed",
+      "http_status": 401,
+      "output_images": 0,
+      "estimated_usd": 0,
+      "usage": null,
+      "note": "No model substitution or manual retry. Bundled ImageGen CLI used."
+    },
+    {
+      "provider": "Google",
+      "model": "gemini-omni-1.1-flash",
+      "date": "2026-10-07",
+      "prompt": "Create an eight-second seamless silent 16:9 loop in a single continuous unbroken scene, no scene cuts. A refined creative engineering workbench on a cool off-white cyclorama (#F7F9FC): three distinct objects arranged in a spacious sculptural still life, a graphite camera lens with finely ribbed focusing ring and blue coated glass, a teal printed circuit module with silver traces and a small blank graphite compute chip, and a slim cobalt-blue clothbound book with cream pages and no text. Realistic materials and beautifully restrained product visualization, soft daylight, subtle shadows, white studio mood. Camera makes one very slow tiny clockwise orbit and returns to its starting position by the end. Objects remain perfectly rigid and still. No people, no hands, no letters, no logos, no interface, no extra objects. No dialogue, no music, no sound effects.",
+      "usage": {
+        "total_tokens": 47836,
+        "total_input_tokens": 174,
+        "input_tokens_by_modality": [
+          {
+            "modality": "text",
+            "tokens": 174
+          }
+        ],
+        "total_cached_tokens": 0,
+        "total_output_tokens": 47137,
+        "output_tokens_by_modality": [
+          {
+            "modality": "video",
+            "tokens": 46336
+          }
+        ],
+        "total_tool_use_tokens": 0,
+        "total_thought_tokens": 525,
+        "raw_prompt_token": 31848,
+        "model_invocation_token_counts": [
+          {
+            "prompt_tokens_details": [
+              {
+                "modality": "text",
+                "tokens": 1957
+              }
+            ],
+            "candidates_tokens_details": [
+              {
+                "modality": "text",
+                "tokens": 807
+              }
+            ],
+            "thoughts_tokens_details": [
+              {
+                "modality": "text",
+                "tokens": 525
+              }
+            ]
+          }
+        ],
+        "non_grounding_model_invocation_token_counts": [
+          {
+            "prompt_tokens_details": [
+              {
+                "modality": "text",
+                "tokens": 1957
+              }
+            ],
+            "candidates_tokens_details": [
+              {
+                "modality": "text",
+                "tokens": 807
+              }
+            ],
+            "thoughts_tokens_details": [
+              {
+                "modality": "text",
+                "tokens": 525
+              }
+            ]
+          }
+        ]
+      },
+      "status": "completed",
+      "output": "workbench-film.mp4",
+      "reservation_usd": 5,
+      "estimated_video_usd": 0.81088,
+      "requests": 1,
+      "estimated_total_usd": 0.83,
+      "pricing_usd_per_million": {
+        "input": 1.5,
+        "text_output_including_thinking": 9,
+        "video_output": 17.5
+      },
+      "pricing_source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "no_retry": true
+    }
+  ]
+}

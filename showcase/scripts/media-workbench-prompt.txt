@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: a professional engineer and writer portfolio's 3D workbench fallback poster, not project evidence
+Primary request: a restrained sculptural still life of three distinct creative tools, a camera lens, circuit module, and slim book, on a cool off-white seamless studio background.
+Subject: at left, a graphite camera lens with finely ribbed focusing ring and blue coated glass facing the viewer; at center, a teal printed circuit module with silver traces and a small blank graphite compute chip; at right, a closed cobalt-blue clothbound book with a crisp cream page block. The three objects are clearly separated and of similar visual weight, comfortably placed on one white surface.
+Style/medium: refined photorealistic 3D product visualization with realistic materials, precise machined surfaces, restrained editorial composition, premium natural daylight.
+Composition/framing: landscape 3:2 image. Oblique overhead view, entirely visible objects in lower central two-thirds with generous quiet negative space above. No objects touch the crop. Lens, circuit, and book form a balanced asymmetrical triangle, not a crowded desk.
+Lighting/mood: soft diffused daylight from upper left, gentle ambient occlusion and natural shadows, bright calm professional mood.
+Color palette: cool white #F7F9FC, graphite #192938, cobalt #2553C7, teal #137C72.
+Materials/textures: graphite anodized metal with fine grooves, blue optical glass, matte teal circuit solder mask with silver traces, tactile blue linen book cloth, cream paper.
+Constraints: no people, hands, letters, numbers, text, logos, trademarks, screens, symbols, wires outside the circuit module, extra objects, decorative gradients, neon lighting, watermarks, or floating objects. Book cover is completely unlettered. Circuit is illustrative and generic, not a depiction of proprietary AMD hardware.
