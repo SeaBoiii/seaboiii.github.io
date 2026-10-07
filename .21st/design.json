@@ -22,6 +22,32 @@
     "Native dialogs use shareable project fragments, restore focus and scroll, and suspend background media.",
     "The light version remains at commit 7f497cf4 in its original worktree; this branch is revamp/cinematic-dark.",
     "No additional paid asset generation. Existing media, authored SVG and procedural 3D capture supply the redesign.",
-    "21st catalog search remains unavailable without authentication; the selected Nothing reference and existing project assets ground the implementation."
-  ]
+    "21st catalog search remains unavailable without authentication; the selected Nothing reference and existing project assets ground the implementation.",
+    "User approved the Literary Gallery novel redesign on revamp/novels-library, based on cinematic-dark 172b868d; no paid generation."
+  ],
+  "novels": {
+    "direction": "Dark literary gallery, atmospheric book introductions, calm customizable reader",
+    "framework": "Next.js static export, existing Markdown pipeline",
+    "tokens": {
+      "ink": "#080A10",
+      "midnight": "#151B28",
+      "warmSilver": "#EEECE6",
+      "muted": "#ADB4C3",
+      "lavender": "#B9C2E4",
+      "border": "#353D4D"
+    },
+    "typography": {
+      "displayAndProse": "Literata",
+      "interface": "IBM Plex Sans",
+      "legacyChoices": "Lora, Source Serif 4, Merriweather, Atkinson Hyperlegible, system serif, system sans"
+    },
+    "principles": [
+      "Actual covers provide the main visual identity; three physical covers anchor discovery.",
+      "Curated discovery leads into all 50 searchable novels; no fabricated popularity or update dates.",
+      "Native selectable prose, paragraph-relative local resume and accessible dialogs serve extended reading.",
+      "Native scrolling, static content and reduced motion work across phones and keyboard navigation.",
+      "Source text, routes, relationships and authoring workflow stay compatible."
+    ],
+    "previewPort": 4175
+  }
 }

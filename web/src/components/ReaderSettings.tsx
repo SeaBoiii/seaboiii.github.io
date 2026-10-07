@@ -1,203 +1,105 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const FONT_FAMILIES: Array<{ id: string; label: string; css: string }> = [
-  { id: "lora", label: "Lora", css: '"Lora", Georgia, serif' },
-  { id: "source", label: "Source Serif", css: '"Source Serif 4", Georgia, serif' },
-  { id: "merri", label: "Merriweather", css: '"Merriweather", Georgia, serif' },
-  { id: "atkinson", label: "Atkinson Hyperlegible", css: '"Atkinson Hyperlegible", sans-serif' },
-  { id: "system-serif", label: "System Serif", css: 'Georgia, "Times New Roman", serif' },
-  { id: "system-sans", label: "System Sans", css: 'system-ui, -apple-system, "Segoe UI", sans-serif' },
-];
-
-const KEY = "reader-prefs";
-
-interface Prefs {
-  fontScale: number;
-  lineHeight: number;
-  width: number;
-  fontId: string;
-}
-
-const DEFAULTS: Prefs = { fontScale: 1, lineHeight: 1.75, width: 800, fontId: "lora" };
-
-function load(): Prefs {
-  if (typeof localStorage === "undefined") return DEFAULTS;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return DEFAULTS;
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Prefs>) };
-  } catch {
-    return DEFAULTS;
-  }
-}
-
-function apply(p: Prefs) {
-  const root = document.documentElement;
-  root.style.setProperty("--reader-font-scale", String(p.fontScale));
-  root.style.setProperty("--reader-line-height", String(p.lineHeight));
-  root.style.setProperty("--reader-max-width", `${p.width}px`);
-  const family = FONT_FAMILIES.find((f) => f.id === p.fontId)?.css ?? FONT_FAMILIES[0].css;
-  root.style.setProperty("--reader-font", family);
-}
+import NativeDialog from "./NativeDialog";
+import {
+  applyReaderPreferences, loadReaderPreferences, saveReaderPreferences,
+  PREFERENCES_DID_CHANGE, PREFERENCES_WILL_CHANGE,
+  READER_DEFAULTS, READER_FONTS, READER_PREFERENCES_KEY,
+  type ReaderPreferences, type ReaderTheme, validateReaderPreferences,
+} from "@/lib/reader-preferences";
 
 export function ReaderPrefsBoot() {
-  // Inline script that applies saved prefs before paint, avoiding flash.
-  const code = `
-(function(){
-  try {
-    var raw = localStorage.getItem(${JSON.stringify(KEY)});
-    var p = raw ? JSON.parse(raw) : {};
-    var fontMap = ${JSON.stringify(
-      Object.fromEntries(FONT_FAMILIES.map((f) => [f.id, f.css])),
-    )};
-    var r = document.documentElement;
-    if (typeof p.fontScale === 'number') r.style.setProperty('--reader-font-scale', String(p.fontScale));
-    if (typeof p.lineHeight === 'number') r.style.setProperty('--reader-line-height', String(p.lineHeight));
-    if (typeof p.width === 'number') r.style.setProperty('--reader-max-width', p.width + 'px');
-    if (p.fontId && fontMap[p.fontId]) r.style.setProperty('--reader-font', fontMap[p.fontId]);
-  } catch (e) {}
-})();
-`.trim();
+  // Validate and apply the same saved settings before the server-rendered prose paints.
+  const code = `(function(){
+    var d=${JSON.stringify(READER_DEFAULTS)},p={},r=document.documentElement;
+    try{p=JSON.parse(localStorage.getItem(${JSON.stringify(READER_PREFERENCES_KEY)})||'{}')||{};if(!p.theme&&localStorage.getItem('theme')==='light')p.theme='paper';}catch(e){}
+    function n(v,f,min,max){return typeof v==='number'&&isFinite(v)?Math.max(min,Math.min(max,v)):f;}
+    var fonts=${JSON.stringify(Object.fromEntries(READER_FONTS.map((font) => [font.id, font.css])))};
+    r.setAttribute('data-reader','true');
+    r.setAttribute('data-reader-theme',['night','dim','paper','sepia'].indexOf(p.theme)!==-1?p.theme:d.theme);
+    r.style.setProperty('--reader-font-scale',n(p.fontScale,d.fontScale,.85,1.4));
+    r.style.setProperty('--reader-line-height',n(p.lineHeight,d.lineHeight,1.45,2.1));
+    r.style.setProperty('--reader-max-width',n(p.width,d.width,620,980)+'px');
+    r.style.setProperty('--reader-font',Object.prototype.hasOwnProperty.call(fonts,p.fontId)?fonts[p.fontId]:fonts[d.fontId]);
+  })();`;
   return <script dangerouslySetInnerHTML={{ __html: code }} />;
 }
 
-export default function ReaderSettings({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
+const THEMES: { id: ReaderTheme; label: string; description: string }[] = [
+  { id: "night", label: "Night", description: "Deep charcoal" },
+  { id: "dim", label: "Dim", description: "Soft blue-grey" },
+  { id: "paper", label: "Paper", description: "Warm white" },
+  { id: "sepia", label: "Sepia", description: "Warm parchment" },
+];
 
-  useEffect(() => {
-    setPrefs(load());
-  }, []);
+export default function ReaderSettings({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [prefs, setPrefs] = useState<ReaderPreferences>({ ...READER_DEFAULTS });
 
-  function update(patch: Partial<Prefs>) {
-    const next = { ...prefs, ...patch };
+  useEffect(() => { setPrefs(loadReaderPreferences()); }, []);
+
+  function update(patch: Partial<ReaderPreferences>) {
+    window.dispatchEvent(new Event(PREFERENCES_WILL_CHANGE));
+    const next = validateReaderPreferences({ ...prefs, ...patch });
     setPrefs(next);
-    apply(next);
-    try {
-      localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {}
+    applyReaderPreferences(next);
+    saveReaderPreferences(next);
+    window.dispatchEvent(new Event(PREFERENCES_DID_CHANGE));
   }
 
-  if (!open) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-label="Reader settings"
-      className="absolute right-2 top-full mt-2 w-[min(360px,calc(100vw-1rem))] rounded-2xl border border-border bg-surface p-4 shadow-soft sm:right-4"
-    >
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-semibold text-text">Reader settings</p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close settings"
-          className="rounded-md px-2 text-muted hover:text-text"
-        >
-          ✕
-        </button>
-      </div>
-      <div className="space-y-4">
-        <RangeRow
-          label="Font size"
-          value={prefs.fontScale}
-          min={0.85}
-          max={1.4}
-          step={0.05}
-          format={(v) => `${Math.round(v * 100)}%`}
-          onChange={(v) => update({ fontScale: v })}
-        />
-        <RangeRow
-          label="Line height"
-          value={prefs.lineHeight}
-          min={1.45}
-          max={2.1}
-          step={0.05}
-          format={(v) => v.toFixed(2)}
-          onChange={(v) => update({ lineHeight: v })}
-        />
-        <RangeRow
-          label="Content width"
-          value={prefs.width}
-          min={620}
-          max={980}
-          step={20}
-          format={(v) => `${v}px`}
-          onChange={(v) => update({ width: v })}
-        />
-        <label className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-            Font family
-          </span>
-          <select
-            value={prefs.fontId}
-            onChange={(e) => update({ fontId: e.target.value })}
-            className="rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
-          >
-            {FONT_FAMILIES.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label}
-              </option>
-            ))}
+    <NativeDialog open={open} onClose={onClose} title="Make yourself comfortable" className="reader-settings-dialog">
+      <p className="reader-dialog-intro">Shape the page around the way you like to read.</p>
+      <fieldset className="reader-theme-fieldset">
+        <legend>Page theme</legend>
+        <div className="reader-theme-options">
+          {THEMES.map((theme) => (
+            <button
+              key={theme.id}
+              type="button"
+              data-theme-choice={theme.id}
+              aria-pressed={prefs.theme === theme.id}
+              onClick={() => update({ theme: theme.id })}
+              className="reader-theme-choice"
+            >
+              <span className="reader-theme-sample" aria-hidden="true">Aa</span>
+              <span>{theme.label}</span>
+              <span className="sr-only"> — {theme.description}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <div className="reader-settings-fields">
+        <label className="reader-select-field" htmlFor="reader-font-family">
+          <span>Typeface</span>
+          <select id="reader-font-family" value={prefs.fontId} onChange={(event) => update({ fontId: event.target.value })}>
+            {READER_FONTS.map((font) => <option key={font.id} value={font.id}>{font.label}</option>)}
           </select>
         </label>
-        <button
-          type="button"
-          onClick={() => {
-            setPrefs(DEFAULTS);
-            apply(DEFAULTS);
-            try {
-              localStorage.removeItem(KEY);
-            } catch {}
-          }}
-          className="text-xs font-medium text-muted underline hover:text-text"
-        >
-          Reset to defaults
-        </button>
+        <RangeRow label="Text size" id="reader-font-size" value={prefs.fontScale} min={0.85} max={1.4} step={0.05}
+          format={(value) => `${Math.round(value * 100)}%`} onChange={(fontScale) => update({ fontScale })} />
+        <RangeRow label="Line spacing" id="reader-line-spacing" value={prefs.lineHeight} min={1.45} max={2.1} step={0.05}
+          format={(value) => value.toFixed(2)} onChange={(lineHeight) => update({ lineHeight })} />
+        <RangeRow label="Page width" id="reader-page-width" value={prefs.width} min={620} max={980} step={20}
+          format={(value) => `${value}px`} onChange={(width) => update({ width })} />
       </div>
-    </div>
+      <div className="reader-settings-footer">
+        <button type="button" className="reader-text-button" onClick={() => update({ ...READER_DEFAULTS })}>Restore defaults</button>
+        <p>Your preferences and reading position are saved on this device.</p>
+      </div>
+    </NativeDialog>
   );
 }
 
-function RangeRow({
-  label,
-  value,
-  min,
-  max,
-  step,
-  format,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  format: (v: number) => string;
-  onChange: (v: number) => void;
+function RangeRow({ label, id, value, min, max, step, format, onChange }: {
+  label: string; id: string; value: number; min: number; max: number; step: number;
+  format: (value: number) => string; onChange: (value: number) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-muted">
-        {label}
-        <span className="font-normal text-text">{format(value)}</span>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="accent-[rgb(var(--accent))]"
-      />
+    <label className="reader-range-field" htmlFor={id}>
+      <span className="reader-range-label"><span>{label}</span><output htmlFor={id}>{format(value)}</output></span>
+      <input id={id} type="range" min={min} max={max} step={step} value={value}
+        aria-valuetext={format(value)} onChange={(event) => onChange(Number(event.target.value))} />
     </label>
   );
 }

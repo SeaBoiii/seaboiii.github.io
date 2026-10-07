@@ -2,49 +2,39 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { loadBookmark, READING_CHANGE_EVENT, type Bookmark } from "@/lib/reader-state";
 
-interface Bookmark {
-  chapterSlug: string;
-  chapterLabel: string;
-  chapterTitle: string;
-  ts: number;
-}
-
-function bookmarkKey(novelSlug: string) {
-  return `bookmark:${novelSlug}`;
-}
-
-export function loadBookmark(novelSlug: string): Bookmark | null {
-  try {
-    const raw = localStorage.getItem(bookmarkKey(novelSlug));
-    if (!raw) return null;
-    return JSON.parse(raw) as Bookmark;
-  } catch {
-    return null;
-  }
-}
-
-export function saveBookmark(novelSlug: string, b: Bookmark) {
-  try {
-    localStorage.setItem(bookmarkKey(novelSlug), JSON.stringify(b));
-  } catch {}
-}
+// Existing callers and saved bookmarks keep the same public API.
+export { loadBookmark, saveBookmark } from "@/lib/reader-state";
+export type { Bookmark } from "@/lib/reader-state";
 
 export default function ContinueReadingButton({ novelSlug }: { novelSlug: string }) {
-  const [bm, setBm] = useState<Bookmark | null>(null);
+  const [bookmark, setBookmark] = useState<Bookmark | null>(null);
 
   useEffect(() => {
-    setBm(loadBookmark(novelSlug));
+    const update = () => setBookmark(loadBookmark(novelSlug));
+    update();
+    window.addEventListener("storage", update);
+    window.addEventListener("pageshow", update);
+    window.addEventListener(READING_CHANGE_EVENT, update);
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener("pageshow", update);
+      window.removeEventListener(READING_CHANGE_EVENT, update);
+    };
   }, [novelSlug]);
 
-  if (!bm) return null;
+  if (!bookmark) return null;
   return (
     <Link
-      href={`/novel/${novelSlug}/${bm.chapterSlug}/`}
-      className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-medium text-text transition hover:border-accent/50 hover:bg-surface-2"
+      href={`/novel/${novelSlug}/${bookmark.chapterSlug}/?resume=1`}
+      prefetch={false}
+      className="novel-button novel-button-secondary reader-continue"
+      aria-label={`Continue ${bookmark.chapterLabel}${bookmark.chapterTitle ? `: ${bookmark.chapterTitle}` : ""}`}
     >
-      <span className="text-muted">Continue:</span>
-      <span className="font-semibold">{bm.chapterLabel}</span>
+      <span>Continue reading</span>
+      <span className="reader-continue-label">{bookmark.chapterLabel}</span>
+      <span aria-hidden="true">↗</span>
     </Link>
   );
 }

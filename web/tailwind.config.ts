@@ -19,8 +19,8 @@ const config: Config = {
       },
       fontFamily: {
         serif: ["var(--reader-font)", "Georgia", "Cambria", "Times New Roman", "serif"],
-        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["'Cormorant Garamond'", "Georgia", "serif"],
+        sans: ["'IBM Plex Sans'", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Literata", "Georgia", "serif"],
       },
       maxWidth: {
         reader: "var(--reader-max-width, 800px)",

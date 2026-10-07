@@ -6,6 +6,8 @@ The `revamp/cinematic-dark` branch adds a cinematic dark portfolio in [`showcase
 
 ## Run the portfolio
 
+The `revamp/novels-library` comparison adds a dark literary gallery, rebuilt book introductions and contents, illustration previews, and a customizable reader with paragraph-level resume. See the [novels guide](web/README.md). Its separate worktree is `seaboiii.github.io-novels`; the combined comparison runs on **4175**. Existing 4173, 4174 and 4180 previews remain available.
+
 Use **Node.js 24**. Run these commands from the repository root:
 
 ```powershell
@@ -14,10 +16,10 @@ npm --prefix showcase ci
 npm --prefix web run build
 npm --prefix showcase run build
 npm --prefix showcase run assemble
-npm --prefix showcase run preview:site
+npm --prefix showcase run preview:novels
 ```
 
-Open **http://127.0.0.1:4174** for the complete portfolio, novel reader and existing static pages. The original worktree continues serving the light comparison at **http://127.0.0.1:4173** and the original homepage at **http://127.0.0.1:4180**.
+Open **http://127.0.0.1:4175/novel/** for the redesigned library and reader, with the cinematic portfolio at the root. The earlier cinematic comparison stays at **http://127.0.0.1:4174**, the light comparison at **http://127.0.0.1:4173**, and the original homepage at **http://127.0.0.1:4180**.
 
 For portfolio development alone, run `npm --prefix showcase run dev`. Astro’s development server does not include the root reader or cover assets; use the combined preview to verify writing links, covers and preserved pages. See the [showcase guide](showcase/README.md) for browser checks and implementation details.
 

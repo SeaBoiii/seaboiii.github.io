@@ -23,8 +23,8 @@ export async function generateMetadata({
   const ch = await getChapter(params.slug, params.chapter);
   if (!novel || !ch) return {};
   return {
-    title: `${ch.label}: ${ch.displayTitle} · ${novel.title}`,
-    description: `${novel.title} — ${ch.label}: ${ch.displayTitle}`,
+    title: `${ch.label}${ch.displayTitle ? `: ${ch.displayTitle}` : ""} · ${novel.title}`,
+    description: `${novel.title} — ${ch.label}${ch.displayTitle ? `: ${ch.displayTitle}` : ""}`,
   };
 }
 
