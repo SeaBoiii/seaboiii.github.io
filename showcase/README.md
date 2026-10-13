@@ -27,6 +27,8 @@ Desktop scrolling drives the macro lens, unfolding circuit and opening book; hig
 
 All twelve projects have transparent SVG marks. Their project details open in native modal dialogs. Share links use `/#project/<slug>`; Back closes a session, Forward reopens it, and switching projects replaces its history entry. Direct-link dismissal stays on the portfolio. Closing restores background scroll and keyboard focus. Background media and 3D stop while a dialog is open.
 
+The homepage adds a film layer in `src/styles/cinema.css` and `src/scripts/cinema.ts`: a once-per-session opening title sequence, a letterbox that opens as the hero scrolls, film grain, a soft pointer key light, scene slates, a timecode HUD with a progress scrubber, velocity-skewed marquees, a sprocketed project reel, spotlit book posters and experiment tiles, and end credits built from the existing content. Scroll reveals are armed only after the script runs and only while motion is on; reduced motion, the Pause motion control, missing JavaScript and project dialogs all leave every element visible and static. Other pages are unaffected.
+
 The 3D runtime loads after visibility and capability checks; unavailable WebGL and reduced-data connections use matching desktop/mobile posters. The canvas renders on demand. Real demo videos have controls and autoplay only when active and visible; manually paused videos stay paused. Novel reading, external demos and games use explicit read/launch links.
 
 The existing `/work/<slug>/` pages remain accessible as compatibility fallbacks. The six case studies and dialogs use the same detail component. AMD career facts and team attribution are preserved; independent AMD-themed projects remain distinct from employment work.
