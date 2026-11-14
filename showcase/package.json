@@ -15,6 +15,9 @@
     "preview:site": "node scripts/serve.mjs",
     "preview:legacy": "node scripts/serve.mjs --legacy",
     "test:site": "node qa/site.mjs",
+    "test:novels": "node ../web/qa/novels.mjs",
+    "test:reader": "node ../web/qa/reader-state.mjs",
+    "preview:novels": "node scripts/serve.mjs --port=4175",
     "media:workbench": "node scripts/render-workbench.mjs"
   },
   "dependencies": {

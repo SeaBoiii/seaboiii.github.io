@@ -1,5 +1,7 @@
 # Cinematic portfolio
 
+On `revamp/novels-library`, the combined output includes the redesigned literary gallery and reader. Use `npm run preview:novels` for port **4175**, and `npm run test:novels` for its browser checks. See [the novels guide](../web/README.md). The cinematic portfolio on 4174, light comparison on 4173, and original homepage on 4180 stay available.
+
 A dark, single-page portfolio for Aleem Siddique, on `revamp/cinematic-dark`. This version starts from the light fieldbook at commit `7f497cf4`, in a separate worktree so both designs remain available.
 
 ## Build and compare

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { NOVELS_ROOT, RELATIONSHIPS_PATH, splitCsv } from "./paths";
+import { getChapterList } from "./chapters";
 import type { GalleryItem, Novel, NovelRelationship } from "@/types/novel";
 
 let cache: Novel[] | null = null;
@@ -32,18 +33,10 @@ function prettifySlug(slug: string): string {
     .join(" ");
 }
 
-function chapterStats(slug: string): { count: number; lastMtime: number } {
-  const dir = path.join(NOVELS_ROOT, slug);
-  if (!fs.existsSync(dir)) return { count: 0, lastMtime: 0 };
-  const files = fs
-    .readdirSync(dir)
-    .filter((f) => /^Chapter\d+\.md$/i.test(f) || /^Epilogue.*\.md$/i.test(f));
-  let lastMtime = 0;
-  for (const f of files) {
-    const m = fs.statSync(path.join(dir, f)).mtimeMs;
-    if (m > lastMtime) lastMtime = m;
-  }
-  return { count: files.length, lastMtime };
+function chapterStats(slug: string): { count: number; wordCount: number; readingMinutes: number } {
+  const chapters = getChapterList(slug);
+  const wordCount = chapters.reduce((total, chapter) => total + chapter.wordCount, 0);
+  return { count: chapters.length, wordCount, readingMinutes: Math.max(1, Math.ceil(wordCount / 220)) };
 }
 
 function readLegacyIndexOrder(): Map<string, number> {
@@ -103,24 +96,26 @@ export function getAllNovels(): Novel[] {
       cover: typeof data.cover === "string" ? data.cover : undefined,
       gallery,
       order: typeof data.order === "number" ? data.order : 0,
-      lastChapterMtime: stats.lastMtime,
       seriesId: rel.series_id,
       seriesLabel: rel.series_label,
       relationType: rel.relation_type,
       relatedTo: rel.related_to,
       readingOrder: rel.reading_order,
       chapterCount: stats.count,
+      wordCount: stats.wordCount,
+      readingMinutes: stats.readingMinutes,
     };
   });
 
-  // Default sort: follow legacy /novel/index.html order (top is newest).
+  // Preserve the author's curated shelf order. File timestamps change on checkout
+  // and cannot honestly represent publication dates.
   novels.sort((a, b) => {
     const ai = legacyOrder.get(a.slug.toLowerCase());
     const bi = legacyOrder.get(b.slug.toLowerCase());
     if (ai !== undefined && bi !== undefined) return ai - bi;
     if (ai !== undefined) return -1;
     if (bi !== undefined) return 1;
-    return (b.lastChapterMtime ?? 0) - (a.lastChapterMtime ?? 0);
+    return a.order - b.order || a.title.localeCompare(b.title, "en") || a.slug.localeCompare(b.slug, "en");
   });
   cache = novels;
   return novels;
@@ -128,4 +123,36 @@ export function getAllNovels(): Novel[] {
 
 export function getNovel(slug: string): Novel | undefined {
   return getAllNovels().find((n) => n.slug === slug);
+}
+
+/** Explicit reading order takes priority; companion stories follow the main sequence. */
+export function getNovelReadingSequence(novel: Novel): Novel[] {
+  const all = getAllNovels();
+  let sequence: Novel[];
+  if (novel.seriesId) {
+    sequence = all.filter((book) => book.seriesId === novel.seriesId);
+  } else {
+    const connected = new Set([novel.slug]);
+    let found = true;
+    while (found) {
+      found = false;
+      for (const book of all) {
+        if (book.relatedTo && (connected.has(book.slug) || connected.has(book.relatedTo))) {
+          if (!connected.has(book.slug) || !connected.has(book.relatedTo)) found = true;
+          connected.add(book.slug);
+          connected.add(book.relatedTo);
+        }
+      }
+    }
+    sequence = all.filter((book) => connected.has(book.slug));
+  }
+  return sequence.sort((a, b) => {
+    if (a.readingOrder !== undefined || b.readingOrder !== undefined) {
+      return (a.readingOrder ?? Number.MAX_SAFE_INTEGER) - (b.readingOrder ?? Number.MAX_SAFE_INTEGER)
+        || a.title.localeCompare(b.title, "en");
+    }
+    if (a.relatedTo === b.slug) return 1;
+    if (b.relatedTo === a.slug) return -1;
+    return a.title.localeCompare(b.title, "en");
+  });
 }
