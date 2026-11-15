@@ -1,0 +1,20 @@
+---
+import DemoVideo from './DemoVideo.astro';
+import type { Project } from '../data/content';
+import '../styles/icm-project.css';
+
+interface Props { project: Project; inStage?: boolean }
+const { project, inStage = false } = Astro.props;
+const media = project.media;
+---
+<div class:list={['icm-project', { 'project-demo-surface': inStage }]} data-icm-project role="group" aria-label="ICM Buddy prototype and long-exposure photograph">
+  <div class="icm-process project-preview-depth">
+    <div class="icm-monitor">
+      {media && <DemoVideo mp4={media.mp4} webm={media.webm} poster={media.poster} label="ICM Buddy lens-control prototype demonstration"/>}
+    </div>
+    <div class="icm-print-row">
+      <div class="icm-print-copy"><p class="icm-print-label">Photographic result</p><p class="icm-print-title">Focus and zoom.</p><p class="icm-print-location">Old Supreme Court, Singapore</p></div>
+      <div class="icm-print"><img src="/showcase-assets/media/icm-light-study.webp" alt="An original ICM Buddy long-exposure result showing the Old Supreme Court through combined focus and zoom movement" width="960" height="535" loading="lazy" decoding="async"/></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+---
+import DemoVideo from './DemoVideo.astro';
+import type { Project } from '../data/content';
+import '../styles/classility-project.css';
+
+interface Props { project: Project; inStage?: boolean }
+const { project, inStage = false } = Astro.props;
+const media = project.media!;
+---
+<div class:list={['classility-project', { 'project-demo-surface': inStage }]} data-classility-project role="group" aria-label="Classility quiz and Paladin archetype preview">
+  <div class="classility-scene">
+    <div class="classility-screen">
+      <DemoVideo mp4={media.mp4} webm={media.webm} poster={media.poster} label="Classility quiz walkthrough and illustrated result" />
+    </div>
+    <a class="classility-archetype project-preview-depth" href="https://seaboiii.github.io/classility/#/card/class_paladin" target="_blank" rel="noopener noreferrer" aria-label="View the Paladin archetype in Classility">
+      <span class="classility-card"><img src="/showcase-assets/media/classility-paladin.webp" alt="Original Paladin archetype artwork with two armoured characters" width="480" height="720" loading="lazy" decoding="async" /></span>
+      <span class="classility-archetype-title">Paladin<span>View archetype</span></span>
+    </a>
+  </div>
+</div>

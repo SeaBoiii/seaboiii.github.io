@@ -163,8 +163,10 @@ try {
       const stage = page.locator('[data-project-stage="'+slug+'"]');
       const facts = await stage.locator('.project-facts').evaluate(element => [...element.querySelectorAll('div')].map(item => ({ label:item.querySelector('dt').textContent.trim(),text:item.querySelector('dd').textContent.trim() })));
       check(facts.length === 2 && facts[0].label === 'My contribution' && facts[1].label === 'Outcome' && facts.every(fact => fact.text.length > 40),'Specific contribution and outcome appear without a popup: '+slug,facts);
-      const mediaCount = slug === 'novels-library' ? 4 : 1;
-      check(await stage.locator('.project-demo img,.project-demo video').count() === mediaCount && (await stage.locator('figcaption').textContent()).trim().length > 20,'Captioned real preview or demonstration appears on-page: '+slug);
+      const videoCount = await stage.locator('.project-demo video').count();
+      const imageCount = await stage.locator('.project-demo img').count();
+      const mediaPresent = videoCount ? videoCount === 1 : imageCount === (slug === 'novels-library' ? 4 : 1);
+      check(mediaPresent && (await stage.locator('figcaption').textContent()).trim().length > 20,'Captioned real preview or demonstration appears on-page: '+slug);
       if(await stage.locator('video').count()) check(await stage.locator('video').getAttribute('controls') !== null && await stage.locator('video source').count() === 2,'On-page video has native controls and both formats: '+slug);
     }
     const career = await page.locator('#experience').innerText();
@@ -376,6 +378,92 @@ try {
       const size = await overflow(phone.page);
       check(size.scroll <= width && size.body <= width,'Crosswinds has no horizontal overflow at '+width+'px',size);
       check(await phonePreview.locator('.crosswinds-launch').isVisible() && await phonePreview.locator('.crosswinds-choice-list').isVisible(),'Crosswinds artwork, choices and launch remain available at '+width+'px');
+      await closeContext(phone.context);
+    }
+  });
+
+  await group('Four dimensional engineering and identity previews',async () => {
+    await home();
+    const presentations = [
+      {slug:'icm-buddy',attribute:'data-icm-project',title:'ICM Buddy'},
+      {slug:'train-a-tiny-ai',attribute:'data-tiny-ai-project',title:'Train a Tiny AI'},
+      {slug:'ai-rover',attribute:'data-rover-project',title:'AI Rover Challenge'},
+      {slug:'classility',attribute:'data-classility-project',title:'Classility'},
+    ];
+    const transform = locator => locator.evaluate(element => getComputedStyle(element).transform);
+    const controls = video => video.evaluate(element => {
+      const bounds = element.getBoundingClientRect();
+      const y = bounds.bottom-Math.min(24,bounds.height*.12);
+      const points = [.15,.5,.85].map(fraction => {
+        const x = bounds.left+bounds.width*fraction;
+        const hit = document.elementFromPoint(x,y);
+        return {x,y,clear:hit === element || element.contains(hit),hit:hit?.tagName};
+      });
+      return {points,clear:points.every(point => point.clear && point.y > 0 && point.y < innerHeight)};
+    });
+    check(await page.locator('.project-stage .project-demo-surface').count() === 6,'The four refreshed presentations retain six native project surfaces');
+    for(const [index,item] of presentations.entries()) {
+      await jump(item.slug);
+      const stage = page.locator('[data-project-stage="'+item.slug+'"]');
+      const preview = stage.locator('['+item.attribute+']');
+      const surface = stage.locator('.project-demo-surface');
+      const depth = preview.locator('.project-preview-depth');
+      const video = preview.locator('video');
+      await preview.locator('img').evaluateAll(images => Promise.all(images.map(image => {image.loading='eager';return image.decode();})));
+      await frames(page,3);
+      check(await preview.count() === 1 && await surface.count() === 1 && await depth.count() === 1,'The project has one shared dimensional presentation: '+item.slug);
+      check((await stage.locator('h3').first().textContent()).trim() === item.title && await stage.locator('.project-facts dd').count() === 2 && (await stage.locator('.project-purpose').textContent()).trim().length > 40,'The refreshed presentation retains the project story and contribution: '+item.slug);
+      check(await video.count() === 1 && await video.getAttribute('controls') !== null && await video.locator('source').count() === 2,'The refreshed presentation retains an authentic native-control recording: '+item.slug);
+      const desktopControls = await controls(video);
+      check(desktopControls.clear,'Foreground artwork leaves the native video control strip available: '+item.slug,desktopControls);
+      const progress = index/5;
+      await chapter('projects',Math.max(0,progress-.045));
+      const arriving = await transform(depth);
+      await chapter('projects',Math.min(1,progress+.045));
+      const departing = await transform(depth);
+      check(arriving !== 'none' && arriving !== departing,'Native scrolling changes the subject-specific depth pose: '+item.slug,{arriving,departing});
+      await jump(item.slug);
+      const bounds = await surface.boundingBox();
+      const neutral = await transform(surface);
+      await page.mouse.move(bounds.x+bounds.width*.78,bounds.y+bounds.height*.2);
+      await frames(page,3);
+      check(await transform(surface) !== neutral,'Active project depth responds to fine-pointer input: '+item.slug);
+      const open = stage.locator('.project-actions [data-project-open]');
+      await open.focus();
+      const before = [await transform(surface),await transform(depth)];
+      const position = await page.evaluate(() => scrollY);
+      await page.keyboard.press('Enter');
+      const dialog = await activeModal(item.slug);
+      check(await dialog.locator('['+item.attribute+']').count() === 1 && await dialog.locator('.detail-media video[controls]').count() === 1,'The popout shares the dimensional preview and native media: '+item.slug);
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent('portfolio:chapter',{detail:{key:'projects',progress:.9,active:true}})));
+      await frames(page,3);
+      const frozen = [await transform(surface),await transform(depth)];
+      check(before.every((matrix,candidate) => matrix === frozen[candidate]),'Opening details freezes the exact subject and display pose: '+item.slug,{before,frozen});
+      check(await video.evaluate(element => element.paused),'The background demonstration pauses while details are open: '+item.slug);
+      await axe(item.title+' shared project popout');
+      await page.keyboard.press('Escape');
+      await closed(page,position);
+      const response = await context.request.get(base+'/work/'+item.slug+'/');
+      const markup = await response.text();
+      check(response.status() === 200 && markup.includes(item.attribute) && markup.includes('data-motion-video'),'The standalone case study shares the complete preview: '+item.slug);
+    }
+    check(await page.locator('[data-project-stage="train-a-tiny-ai"] .tiny-ai-network').getAttribute('aria-hidden') === 'true','The Tiny AI illustration has a descriptive HTML counterpart');
+    check(await page.locator('[data-project-stage="ai-rover"] .rover-model').getAttribute('aria-hidden') === 'true','The rover illustration has a descriptive HTML counterpart');
+    for(const width of [320,390]) {
+      const phone = await newPage({viewport:{width,height:900},isMobile:true,hasTouch:true});
+      await home(phone.page);
+      for(const item of presentations) {
+        const preview = phone.page.locator('[data-project-stage="'+item.slug+'"] ['+item.attribute+']');
+        await preview.scrollIntoViewIfNeeded();
+        await preview.locator('img').evaluateAll(images => Promise.all(images.map(image => {image.loading='eager';return image.decode();})));
+        const video = preview.locator('video');
+        await video.scrollIntoViewIfNeeded();
+        await frames(phone.page,3);
+        const dimensions = await overflow(phone.page);
+        check(dimensions.scroll <= width && dimensions.body <= width,'The dimensional preview fits '+width+'px without horizontal overflow: '+item.slug,dimensions);
+        const phoneControls = await controls(video);
+        check(phoneControls.clear,'Native video controls remain reachable at '+width+'px: '+item.slug,phoneControls);
+      }
       await closeContext(phone.context);
     }
   });

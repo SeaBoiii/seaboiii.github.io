@@ -30,7 +30,7 @@
   box-shadow: 0 0 0 1px #b9dbea12;
 }
 
-.project-demo-surface:not(.library-project):not(.crosswinds-project)::before {
+.project-demo-surface:not(.library-project,.crosswinds-project,.icm-project,.engineering-project,.classility-project)::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -41,7 +41,7 @@
   pointer-events: none;
 }
 
-.project-demo-surface:not(.library-project):not(.crosswinds-project)::after {
+.project-demo-surface:not(.library-project,.crosswinds-project,.icm-project,.engineering-project,.classility-project)::after {
   content: '';
   position: absolute;
   inset: 0 -7px 0 auto;

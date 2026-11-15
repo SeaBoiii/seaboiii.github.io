@@ -51,6 +51,30 @@
       "url": "/"
     },
     {
+      "name": "project-tiny-ai.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-rover.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-classility.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
       "name": "project-library.png",
       "viewport": {
         "width": 1440,
@@ -113,6 +137,38 @@
         "height": 1300
       },
       "url": "/#stage-crosswinds-in-sapa"
+    },
+    {
+      "name": "project-icm-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-icm-buddy"
+    },
+    {
+      "name": "project-tiny-ai-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-train-a-tiny-ai"
+    },
+    {
+      "name": "project-rover-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-ai-rover"
+    },
+    {
+      "name": "project-classility-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-classility"
     }
   ],
   "pageErrors": []

@@ -1,6 +1,5 @@
 ---
-import DemoVideo from './DemoVideo.astro';
-import CrosswindsProjectPreview from './CrosswindsProjectPreview.astro';
+import ProjectPreview from './ProjectPreview.astro';
 import { type Project, type Experiment } from '../data/content';
 
 interface Props {
@@ -33,11 +32,9 @@ const links = project?.links ?? (experiment ? [
   </header>
 
   {(project?.media || item.image) && <figure class="detail-media case-media">
-    {project?.slug === 'crosswinds-in-sapa'
-      ? <CrosswindsProjectPreview image={project.image} title={project.title} launch={project.links[0].href}/>
-      : project?.media
-        ? <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={`${item.title} demonstration`} />
-        : <img src={item.image} alt={project?.alt ?? `${item.title} interface`} width="1366" height="768" loading={standalone ? 'eager' : 'lazy'} decoding="async" />
+    {project
+      ? <ProjectPreview project={project} eager={standalone}/>
+      : <img src={item.image} alt={`${item.title} interface`} width="1366" height="768" loading={standalone ? 'eager' : 'lazy'} decoding="async" />
     }
     <figcaption>{project?.slug === 'crosswinds-in-sapa'
       ? 'A scene preview using the original artwork and an excerpt from the prologue.'

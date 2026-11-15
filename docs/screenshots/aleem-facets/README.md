@@ -24,6 +24,20 @@ Captured from the combined production build at `http://127.0.0.1:4176`, with rea
 
 ![Independent Work with a dimensional, native-control demonstration](independent-work.png)
 
+![ICM Buddy with its prototype and original photographic result on a phone](project-icm-mobile.png)
+
+![Train a Tiny AI with physical examples converging on a classifier](project-tiny-ai.png)
+
+![The Tiny AI presentation on a phone](project-tiny-ai-mobile.png)
+
+![AI Rover Challenge with a dimensional virtual rover](project-rover.png)
+
+![The Rover presentation on a phone](project-rover-mobile.png)
+
+![Classility with its original Paladin archetype artwork](project-classility.png)
+
+![The Classility presentation on a phone](project-classility-mobile.png)
+
 ![The current library project with three cover-linked physical books](project-library.png)
 
 ![The library project on a phone](project-library-mobile.png)

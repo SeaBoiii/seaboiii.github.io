@@ -62,15 +62,15 @@ Verification ran on 15 November 2026 against the assembled production preview on
 
 | Check | Result |
 | --- | --- |
-| Astro production build and template/types | Passed with 17 files checked and 7 routes generated |
+| Astro production build and template/types | Passed with 21 files checked and 7 routes generated |
 | Next.js production export | All 875 pages exported |
 | Original content audit | 889 checks passed across all 50 books and 820 chapter/end routes |
-| Portfolio interactions, project dialogs, history, accessibility and fallbacks | 345 checks passed across 16 groups |
+| Portfolio interactions, project dialogs, history, accessibility and fallbacks | 412 checks passed across 17 groups |
 | Archive motion, pause/resume, resize, idle/hidden suspension and fallbacks | 46 checks passed |
 | Library, book pages, reader, filters, themes, storage and responsive behavior | 102 checks passed |
 | Deep paragraph-resume and reader-history regressions | 9 groups passed |
 | Supplied MP4 and WebM motion studies | Both decoded completely |
-| Production screenshots | 14 captures, no browser page errors |
+| Production screenshots | 21 captures, no browser page errors |
 
 The tested pages and project dialogs had no automated WCAG A/AA violations. Review included 320px and 390px layouts, reduced motion, disabled JavaScript, unavailable WebGL, reduced data, keyboard focus, modal dismissal and background suspension. A real mid-sequence resume failure and a transient text-contrast problem were corrected and rechecked.
 
@@ -85,7 +85,7 @@ These local lab measurements describe the tested browser profile. The WebGL code
 
 The critical framework advisory is resolved. The package audit still reports noncritical transitive CSS/YAML/tooling advisories for follow-up. Deployment uses a static export.
 
-The production captures and viewport manifest are available in the screenshot gallery. The feature branch is ready for pull-request review. [View all fourteen screenshots](docs/screenshots/aleem-facets/README.md).
+The production captures and viewport manifest are available in the screenshot gallery. The feature branch is ready for pull-request review. [View all twenty-one screenshots](docs/screenshots/aleem-facets/README.md).
 
 ## Independent Work follow-up
 
@@ -108,3 +108,20 @@ The panel contains the verified Memory Load excerpt and its single opening choic
 The source artwork and passage were verified at `SeaBoiii/visual_novel` commit `c150995bd455c3218efe225c4f5a7328c6e912de`. The 1.7 MB original image was encoded as a 135 KB WebP for this presentation. CSS supplies the layered scenery and uses the existing project rail's scroll and pointer values. It settles with input and freezes behind dialogs. The asset record includes the original hash and pinned source links. [Source and provenance](showcase/ASSETS.md).
 
 All 345 portfolio browser checks passed across 16 groups, with zero page errors or automated accessibility violations. Crosswinds-specific checks cover the authentic passage and choice, launch link, scroll/pointer transforms, keyboard focus, modal freeze, shared case study and 320px/390px layouts. Desktop screenshots include the 1024×768 pinned layout. The local 21st review reported informational colour findings for the authored materials.
+
+## Remaining featured project presentations
+
+The user requested the same visual treatment for ICM Buddy, Train a Tiny AI, AI Rover Challenge and Classility. Each now connects its subject to the portfolio's carbon, warm silver and copper materials.
+
+- ICM Buddy pairs its actual mechanism footage with an original focus-and-zoom photograph. The physical print shows the photographic result of the engineering work.
+- Train a Tiny AI uses four groups of coloured example tiles converging on a classifier and output node. These explain the visitor-trained Color Mixer recording alongside it.
+- AI Rover Challenge uses a dimensional virtual rover, wheels, sensor arcs and a ground grid beside its actual simulation recording. The accompanying HTML describes the control loop.
+- Classility pairs its real quiz walkthrough with the original Paladin illustration on a physical card. The card provides a direct link to the verified archetype page.
+
+The ICM photograph and Classility artwork were verified against their source commits and optimized for this presentation. Their hashes and pinned source links are in the asset record. [Asset provenance](showcase/ASSETS.md).
+
+The shared ProjectPreview renderer selects the same subject presentation for the homepage, popout and standalone case study. It reuses the existing video component, motion preference, native chapter values and modal suspension. CSS geometry supplies the Tiny AI and rover illustrations with input-only updates. The four working recordings retain their native controls, source formats and playback management.
+
+Browser hit testing found two initial video planes behind transparent ancestor hit planes. Positive depth puts the complete interactive surface in front, while preserving the dimensional composition. Tests then verified control access on desktop and phones alongside exact modal freeze and background video suspension. The local 21st review completed with informational material-colour findings.
+
+All 412 portfolio checks passed across 17 groups with zero browser errors and automated accessibility violations. The four shared popouts passed accessibility checks. Control-strip hit tests passed at desktop, 320px and 390px widths. Visual review also covered 1024×768 layouts. The review gallery includes desktop and phone captures for all six featured projects. Video captures use fixed positions within the original supplied recordings.

@@ -40,6 +40,29 @@ async function archiveSettled(target) {
   }
   throw new Error('Archive did not settle for its review image');
 }
+async function recordedDemoFrame(target, slug) {
+  const fraction = { 'icm-buddy': .4, 'train-a-tiny-ai': .85, 'ai-rover': .6, 'classility': .9 }[slug];
+  if (fraction === undefined) return;
+  await target.locator('[data-project-stage="' + slug + '"] video').evaluate(video => {
+    video.preload = 'auto';
+    if (video.readyState < 1) video.load();
+  });
+  await target.waitForFunction(slug => {
+    const video = document.querySelector('[data-project-stage="' + slug + '"] video');
+    return video?.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0;
+  }, slug, { timeout: 15000 });
+  await target.locator('[data-project-stage="' + slug + '"] video').evaluate(async (video, fraction) => {
+    video.pause();
+    const seeked = new Promise(resolve => video.addEventListener('seeked', resolve, { once: true }));
+    const presented = typeof video.requestVideoFrameCallback === 'function'
+      ? new Promise(resolve => video.requestVideoFrameCallback(resolve))
+      : Promise.resolve();
+    video.currentTime = video.duration * fraction;
+    await seeked;
+    await presented;
+    await new Promise(requestAnimationFrame);
+  }, fraction);
+}
 try {
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.__workbenchCapture?.asset === 'higgsfield');
@@ -55,7 +78,7 @@ try {
     scrollTo({ top: collection.getBoundingClientRect().top + scrollY - document.querySelector('header').getBoundingClientRect().height - 12, behavior: 'instant' });
   });
   await snapshot(page, 'library-catalogue');
-  for (const [slug, name] of [['icm-buddy', 'independent-work'], ['novels-library', 'project-library'], ['crosswinds-in-sapa', 'project-crosswinds']]) {
+  for (const [slug, name] of [['icm-buddy', 'independent-work'], ['train-a-tiny-ai', 'project-tiny-ai'], ['ai-rover', 'project-rover'], ['classility', 'project-classility'], ['novels-library', 'project-library'], ['crosswinds-in-sapa', 'project-crosswinds']]) {
     console.log('Capturing ' + name);
     await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('html[data-experience-ready="true"]', { state: 'attached' });
@@ -76,6 +99,7 @@ try {
       const header = document.querySelector('.site-header');
       return stage.dataset.active === 'true' && Math.abs(stage.getBoundingClientRect().left) < 2 && Math.abs(pin.getBoundingClientRect().top - header.getBoundingClientRect().height) < 2;
     }, slug, { timeout: 15000 });
+    await recordedDemoFrame(page, slug);
     await snapshot(page, name);
   }
   await page.goto(base + '/#project/icm-buddy', { waitUntil: 'networkidle' });
@@ -103,6 +127,15 @@ try {
   await phone.goto(base + '/#stage-crosswinds-in-sapa', { waitUntil: 'domcontentloaded' });
   await phone.locator('[data-project-stage="crosswinds-in-sapa"]').evaluate(stage => scrollTo({ top: stage.getBoundingClientRect().top + scrollY - document.querySelector('.site-header').getBoundingClientRect().height, behavior: 'instant' }));
   await snapshot(phone, 'project-crosswinds-mobile');
+  await phone.setViewportSize({ width: 390, height: 1400 });
+  await phone.evaluate(async () => { await document.fonts.ready; await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame); });
+  for (const [slug, name] of [['icm-buddy', 'project-icm-mobile'], ['train-a-tiny-ai', 'project-tiny-ai-mobile'], ['ai-rover', 'project-rover-mobile'], ['classility', 'project-classility-mobile']]) {
+    console.log('Capturing ' + name);
+    await phone.goto(base + '/#stage-' + slug, { waitUntil: 'domcontentloaded' });
+    await phone.locator('[data-project-stage="' + slug + '"]').evaluate(stage => scrollTo({ top: stage.getBoundingClientRect().top + scrollY - document.querySelector('.site-header').getBoundingClientRect().height, behavior: 'instant' }));
+    await recordedDemoFrame(phone, slug);
+    await snapshot(phone, name);
+  }
   if (errors.length) throw new Error(errors.join('\n'));
   await writeFile(resolve(output, 'manifest.json'), JSON.stringify({ base, source: 'Actual combined production build', images, pageErrors: errors }, null, 2) + '\n');
   console.log(`Captured ${images.length} production screenshots with no page errors.`);

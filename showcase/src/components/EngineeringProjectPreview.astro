@@ -1,0 +1,42 @@
+---
+import DemoVideo from './DemoVideo.astro';
+import type { Project } from '../data/content';
+import '../styles/engineering-project.css';
+interface Props { project: Project; inStage?: boolean }
+const { project, inStage = false } = Astro.props;
+const tiny = project.slug === 'train-a-tiny-ai';
+---
+<div class:list={['engineering-project', tiny ? 'tiny-ai-project' : 'rover-project', { 'project-demo-surface': inStage }]} data-tiny-ai-project={tiny ? true : undefined} data-rover-project={tiny ? undefined : true} role="group" aria-label={project.title + ' project preview'}>
+  <div class="engineering-object project-preview-depth">
+    {tiny ? <>
+      <div class="tiny-ai-network" aria-hidden="true">
+        <div class="tiny-ai-samples">{['red','green','blue','yellow'].map((colour,index) => <span class={'tiny-ai-sample tiny-ai-sample-'+colour} style={'--sample-index:'+index}><i></i><i></i><i></i></span>)}</div>
+        <div class="tiny-ai-connections">{[0,1,2,3].map(index => <span style={'--sample-index:'+index}></span>)}</div>
+        <div class="tiny-ai-core">
+          <span class="tiny-ai-core-top"><i></i><i></i><i></i><i></i></span>
+          <span class="tiny-ai-core-front"></span><span class="tiny-ai-core-side"></span>
+        </div>
+        <span class="tiny-ai-output-path"></span>
+        <span class="tiny-ai-output"></span>
+      </div>
+      <div class="engineering-object-copy"><p>Examples. Learning. Prediction.</p><span>A visitor-trained classifier.</span></div>
+    </> : <>
+      <div class="rover-model" aria-hidden="true">
+        <div class="rover-ground"></div>
+        <div class="rover-body">
+          <span class="rover-chassis"></span><span class="rover-deck"></span>
+          <span class="rover-compute"><i></i><i></i><i></i></span>
+          <span class="rover-sensor"><i></i><i></i></span>
+          {[0,1,2,3].map(index => <span class={'rover-wheel rover-wheel-'+index}><i></i></span>)}
+          <span class="rover-scan rover-scan-near"></span>
+          <span class="rover-scan rover-scan-far"></span>
+        </div>
+      </div>
+      <div class="engineering-object-copy"><p>Sense. Decide. Move.</p><span>A virtual rover with inspectable decisions.</span></div>
+    </>}
+  </div>
+  <div class="engineering-screen">
+    <div class="engineering-screen-label"><span>{project.title}</span><span>{tiny ? 'Color Mixer' : 'Mission simulator'}</span></div>
+    {project.media && <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={project.title+' demonstration'}/>}
+  </div>
+</div>

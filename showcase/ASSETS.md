@@ -87,6 +87,14 @@ The Independent Work library preview adds three CSS 3D volumes using the existin
 
 The preview's Memory Load passage and single opening choice match node `prologue` in the same source revision. Its dark panels and depth are native CSS artwork. Paid generation submissions total zero. [Verified story data](https://github.com/SeaBoiii/visual_novel/blob/c150995bd455c3218efe225c4f5a7328c6e912de/data/story.json).
 
+### Engineering and identity project artwork
+
+`icm-light-study.webp` is the original documented focus-and-zoom photograph of the Old Supreme Court in Singapore, verified against FYP commit `1223bb9773d3751d7870cc8230a1538940214519` and its README. The complete composition, white mat and watermark are retained. The supplied WebP is 960×535 and 89,926 bytes. Original SHA256 is `e8b53b4780fc3e89f8c223caa1d9b4c394a3e2a7b8d2991e2f8d2de9fd5c08d9`. [Original photograph](https://github.com/SeaBoiii/FYP/blob/1223bb9773d3751d7870cc8230a1538940214519/.images/_DSC9714-2%20copy%20Small.jpg).
+
+`classility-paladin.webp` uses the original Paladin illustration from Classility commit `71a27abd625ea5229ffe4dfc092ab2355501e2cd`. The 1024×1536 PNG was encoded as a 480×720 WebP at quality 88, producing a 129,540-byte asset. Original SHA256 is `a0f589c64c6834b4609aa5a22182eaf3d1e39259652f1dfbc64ae991eb4158aa`. The archetype link resolves to the project's existing `/#/card/class_paladin` route. [Original illustration](https://github.com/SeaBoiii/classility/blob/71a27abd625ea5229ffe4dfc092ab2355501e2cd/src/assets/class_sprites/paladin.png).
+
+Tiny AI's physical example tiles, classifier and output node are native CSS geometry. The rover, wheels, sensor arcs and ground plane are also authored CSS geometry. These illustrations explain the corresponding recorded experiences. All four original project videos and their native controls provide the working demonstrations. Paid generation submissions for this revision total zero.
+
 | Mark | Source |
 | --- | --- |
 | ICM Buddy | Aperture geometry derived from the owner’s [original FYP logo](https://raw.githubusercontent.com/SeaBoiii/FYP/main/.images/logo.png), preserving its purple identity. |
