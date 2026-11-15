@@ -154,7 +154,7 @@ try {
   await group('On-page stories, media and native identities',async () => {
     const response = await home();
     check(response.status() === 200 && (await page.title()).includes('Aleem Siddique'),'Portfolio is served directly at root');
-    check(await page.locator('h1').count() === 1 && (await page.locator('h1').textContent()).includes('Engineering'),'Homepage has one clear portfolio introduction');
+    check(await page.locator('h1').count() === 1 && /Rough edges/.test(await page.locator('h1').textContent()) && /Aleem Siddique/.test(await page.locator('.hero-role').textContent()) && /AMD/.test(await page.locator('.hero-role').textContent()),'Homepage has one clear portfolio introduction');
     check(await page.locator('html').getAttribute('data-cinematic') === 'on','Fine-pointer desktop enables cinematic scroll chapters');
     entries = await page.locator('dialog[data-project-dialog]').evaluateAll(dialogs => dialogs.map(dialog => ({ slug:dialog.dataset.projectDialog,title:dialog.querySelector('.detail-title').textContent.trim() })));
     check(entries.length === 12 && new Set(entries.map(item => item.slug)).size === 12 && slugs.every(slug => entries.some(item => item.slug === slug)),'All 12 unique project files are present');
@@ -163,7 +163,10 @@ try {
       const stage = page.locator('[data-project-stage="'+slug+'"]');
       const facts = await stage.locator('.project-facts').evaluate(element => [...element.querySelectorAll('div')].map(item => ({ label:item.querySelector('dt').textContent.trim(),text:item.querySelector('dd').textContent.trim() })));
       check(facts.length === 2 && facts[0].label === 'My contribution' && facts[1].label === 'Outcome' && facts.every(fact => fact.text.length > 40),'Specific contribution and outcome appear without a popup: '+slug,facts);
-      check(await stage.locator('.project-demo img,.project-demo video').count() === 1 && (await stage.locator('figcaption').textContent()).trim().length > 20,'Captioned real preview or demonstration appears on-page: '+slug);
+      const videoCount = await stage.locator('.project-demo video').count();
+      const imageCount = await stage.locator('.project-demo img').count();
+      const mediaPresent = videoCount ? videoCount === 1 : imageCount === (slug === 'novels-library' ? 4 : 1);
+      check(mediaPresent && (await stage.locator('figcaption').textContent()).trim().length > 20,'Captioned real preview or demonstration appears on-page: '+slug);
       if(await stage.locator('video').count()) check(await stage.locator('video').getAttribute('controls') !== null && await stage.locator('video source').count() === 2,'On-page video has native controls and both formats: '+slug);
     }
     const career = await page.locator('#experience').innerText();
@@ -255,6 +258,214 @@ try {
       check(focus.slug === slug && focus.left >= 0 && focus.right <= size.width && focus.outline !== 'none' && focus.railScroll === 0,'Tab brings the next offscreen project control into view: '+slug,focus);
     }
     await screenshot('desktop-project');
+  });
+
+  await group('Independent work depth and current library evidence',async () => {
+    await home();
+    await jump('novels-library');
+    const stage = page.locator('[data-project-stage="novels-library"]');
+    const surface = stage.locator('.project-demo-surface');
+    const volume = stage.locator('.library-project-volume').first();
+    await stage.locator('img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
+    await frames(page,3);
+    check(await page.locator('.project-stage .project-demo-surface').count() === 6,'All six independent projects have a dimensional demonstration surface');
+    const bookLinks = await stage.locator('.library-project-book').evaluateAll(links => links.map(link => ({href:link.getAttribute('href'),label:link.getAttribute('aria-label')})));
+    check(bookLinks.length === 3 && bookLinks.every(link => /^\/novel\/[^/]+\/$/.test(link.href) && link.label.startsWith('Read ')),'The library preview has three explicit, accessible links to real books',bookLinks);
+    const image = await stage.locator('.library-project-screen img').evaluate(image => ({src:image.getAttribute('src'),width:image.naturalWidth,height:image.naturalHeight}));
+    check(image.src.endsWith('/novels-archive.webp') && image.width === 1280 && image.height === 800,'The library uses a fresh current-interface capture with a new asset URL',image);
+    const transform = locator => locator.evaluate(element => getComputedStyle(element).transform);
+    await chapter('projects',.76);
+    const arriving = [await transform(surface),await transform(volume)];
+    await chapter('projects',.84);
+    const departing = [await transform(surface),await transform(volume)];
+    check(arriving.every((matrix,index) => matrix !== 'none' && matrix !== departing[index]),'Native project travel changes both the display plane and physical book poses',{arriving,departing});
+    await jump('novels-library');
+    const box = await surface.boundingBox();
+    const neutral = await transform(surface);
+    await page.mouse.move(box.x+box.width*.8,box.y+box.height*.2);
+    await frames(page);
+    check(await transform(surface) !== neutral,'The active project responds to a fine pointer');
+    const firstCover = await stage.locator('.library-project-front').first().boundingBox();
+    await page.mouse.move(firstCover.x+firstCover.width/2,firstCover.y+firstCover.height/2);
+    await frames(page);
+    const open = stage.locator('[data-project-open]');
+    await open.focus();
+    const beforeModal = [await transform(surface),await transform(volume)];
+    const position = await page.evaluate(() => scrollY);
+    await page.keyboard.press('Enter');
+    const dialog = await activeModal('novels-library');
+    check(await dialog.locator('.detail-media img').getAttribute('src') === image.src,'The library popout uses the same current screenshot');
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('portfolio:chapter',{detail:{key:'projects',progress:.1,active:true}})));
+    await frames(page,3);
+    const duringModal = [await transform(surface),await transform(volume)];
+    check(beforeModal.every((matrix,index) => matrix === duringModal[index]),'Opening a project dialog freezes the exact display and book pose',{beforeModal,duringModal});
+    await page.keyboard.press('Escape');
+    await closed(page,position);
+    await pointerClick(page.locator('[data-motion-toggle]'));
+    await frames(page,3);
+    check(await transform(surface) === 'none','Pausing motion removes the moving project plane');
+    await pointerClick(page.locator('[data-motion-toggle]'));
+    await frames(page,3);
+    check(await stage.getAttribute('data-active') === 'true' && await transform(surface) !== 'none','Resuming motion preserves the library project and restores depth');
+    const standalone = await context.request.get(base+'/work/novels-library/');
+    check((await standalone.text()).includes(image.src),'The compatibility case-study page uses the current library screenshot');
+    await axe('Independent Work library stage');
+    for(const reduced of [true,false]) {
+      const fallback = await newPage(reduced ? {reducedMotion:'reduce'} : {},reduced ? undefined : () => Object.defineProperty(navigator,'connection',{configurable:true,value:{saveData:true}}));
+      await home(fallback.page);
+      check(await fallback.page.locator('.project-demo-surface').first().evaluate(element => getComputedStyle(element).transform) === 'none',(reduced ? 'Reduced motion':'Save Data')+' uses static project planes');
+      await closeContext(fallback.context);
+    }
+  });
+
+  await group('Crosswinds layered story presentation',async () => {
+    await home();
+    await jump('crosswinds-in-sapa');
+    const stage = page.locator('[data-project-stage="crosswinds-in-sapa"]');
+    const preview = stage.locator('[data-crosswinds-project]');
+    const depth = preview.locator('.crosswinds-depth');
+    const surface = stage.locator('.project-demo-surface');
+    const art = preview.locator('.crosswinds-art');
+    await art.evaluate(image => image.decode());
+    await frames(page,3);
+    check(await page.locator('.project-stage .project-demo-surface').count() === 6,'Crosswinds keeps the six native project demonstration surfaces');
+    check(/Crosswinds\s+in\s+Sapa/.test((await preview.textContent()).replace(/\s+/g,' ')),'The story preview carries the complete Crosswinds in Sapa identity');
+    const image = await art.evaluate(image => ({src:image.getAttribute('src'),width:image.naturalWidth,height:image.naturalHeight}));
+    check(image.src.endsWith('/crosswinds-prologue.webp') && image.width >= 1000 && image.height >= 500,'Crosswinds uses the original prologue artwork with a fresh asset URL',image);
+    const choices = await preview.locator('.crosswinds-choice-list').evaluate(element => ({count:element.querySelectorAll('li').length,text:element.textContent.trim()}));
+    check(choices.count === 1 && choices.text.includes('Let the memories come without trying to control the order.'),'The portfolio preview exposes the verified prologue choice',choices);
+    const launch = preview.locator('.crosswinds-launch');
+    check(await launch.getAttribute('href') === 'https://seaboiii.github.io/visual_novel/','Crosswinds retains an explicit launch link to the playable story');
+    const transform = locator => locator.evaluate(element => getComputedStyle(element).transform);
+    await chapter('projects',.92);
+    const arriving = await transform(depth);
+    await chapter('projects',1);
+    const settled = await transform(depth);
+    check(arriving !== 'none' && arriving !== settled,'Native project travel changes the layered Crosswinds scene pose',{arriving,settled});
+    const bounds = await surface.boundingBox();
+    const neutral = await transform(surface);
+    await page.mouse.move(bounds.x+bounds.width*.8,bounds.y+bounds.height*.25);
+    await frames(page);
+    check(await transform(surface) !== neutral,'Crosswinds scene responds to fine-pointer perspective');
+    await launch.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    check(await launch.evaluate(element => document.activeElement === element && getComputedStyle(element).outlineStyle !== 'none'),'The playable story launch has visible keyboard focus');
+    const open = stage.locator('[data-project-open]');
+    await open.focus();
+    const before = [await transform(surface),await transform(depth)];
+    const position = await page.evaluate(() => scrollY);
+    await page.keyboard.press('Enter');
+    const dialog = await activeModal('crosswinds-in-sapa');
+    check(await dialog.locator('[data-crosswinds-project] .crosswinds-art').getAttribute('src') === image.src,'Crosswinds popout shares the current scene artwork');
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('portfolio:chapter',{detail:{key:'projects',progress:.15,active:true}})));
+    await frames(page,3);
+    const frozen = [await transform(surface),await transform(depth)];
+    check(before.every((matrix,index) => matrix === frozen[index]),'The project popout freezes the exact Crosswinds scene pose',{before,frozen});
+    await page.keyboard.press('Escape');
+    await closed(page,position);
+    const standalone = await context.request.get(base+'/work/crosswinds-in-sapa/');
+    const markup = await standalone.text();
+    check(standalone.status() === 200 && markup.includes('data-crosswinds-project') && markup.includes(image.src),'The standalone Crosswinds case study shares the layered presentation');
+    await axe('Crosswinds project presentation');
+    for(const width of [320,390]) {
+      const phone = await newPage({viewport:{width,height:900},isMobile:true,hasTouch:true});
+      await home(phone.page);
+      const phonePreview = phone.page.locator('[data-project-stage="crosswinds-in-sapa"] [data-crosswinds-project]');
+      await phonePreview.scrollIntoViewIfNeeded();
+      await phonePreview.locator('.crosswinds-art').evaluate(image => image.decode());
+      await frames(phone.page,3);
+      const size = await overflow(phone.page);
+      check(size.scroll <= width && size.body <= width,'Crosswinds has no horizontal overflow at '+width+'px',size);
+      check(await phonePreview.locator('.crosswinds-launch').isVisible() && await phonePreview.locator('.crosswinds-choice-list').isVisible(),'Crosswinds artwork, choices and launch remain available at '+width+'px');
+      await closeContext(phone.context);
+    }
+  });
+
+  await group('Four dimensional engineering and identity previews',async () => {
+    await home();
+    const presentations = [
+      {slug:'icm-buddy',attribute:'data-icm-project',title:'ICM Buddy'},
+      {slug:'train-a-tiny-ai',attribute:'data-tiny-ai-project',title:'Train a Tiny AI'},
+      {slug:'ai-rover',attribute:'data-rover-project',title:'AI Rover Challenge'},
+      {slug:'classility',attribute:'data-classility-project',title:'Classility'},
+    ];
+    const transform = locator => locator.evaluate(element => getComputedStyle(element).transform);
+    const controls = video => video.evaluate(element => {
+      const bounds = element.getBoundingClientRect();
+      const y = bounds.bottom-Math.min(24,bounds.height*.12);
+      const points = [.15,.5,.85].map(fraction => {
+        const x = bounds.left+bounds.width*fraction;
+        const hit = document.elementFromPoint(x,y);
+        return {x,y,clear:hit === element || element.contains(hit),hit:hit?.tagName};
+      });
+      return {points,clear:points.every(point => point.clear && point.y > 0 && point.y < innerHeight)};
+    });
+    check(await page.locator('.project-stage .project-demo-surface').count() === 6,'The four refreshed presentations retain six native project surfaces');
+    for(const [index,item] of presentations.entries()) {
+      await jump(item.slug);
+      const stage = page.locator('[data-project-stage="'+item.slug+'"]');
+      const preview = stage.locator('['+item.attribute+']');
+      const surface = stage.locator('.project-demo-surface');
+      const depth = preview.locator('.project-preview-depth');
+      const video = preview.locator('video');
+      await preview.locator('img').evaluateAll(images => Promise.all(images.map(image => {image.loading='eager';return image.decode();})));
+      await frames(page,3);
+      check(await preview.count() === 1 && await surface.count() === 1 && await depth.count() === 1,'The project has one shared dimensional presentation: '+item.slug);
+      check((await stage.locator('h3').first().textContent()).trim() === item.title && await stage.locator('.project-facts dd').count() === 2 && (await stage.locator('.project-purpose').textContent()).trim().length > 40,'The refreshed presentation retains the project story and contribution: '+item.slug);
+      check(await video.count() === 1 && await video.getAttribute('controls') !== null && await video.locator('source').count() === 2,'The refreshed presentation retains an authentic native-control recording: '+item.slug);
+      const desktopControls = await controls(video);
+      check(desktopControls.clear,'Foreground artwork leaves the native video control strip available: '+item.slug,desktopControls);
+      const progress = index/5;
+      await chapter('projects',Math.max(0,progress-.045));
+      const arriving = await transform(depth);
+      await chapter('projects',Math.min(1,progress+.045));
+      const departing = await transform(depth);
+      check(arriving !== 'none' && arriving !== departing,'Native scrolling changes the subject-specific depth pose: '+item.slug,{arriving,departing});
+      await jump(item.slug);
+      const bounds = await surface.boundingBox();
+      const neutral = await transform(surface);
+      await page.mouse.move(bounds.x+bounds.width*.78,bounds.y+bounds.height*.2);
+      await frames(page,3);
+      check(await transform(surface) !== neutral,'Active project depth responds to fine-pointer input: '+item.slug);
+      const open = stage.locator('.project-actions [data-project-open]');
+      await open.focus();
+      const before = [await transform(surface),await transform(depth)];
+      const position = await page.evaluate(() => scrollY);
+      await page.keyboard.press('Enter');
+      const dialog = await activeModal(item.slug);
+      check(await dialog.locator('['+item.attribute+']').count() === 1 && await dialog.locator('.detail-media video[controls]').count() === 1,'The popout shares the dimensional preview and native media: '+item.slug);
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent('portfolio:chapter',{detail:{key:'projects',progress:.9,active:true}})));
+      await frames(page,3);
+      const frozen = [await transform(surface),await transform(depth)];
+      check(before.every((matrix,candidate) => matrix === frozen[candidate]),'Opening details freezes the exact subject and display pose: '+item.slug,{before,frozen});
+      check(await video.evaluate(element => element.paused),'The background demonstration pauses while details are open: '+item.slug);
+      await axe(item.title+' shared project popout');
+      await page.keyboard.press('Escape');
+      await closed(page,position);
+      const response = await context.request.get(base+'/work/'+item.slug+'/');
+      const markup = await response.text();
+      check(response.status() === 200 && markup.includes(item.attribute) && markup.includes('data-motion-video'),'The standalone case study shares the complete preview: '+item.slug);
+    }
+    check(await page.locator('[data-project-stage="train-a-tiny-ai"] .tiny-ai-network').getAttribute('aria-hidden') === 'true','The Tiny AI illustration has a descriptive HTML counterpart');
+    check(await page.locator('[data-project-stage="ai-rover"] .rover-model').getAttribute('aria-hidden') === 'true','The rover illustration has a descriptive HTML counterpart');
+    for(const width of [320,390]) {
+      const phone = await newPage({viewport:{width,height:900},isMobile:true,hasTouch:true});
+      await home(phone.page);
+      for(const item of presentations) {
+        const preview = phone.page.locator('[data-project-stage="'+item.slug+'"] ['+item.attribute+']');
+        await preview.scrollIntoViewIfNeeded();
+        await preview.locator('img').evaluateAll(images => Promise.all(images.map(image => {image.loading='eager';return image.decode();})));
+        const video = preview.locator('video');
+        await video.scrollIntoViewIfNeeded();
+        await frames(phone.page,3);
+        const dimensions = await overflow(phone.page);
+        check(dimensions.scroll <= width && dimensions.body <= width,'The dimensional preview fits '+width+'px without horizontal overflow: '+item.slug,dimensions);
+        const phoneControls = await controls(video);
+        check(phoneControls.clear,'Native video controls remain reachable at '+width+'px: '+item.slug,phoneControls);
+      }
+      await closeContext(phone.context);
+    }
   });
 
   await group('All twelve ordinary links, dialog dismissal and exact restoration',async () => {
@@ -512,29 +723,40 @@ try {
     await page.setViewportSize(size);
     const response = await page.goto(base+'/novel/',{waitUntil:'networkidle'});
     check(response.status() === 200,'Novel library is present in the assembled preview');
-    const search = page.getByRole('searchbox',{name:'Search novels'});
+    check(await page.locator('.library-catalogue-book').count() === 50,'Complete 50-book catalogue is present');
+    const search = page.getByRole('searchbox',{name:/^Search novels by/});
     await search.fill('Second Skin');
-    await page.waitForFunction(() => [...document.querySelectorAll('a')].some(link => link.textContent.includes('Second Skin')));
-    check(await page.getByRole('link',{name:/Second Skin/}).count() > 0,'Novel search finds Second Skin');
+    await page.waitForFunction(() => document.querySelectorAll('.library-catalogue-book').length === 2);
+    check(await page.locator('.library-catalogue-book h3').evaluateAll(titles => titles.length === 2 && titles.every(title => title.textContent.includes('Second Skin'))),'Novel search finds both Second Skin books');
     await search.fill('No such novel 6e12e0');
-    await page.waitForFunction(() => ![...document.querySelectorAll('a')].some(link => link.textContent.includes('Second Skin')));
-    check(await page.getByRole('link',{name:/Second Skin/}).count() === 0,'Novel search excludes nonmatching titles');
+    await page.waitForFunction(() => document.querySelectorAll('.library-catalogue-book').length === 0);
+    check(await page.locator('.library-catalogue-book').count() === 0 && await page.locator('.library-empty').isVisible(),'Novel search excludes nonmatching catalogue titles');
     await search.fill('');
     const theme = await page.locator('html').getAttribute('data-theme');
     await page.getByRole('button',{name:/Switch to .* mode/}).click();
     const changed = await page.locator('html').getAttribute('data-theme');
-    check(changed !== theme,'Reader theme toggles');
+    check(changed !== theme,'Library theme toggles');
     await page.reload({waitUntil:'networkidle'});
-    check(await page.locator('html').getAttribute('data-theme') === changed,'Reader theme persists after refresh');
+    check(await page.locator('html').getAttribute('data-theme') === changed,'Library theme persists after refresh');
     await page.goto(base+'/novel/second-skin/Chapter1/',{waitUntil:'networkidle'});
     check(await page.locator('.prose-reader').count() === 1,'A real novel chapter renders');
-    await page.getByRole('button',{name:'Reader settings',exact:true}).click();
-    check(await page.getByRole('dialog',{name:'Reader settings'}).isVisible(),'Reader settings remain available');
-    await page.getByRole('combobox',{name:'Font family'}).selectOption('source');
-    await page.getByRole('button',{name:'Close settings'}).click();
+    check(await page.locator('html').getAttribute('data-reader-theme') === (changed === 'light' ? 'paper' : 'night'),'Reader initializes an appropriate page theme from the library preference');
+    await page.getByRole('button',{name:'Reading appearance',exact:true}).click();
+    const appearance = page.getByRole('dialog',{name:'Make yourself comfortable'});
+    check(await appearance.isVisible(),'Reader appearance controls remain available');
+    await appearance.getByRole('combobox',{name:'Typeface'}).selectOption('source');
+    await appearance.locator('[data-theme-choice="sepia"]').click();
+    await appearance.getByRole('button',{name:'Close Make yourself comfortable'}).click();
     await page.reload({waitUntil:'domcontentloaded'});
     check(await page.evaluate(() => JSON.parse(localStorage.getItem('reader-prefs') || '{}').fontId === 'source' && document.documentElement.style.getPropertyValue('--reader-font').includes('Source Serif')),'Reader font preference persists and applies after refresh');
-    check(await page.locator('html').getAttribute('data-theme') === changed,'Reader theme carries from library to chapter');
+    check(await page.locator('html').getAttribute('data-reader-theme') === 'sepia','Independent reader page theme persists after refresh');
+    check(await page.locator('html').getAttribute('data-theme') === changed,'Library theme remains available alongside reader page preferences');
+    await page.evaluate(() => scrollTo({top:0,behavior:'instant'}));
+    await page.locator('.reader-contents-button').waitFor({state:'visible'});
+    await page.locator('.reader-contents-button').click();
+    const contents = page.getByRole('dialog',{name:'Chapter contents',exact:true});
+    check(await contents.isVisible() && await contents.locator('.reader-contents-list a[aria-current="page"]').count() === 1,'Chapter contents identifies the current chapter');
+    await contents.getByRole('button',{name:'Close Chapter contents'}).click();
     for(const path of ['/novel/second-skin/Chapter15/','/novel/as-if-you-never-left/EpilogueA/','/novel/as-if-you-never-left/EpilogueB/','/foryou.html','/hny.html','/vday.html']) {
       const response = await context.request.get(base+path);
       check(response.status() === 200,'Preserved chapter, epilogue or standalone page resolves: '+path);

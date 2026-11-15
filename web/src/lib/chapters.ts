@@ -15,6 +15,39 @@ const processor = unified()
   .use(remarkRehype, { allowDangerousHtml: true })
   .use(rehypeStringify, { allowDangerousHtml: true });
 
+const chapterListCache = new Map<string, ChapterMeta[]>();
+const WORDS_PER_MINUTE = 220;
+
+/** Count rendered text rather than Markdown syntax, URLs, or front matter. */
+function countWords(content: string): number {
+  const tree = processor.parse(content);
+  const text: string[] = [];
+  function visit(node: { type: string; value?: string; children?: unknown[] }) {
+    if (node.type === "text" || node.type === "inlineCode" || node.type === "code") {
+      text.push(node.value ?? "");
+    } else if (node.type === "html") {
+      text.push((node.value ?? "").replace(/<[^>]*>/g, " "));
+    }
+    for (const child of node.children ?? []) visit(child as Parameters<typeof visit>[0]);
+  }
+  visit(tree);
+  return text.join(" ").match(/[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu)?.length ?? 0;
+}
+
+function comparableTitle(title: string): string {
+  return title.normalize("NFKC").toLocaleLowerCase("en").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+/** The reader supplies a chapter heading; remove only a matching leading Markdown H1. */
+function chapterContent(content: string, meta: ChapterMeta): string {
+  const leading = content.match(/^\s*#\s+(.+?)(?:\s+#+)?\s*(?:\r?\n|$)/);
+  if (!leading) return content;
+  const heading = comparableTitle(leading[1]);
+  const equivalents = [meta.title, meta.label, meta.displayTitle, `${meta.label} ${meta.displayTitle}`];
+  if (!equivalents.some((title) => title && comparableTitle(title) === heading)) return content;
+  return content.slice(leading[0].length);
+}
+
 function isChapterFile(file: string): boolean {
   if (!file.endsWith(".md")) return false;
   if (file === "index.md") return false;
@@ -41,11 +74,8 @@ const ROMAN: Record<string, number> = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6,
 function parseEpilogueMarker(
   rawTitle: string,
 ): { type: EpilogueType; key: string } {
-  const t = rawTitle.trim();
+  const t = rawTitle.trim().replace(/^Chapter\s+\d+\s*[-:–—]+\s*/i, "");
   if (!/epilogue/i.test(t)) return { type: "none", key: "" };
-  // Branching: "Epilogue A ..." or "Epilogue B ..."
-  const branch = t.match(/^Epilogue\s+([A-Z])\b/i);
-  if (branch) return { type: "branching", key: branch[1].toUpperCase() };
   // Sequential roman: "Epilogue I" / "Epilogue II"
   const roman = t.match(/^Epilogue\s+([IVX]+)\b/i);
   if (roman) return { type: "sequential", key: roman[1].toUpperCase() };
@@ -56,6 +86,9 @@ function parseEpilogueMarker(
     const r = Object.entries(ROMAN).find(([, v]) => v === n)?.[0] ?? num[1];
     return { type: "sequential", key: r };
   }
+  // Letters which are not Roman numerals describe parallel endings (the real A/B books).
+  const branch = t.match(/^Epilogue\s+([A-Z])\b/i);
+  if (branch) return { type: "branching", key: branch[1].toUpperCase() };
   return { type: "single", key: "" };
 }
 
@@ -64,6 +97,7 @@ function buildMeta(
   fileBasename: string,
   rawTitle: string,
   order: number,
+  wordCount = 0,
 ): ChapterMeta {
   const slug = fileBasename.replace(/\.md$/i, "");
   const ep = parseEpilogueMarker(rawTitle);
@@ -91,10 +125,14 @@ function buildMeta(
     epilogueType: ep.type,
     epilogueKey: ep.key,
     label,
+    wordCount,
+    readingMinutes: Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE)),
   };
 }
 
 export function getChapterList(novelSlug: string): ChapterMeta[] {
+  const cached = chapterListCache.get(novelSlug);
+  if (cached) return cached;
   const dir = path.join(NOVELS_ROOT, novelSlug);
   if (!fs.existsSync(dir)) return [];
 
@@ -102,15 +140,18 @@ export function getChapterList(novelSlug: string): ChapterMeta[] {
 
   const metas: ChapterMeta[] = files.map((file) => {
     const raw = fs.readFileSync(path.join(dir, file), "utf8");
-    const { data } = matter(raw);
+    const { data, content } = matter(raw);
     const order = typeof data.order === "number" ? data.order : 0;
     const title =
       (data.Title as string) || (data.title as string) || file.replace(/\.md$/i, "");
-    return buildMeta(novelSlug, file, title, order);
+    const meta = buildMeta(novelSlug, file, title, order);
+    const wordCount = countWords(chapterContent(content, meta));
+    return { ...meta, wordCount, readingMinutes: Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE)) };
   });
 
   // Stable sort by order — ensures sequential epilogues stay I → II → III
-  metas.sort((a, b) => a.order - b.order);
+  metas.sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug, "en", { numeric: true }));
+  chapterListCache.set(novelSlug, metas);
   return metas;
 }
 
@@ -127,10 +168,10 @@ export async function getChapter(
   const title =
     (data.Title as string) || (data.title as string) || chapterSlug;
 
-  const meta = buildMeta(novelSlug, `${chapterSlug}.md`, title, order);
-  const html = String(await processor.process(content));
-
   const list = getChapterList(novelSlug);
+  const meta = list.find((chapter) => chapter.slug === chapterSlug)
+    ?? buildMeta(novelSlug, `${chapterSlug}.md`, title, order, countWords(content));
+  const html = String(await processor.process(chapterContent(content, meta)));
   const idx = list.findIndex((c) => c.slug === chapterSlug);
 
   // Branching epilogues: collect siblings with same type but different key

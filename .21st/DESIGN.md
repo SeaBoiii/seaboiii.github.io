@@ -1,5 +1,11 @@
 # Aleem’s cinematic portfolio
 
+## Novels: literary gallery
+
+The approved novels direction uses dark ink #080A10, midnight #151B28, warm silver #EEECE6, muted #ADB4C3, lavender #B9C2E4 and borders #353D4D. Actual covers supply atmosphere. Three physical cover planes create the memorable opening, followed by curated collections and a complete searchable catalogue. Use Literata for literary display and reading; IBM Plex Sans for navigation and controls.
+
+Book pages establish the story with full synopsis, actual chapter contents, relationships and existing illustration galleries. Quiet reading pages use comfortable left-aligned prose, selectable themes and typography, native contents/settings dialogs and paragraph-relative local resume. Native scrolling, reduced motion and static HTML retain all content. No paid assets or framework migration are part of this direction. The separate comparison runs on port 4175.
+
 The opening treats a lens, circuit and book as physical worlds to explore. Large close-ups, material detail and native scrolling connect product engineering, working experiments and fiction.
 
 Use carbon, graphite, silver-white and restrained ice-blue. Keep project-specific colours in transparent marks. Set engineering and interface text in IBM Plex Sans; reserve Literata for fiction. Anchor large opening typography to a quiet left area while one macro object occupies the right.
@@ -9,3 +15,13 @@ Five desktop chapters have distinct jobs: a camera and mechanism journey; a care
 Deeper material opens in native modal dialogs with shareable fragments. Main content stays readable without opening them. Real demonstrations, team attribution and existing reader content remain the evidence.
 
 Phones, reduced motion, short windows and no JavaScript get stacked content. The poster keeps the initial composition legible before WebGL loads. No ongoing animation draws when idle or behind a popout.
+
+Novel Wizard follows the literary identity in a native desktop authoring workspace. Searchable books, chapters, artwork and readiness have distinct places; previews use real covers and the actual public pages. Focus mode and a four-theme reading preview support manuscript work. Recovery copies stay separate from public source, transactional saves retain original routes and metadata, and local previews identify their worktree before reuse.
+
+The Higgsfield motion revision makes the rough exterior and polished interior physical. One asymmetric carbon specimen opens to reveal copper/silicon detail and real books. The archive uses volumetric cover-textured books in a spatial collection. Carbon #080A10, warm silver #EEECE6, ice #B9DBEA and restrained copper #C89C78 connect the two entrances. Native input drives the camera; the scenes settle at rest. Text never fades below readable contrast. There is no intro gate, fake recording HUD or automatic spin. The feature comparison is on 4176; source and verification rationale live in changes.md.
+
+Independent Work carries physical depth through each demonstration. The native project rail supplies bounded scroll travel and active-project pointer input. The novel project combines the current library interface with three cover-linked volumes, visible paper edges and spines. Native HTML video controls and reading links remain directly usable. Dialogs freeze the exact background pose. CSS 3D supplies this chapter's motion with input-only updates.
+
+Crosswinds in Sapa uses its original warm prologue artwork as the rear scenic plane. An offset carbon panel carries the actual Memory Load passage and opening choice in Literata, with a visible launch link. Copper edges and shared native-scroll depth connect the narrative preview to the portfolio. The same component serves its popout and standalone case study.
+
+The four engineering and identity previews carry the same materials through their own subjects. ICM pairs the working mechanism with an original focus-and-zoom photograph. Tiny AI uses physical example tiles converging on a classifier. Rover has a dimensional virtual rover over a sensor grid. Classility places an original Paladin archetype card beside the real quiz walkthrough. Real videos remain independently usable, with interactive surfaces in front of ancestor hit planes. The shared ProjectPreview component selects these presentations for project stages, popouts and standalone case studies.

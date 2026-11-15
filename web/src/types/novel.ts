@@ -19,6 +19,9 @@ export interface ChapterMeta {
   epilogueKey: string;
   /** Label shown in lists: "Chapter 1", "Epilogue", "Epilogue I", "Epilogue A" */
   label: string;
+  /** Derived from the Markdown text; reading time is estimated at 220 words/minute. */
+  wordCount: number;
+  readingMinutes: number;
 }
 
 export interface Chapter extends ChapterMeta {
@@ -40,8 +43,6 @@ export interface Novel {
   cover?: string;
   gallery?: GalleryItem[];
   order: number;
-  /** Newest chapter file mtime (unix ms), used for "newest first" sort */
-  lastChapterMtime: number;
   // From novel_relationships.json
   seriesId?: string;
   seriesLabel?: string;
@@ -49,6 +50,8 @@ export interface Novel {
   relatedTo?: string;
   readingOrder?: number;
   chapterCount: number;
+  wordCount: number;
+  readingMinutes: number;
 }
 
 export interface NovelRelationship {

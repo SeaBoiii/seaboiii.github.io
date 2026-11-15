@@ -1,5 +1,13 @@
 # Asset provenance and generation budget
 
+## Higgsfield facets revision — 15 November 2026
+
+Higgsfield 3D Jutsu produced the editable fractured carbon specimen in [this private project](https://higgsfield.ai/3d-jutsu/a80f0d8c-46ed-46de-b334-742fe93c8587), verified revision 2. The portable `assets/motion/aleem-specimen.glb` is 67,684 bytes, with 15 independent shell pivots, a polished core and copper A/traces. `assets/motion/provenance.json` records its hashes, coordinate convention, operation IDs and visual checks. Reproducible construction source is `tools/motion/build_aleem_specimen.py`.
+
+The portfolio loads this model and animates its real parts. Its matching desktop/mobile posters and silent 8-second MP4/WebM study are captures of the implemented scene; the 3D archive uses the author's existing cover artwork on native Three.js book geometry. There were **no paid generation submissions** in this revision and no Gemini credential access.
+
+After building and assembling the site, run the comparison on 4176, set `SCENE_URL=http://127.0.0.1:4176`, and run `node showcase/scripts/render-workbench.mjs`. The script waits for the Higgsfield model, captures 192 deterministic frames, and creates both posters and video encodings. Both encodings are fully decoded during verification.
+
 Assets belong to this portfolio unless a source below says otherwise. Generated studio visuals illustrate the portfolio's camera / engineering / writing themes; they do not depict AMD products or establish project results.
 
 ## Sources
@@ -12,7 +20,7 @@ Assets belong to this portfolio unless a source below says otherwise. Generated 
 | `classility.webp`, `classility-demo.mp4`, `classility-demo.webm` | Fresh 1280×800 browser capture of [Classility](https://seaboiii.github.io/classility/), 2026-10-07. The recording opens the doors, answers twenty questions, and reaches the actual Paladin result. |
 | `rover.webp`, `rover-demo.mp4`, `rover-demo.webm` | Fresh browser capture of [AMD AI Rover Challenge](https://seaboiii.github.io/amd_robotics/), 2026-10-07. Demonstrates local team setup, rule editing, the first movement simulator, and genuine failed-mission feedback. The clip deliberately preserves the observed outcome; it does not claim a completed mission. This is a browser simulation, not physical robot footage. |
 | `tiny-ai.webp`, `tiny-ai-demo.mp4`, `tiny-ai-demo.webm` | Fresh local browser capture of the owner's public [Train a Tiny AI source](https://github.com/SeaBoiii/amd_trainatinyai/tree/315251c5c586de4a7da5f3503ad70e3d3d83e994), 2026-10-07. Demonstrates the Color Mixer Lab: eight user-supplied examples across four labels, then a real classifier prediction. No NPU benchmark or fabricated accuracy claim. The public Pages URL returned 404, so the original source was served locally without content edits. |
-| `potionality.webp`, `novels.webp`, `visual-novel.webp`, `nizam.webp`, `tetris.webp`, `age-of-war.webp`, `aleem.webp` | Existing photographs and real project screenshots copied from `portfolio/public/portfolio-assets/media/`, visually inspected before reuse. Their original capture dates are unknown. |
+| `potionality.webp`, `nizam.webp`, `tetris.webp`, `age-of-war.webp`, `aleem.webp` | Existing photographs and real project screenshots copied from `portfolio/public/portfolio-assets/media/`, visually inspected before reuse. Their original capture dates are unknown. |
 | `workbench-film.mp4`, `workbench-film.webm`, `workbench-film-poster.webp` | One eight-second 1280×720 Gemini Omni studio illustration, generated on 2026-10-07. MP4 compressed to H.264, WebM to VP9, unexpected source audio removed, poster extracted at one second. The camera moves subtly; the ends are not frame-identical, so use normal playback rather than advertising a seamless loop. |
 | `workbench-poster.webp` | A capture of the actual website's procedural 3D scene. Used as the SSR, reduced-data, and unavailable-WebGL fallback. |
 | `workbench-render.mp4`, `workbench-render.webm` | Deterministic capture of the actual React Three Fiber scene, produced by `scripts/render-workbench.mjs`; this is authored procedural 3D rather than an AI video. |
@@ -66,6 +74,26 @@ All supplied MP4/WebM files passed complete ffmpeg decoding. Fresh project poste
 The `revamp/cinematic-dark` version uses the same paid provider outputs and incurs **no additional generation spend**. Its macro lens, circuit and opening book are authored Three.js geometry with local lighting and textures. Updated `workbench-poster.webp`, `workbench-poster-mobile.webp`, `workbench-render.mp4`, `workbench-render.webm` and `social-card.jpg` are captures of that scene. The mobile poster uses a centred composition rather than cropping the desktop scene.
 
 All twelve marks under `public/showcase-assets/logos/` are transparent 128×128 native SVGs, about 6.7 KB combined. They contain no embedded raster images, external resources or typeset project names.
+
+### Current library project evidence
+
+`novels-archive.webp` is a new 1280×800 capture of the combined production preview's `/novel/` entrance, taken on 15 November 2026 after its real-cover 3D archive settled. The homepage, library project dialog and standalone case study share this asset. Its new filename refreshes browser caches that held the older library capture. Regenerate with `SITE_URL=http://127.0.0.1:4176 node showcase/scripts/capture-library-preview.mjs` using the current combined build.
+
+The Independent Work library preview adds three CSS 3D volumes using the existing Crossroads of the Heart, Second Skin and The Ledger of Ash covers. Front, rear, spine and page surfaces form each linked book. The native chapter controller drives their depth. This update submitted zero paid generation jobs.
+
+### Crosswinds narrative artwork
+
+`crosswinds-prologue.webp` derives from the author's original 1536×614 `images/prologue.png`, verified at source commit `c150995bd455c3218efe225c4f5a7328c6e912de`. It was resized to 1280×512 and encoded as a 135,428-byte WebP at quality 88. The original PNG SHA256 is `98a67bce909954c28cdc35d4469b08787c7b685ef921721cc1eb000e35be71b7`. [Original artwork](https://github.com/SeaBoiii/visual_novel/blob/c150995bd455c3218efe225c4f5a7328c6e912de/images/prologue.png).
+
+The preview's Memory Load passage and single opening choice match node `prologue` in the same source revision. Its dark panels and depth are native CSS artwork. Paid generation submissions total zero. [Verified story data](https://github.com/SeaBoiii/visual_novel/blob/c150995bd455c3218efe225c4f5a7328c6e912de/data/story.json).
+
+### Engineering and identity project artwork
+
+`icm-light-study.webp` is the original documented focus-and-zoom photograph of the Old Supreme Court in Singapore, verified against FYP commit `1223bb9773d3751d7870cc8230a1538940214519` and its README. The complete composition, white mat and watermark are retained. The supplied WebP is 960×535 and 89,926 bytes. Original SHA256 is `e8b53b4780fc3e89f8c223caa1d9b4c394a3e2a7b8d2991e2f8d2de9fd5c08d9`. [Original photograph](https://github.com/SeaBoiii/FYP/blob/1223bb9773d3751d7870cc8230a1538940214519/.images/_DSC9714-2%20copy%20Small.jpg).
+
+`classility-paladin.webp` uses the original Paladin illustration from Classility commit `71a27abd625ea5229ffe4dfc092ab2355501e2cd`. The 1024×1536 PNG was encoded as a 480×720 WebP at quality 88, producing a 129,540-byte asset. Original SHA256 is `a0f589c64c6834b4609aa5a22182eaf3d1e39259652f1dfbc64ae991eb4158aa`. The archetype link resolves to the project's existing `/#/card/class_paladin` route. [Original illustration](https://github.com/SeaBoiii/classility/blob/71a27abd625ea5229ffe4dfc092ab2355501e2cd/src/assets/class_sprites/paladin.png).
+
+Tiny AI's physical example tiles, classifier and output node are native CSS geometry. The rover, wheels, sensor arcs and ground plane are also authored CSS geometry. These illustrations explain the corresponding recorded experiences. All four original project videos and their native controls provide the working demonstrations. Paid generation submissions for this revision total zero.
 
 | Mark | Source |
 | --- | --- |

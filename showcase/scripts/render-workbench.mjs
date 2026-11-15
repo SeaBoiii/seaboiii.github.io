@@ -20,6 +20,7 @@ const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, de
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => window.__workbenchCapture?.canvas && document.querySelector('[data-scene-status="ready"]'), { timeout: 30_000 });
+  await page.waitForFunction(() => window.__workbenchCapture?.asset === 'higgsfield', { timeout: 30_000 });
   await page.addStyleTag({ content: '.hero-copy,.hero-base,.site-header,.chapter-meter,astro-dev-toolbar{visibility:hidden!important}.workbench-stage{position:relative!important;width:1600px!important;height:1000px!important;inset:auto!important;background:#030405!important;mask-image:none!important}.hero{padding:0!important;display:block!important}' });
   await page.waitForTimeout(250);
   for (let frame = 0; frame < count; frame++) {

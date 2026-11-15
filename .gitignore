@@ -13,6 +13,9 @@ tools/novel_wizard_state.json
 tools/novel_wizard_state.db
 tools/novel_wizard_state.db-*
 *.log
+__pycache__/
+*.py[cod]
+/tools/qa-artifacts/
 .codex-preview.out.log
 
 # Local build output and cached assets from earlier portfolio previews

@@ -1,0 +1,175 @@
+{
+  "base": "http://127.0.0.1:4176",
+  "source": "Actual combined production build",
+  "images": [
+    {
+      "name": "portfolio-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "portfolio-precision.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "portfolio-worlds.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "library-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/novel/"
+    },
+    {
+      "name": "library-catalogue.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/novel/"
+    },
+    {
+      "name": "independent-work.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-tiny-ai.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-rover.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-classility.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-library.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-crosswinds.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "project-popout.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/#project/icm-buddy"
+    },
+    {
+      "name": "project-crosswinds-popout.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/#project/crosswinds-in-sapa"
+    },
+    {
+      "name": "portfolio-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "library-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "url": "/novel/"
+    },
+    {
+      "name": "project-library-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1200
+      },
+      "url": "/#stage-novels-library"
+    },
+    {
+      "name": "project-crosswinds-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1300
+      },
+      "url": "/#stage-crosswinds-in-sapa"
+    },
+    {
+      "name": "project-icm-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-icm-buddy"
+    },
+    {
+      "name": "project-tiny-ai-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-train-a-tiny-ai"
+    },
+    {
+      "name": "project-rover-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-ai-rover"
+    },
+    {
+      "name": "project-classility-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1400
+      },
+      "url": "/#stage-classility"
+    }
+  ],
+  "pageErrors": []
+}

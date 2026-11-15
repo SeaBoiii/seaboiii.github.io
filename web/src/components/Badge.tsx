@@ -32,6 +32,6 @@ export default function Badge({
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const isComplete = /complete/i.test(status);
+  const isComplete = /^complete$/i.test(status.trim());
   return <Badge variant={isComplete ? "ok" : "wip"}>{status}</Badge>;
 }

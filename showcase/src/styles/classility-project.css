@@ -1,0 +1,124 @@
+/* The original archetype artwork becomes the physical result of the quiz.
+   The real walkthrough retains its complete native video control surface. */
+.classility-project {
+  position:relative;
+  width:100%;
+  min-width:0;
+  box-shadow:none;
+  transform-style:preserve-3d;
+}
+.classility-scene {
+  display:grid;
+  grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);
+  align-items:center;
+  gap:26px;
+  padding:18px 6px 20px 0;
+  transform-style:preserve-3d;
+}
+.classility-screen {
+  position:relative;
+  min-width:0;
+  /* Keep the entire tilted video ahead of the scene's pointer hit plane. */
+  transform:translateZ(32px) rotateY(5deg);
+  transform-style:preserve-3d;
+}
+.classility-screen::before {
+  content:'';
+  position:absolute;
+  inset:-10px 8px 10px -10px;
+  border:1px solid var(--line,#343c48);
+  border-radius:5px;
+  background:var(--surface,#131923);
+  transform:translateZ(-12px);
+  pointer-events:none;
+}
+.classility-project .classility-screen video {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:1.6;
+  padding:0;
+  border:1px solid #53606d;
+  border-radius:5px;
+  background:var(--surface,#131923);
+  box-shadow:0 20px 45px #0006;
+}
+.classility-archetype {
+  display:block;
+  position:relative;
+  min-width:0;
+  transform:translateZ(42px) rotateY(-12deg) rotateZ(3deg);
+  transform-origin:50% 58%;
+  transform-style:preserve-3d;
+}
+.classility-card {
+  position:relative;
+  display:block;
+  border:1px solid #c89c7899;
+  border-radius:4px;
+  background:#17212b;
+  box-shadow:0 18px 40px #0008;
+}
+.classility-card::before {
+  content:'';
+  position:absolute;
+  inset:7px -7px -7px 7px;
+  border:1px solid #8da2b4;
+  border-radius:4px;
+  background:#20303c;
+  transform:translateZ(-9px);
+  pointer-events:none;
+}
+.classility-project .classility-card img {
+  position:relative;
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:none;
+  aspect-ratio:2/3;
+  object-fit:contain;
+  padding:0;
+  border:0;
+  border-radius:3px;
+  background:#17212b;
+}
+.classility-archetype-title {
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:3px 10px;
+  margin-top:17px;
+  color:var(--text,#eeece6);
+  font-size:14px;
+  line-height:1.5;
+}
+.classility-archetype-title>span {
+  font-size:10px;
+  color:var(--muted,#afb6c0);
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
+.classility-archetype:hover .classility-archetype-title>span { color:var(--ice,#b9dbea); }
+.classility-archetype:focus-visible { outline:2px solid var(--ice,#b9dbea); outline-offset:9px; }
+.projects-chapter:is([data-project-reel=active],[data-project-reel=suspended]) .classility-archetype {
+  transform:translate3d(calc(var(--reel-sweep,0)*12px),calc(var(--reel-pointer-y,0)*5px),42px) rotateY(calc(-12deg + var(--reel-sweep,0)*15deg)) rotateZ(3deg);
+}
+.detail-media .classility-project { perspective:1400px; max-width:1000px; margin-inline:auto; }
+@media (min-width:1024px) and (max-height:850px) {
+  .project-demo .classility-scene { gap:20px; padding-block:10px 12px; }
+  .project-demo .classility-archetype-title { font-size:12px; margin-top:13px; }
+  .project-demo .classility-archetype-title>span { font-size:9px; }
+}
+@media (max-width:1023px),(pointer:coarse) {
+  .classility-scene { grid-template-columns:minmax(0,1fr); gap:28px; padding:10px 6px 22px 0; }
+  .classility-archetype { width:54%; margin:0 auto; }
+  .classility-archetype-title { font-size:14px; }
+}
+html[data-motion=off] .classility-archetype,
+.projects-chapter[data-project-reel=static] .classility-archetype {
+  transform:translateZ(42px) rotateY(-12deg) rotateZ(3deg);
+}
+@media (prefers-reduced-motion:reduce) {
+  .classility-archetype { transform:translateZ(42px) rotateY(-12deg) rotateZ(3deg)!important; }
+}

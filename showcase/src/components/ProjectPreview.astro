@@ -1,0 +1,32 @@
+---
+import DemoVideo from './DemoVideo.astro';
+import LibraryProjectPreview from './LibraryProjectPreview.astro';
+import CrosswindsProjectPreview from './CrosswindsProjectPreview.astro';
+import IcmProjectPreview from './IcmProjectPreview.astro';
+import EngineeringProjectPreview from './EngineeringProjectPreview.astro';
+import ClassilityProjectPreview from './ClassilityProjectPreview.astro';
+import { books, type Project } from '../data/content';
+
+interface Props { project: Project; inStage?: boolean; eager?: boolean }
+const { project, inStage = false, eager = false } = Astro.props;
+const presentations: Record<string, typeof IcmProjectPreview> = {
+  'icm-buddy': IcmProjectPreview,
+  'train-a-tiny-ai': EngineeringProjectPreview,
+  'ai-rover': EngineeringProjectPreview,
+  'classility': ClassilityProjectPreview,
+};
+const Presentation = project.media ? presentations[project.slug] : undefined;
+---
+{Presentation
+  ? <Presentation project={project} inStage={inStage}/>
+  : project.slug === 'crosswinds-in-sapa'
+    ? <CrosswindsProjectPreview image={project.image} title={project.title} launch={project.links[0].href} inStage={inStage}/>
+    : project.slug === 'novels-library' && inStage
+      ? <LibraryProjectPreview books={books} image={project.image} alt={project.alt}/>
+      : <div class:list={{ 'project-demo-surface': inStage }}>
+          {project.media
+            ? <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={project.title+' demonstration'}/>
+            : <img src={project.image} alt={project.alt} width="1366" height="768" loading={eager ? 'eager' : 'lazy'} decoding="async"/>
+          }
+        </div>
+}

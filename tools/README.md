@@ -108,55 +108,76 @@ python tools/generate_novel.py draft ... --image-endpoint http://127.0.0.1:7860
 - `commit` requires `--yes`.
 - Existing stage folders require `--force` for overwrite in `draft` mode.
 
-## 2) novel_wizard.py (GUI Authoring + Editing)
+## 2) novel_wizard.py (Literary Studio)
 
-### What it does
+Novel Wizard now matches the dark literary library and the current Next.js book and reader pages. It remains a local desktop app; stories stay in the existing Markdown files.
 
-- Opens a desktop GUI for novel operations:
-  - Create new novel and chapters
-  - Edit existing novel metadata and relationships
-  - Import chapter content (Markdown/DOCX/formatted paste)
-  - Replace/upload cover assets
-  - Optional built-in git commit step (manual push still required)
+### Start
 
-### Start the wizard
+From the **novels worktree** (`seaboiii.github.io-novels`, branch `revamp/novels-library`):
 
 ```powershell
 python tools/novel_wizard.py
 ```
 
-If the command reports missing repo structure, make sure your working directory is the project root (the folder containing `novel/`).
+You can also double-click `tools/launch_novel_wizard.cmd`. The tool resolves its repository from its own script path. The original comparison worktrees keep their earlier authoring tool.
 
-### Optional Python packages for richer features
+### Workspaces
 
-The wizard runs without these, but some features improve when installed:
+- **Book:** searchable library, title, synopsis, status, catalogue genres/moods/settings, series and reading order. The overview derives word counts and reading time at 220 words per minute.
+- **Chapters:** searchable contents, Markdown editing, formatted paste and DOCX/Markdown import, a selectable plain-text reading preview, four appearance themes, and writing focus. Actual A/B ending filenames and sequential Roman epilogues retain their identities.
+- **Artwork:** existing cover previews, replacement cover upload, illustration gallery and scene notes. New uploads become canonical PNG originals with the 320/640/960px WebP variants required by the current pages. Only this book's assets are prepared.
+- **Review:** checks the current draft against the page metadata, routes, images, chapter order and relationships. Errors block saving. Optional commit summary and description live here, alongside the preview address and build action.
 
-- `markdownify`
-- `mammoth`
-- `striprtf`
-- `beautifulsoup4`
-- `pillow`
-- `wordfreq`
+Use comma-separated discovery terms that readers understand. The current library displays all Markdown books. Hidden-card and audio settings are retained for the legacy pages and are clearly labeled; the current reader has no audio player. Reader font preferences and reading progress remain on each reader's device.
 
-Install all optional packages:
+### Drafts, saves and Git
+
+Edits recover automatically in the ignored `tools/novel_wizard_state.db`; JSON remains the fallback when SQLite is unavailable. Recovery copies survive book switches, app restarts and temporary reductions in the new chapter count. They do not update public story files. “Discard recovered draft” reloads the saved source after confirmation. Saving one editing mode retains unsaved work in the other mode.
+
+**Save files** writes the reviewed book without committing. **Save & commit** writes the files and creates a local commit containing only this save's changed paths, preserving unrelated staged work. Both keep the app open. No push or website publication occurs automatically.
+
+File saves preflight inputs and roll back manuscript, media, relationships and compatibility-index changes if a write fails. Existing epilogue paths, unknown YAML fields, shelf order and novel index body are preserved. A chapter changed in another editor since it was loaded blocks saving; keep the recovery copy and reload before reconciling the two versions.
+
+Name replacement works on saved files. Save pending edits first; after replacement, the editor reloads the resulting manuscript.
+
+Shortcuts: **Ctrl+S** saves files, **Ctrl+Shift+S** saves and commits, and **Ctrl+F** focuses library search. Use Tab for controls and Ctrl+Page Up / Ctrl+Page Down for chapter navigation.
+
+### Public-page preview
+
+The inline reading preview is a plain-text composition aid; final Markdown formatting belongs to the actual browser reader. “Open saved book page” and “Open saved chapter” preserve the public URLs, including literal epilogue filenames.
+
+The default browser preview address is **http://127.0.0.1:4175**. Save first, then use **Build saved preview** to export the current Next.js pages and assemble them with the cinematic portfolio. The build runs in the background and shows its output. It can start the local combined preview when needed; a matching preview from this worktree is reused. Other comparisons and servers are left alone. If a port belongs to another worktree or an older server cannot identify itself, choose an unused local port.
+
+Node.js 24 and the installed `web/` and `showcase/` dependencies are needed for preview builds. On a fresh checkout:
+
+```powershell
+npm --prefix web ci
+npm --prefix showcase ci
+```
+
+### Optional import libraries
+
+Use **Import setup** to check available libraries and install missing ones explicitly. The app no longer interrupts startup with dependency prompts. Optional packages:
 
 ```powershell
 python -m pip install markdownify mammoth striprtf beautifulsoup4 pillow wordfreq
 ```
 
-### Typical wizard workflow
+`beautifulsoup4` is required to maintain the compatibility index's shelf order during save; `pillow` is required for new image uploads and responsive variants. DOCX conversion uses `mammoth`. The other libraries improve formatted paste and name extraction.
 
-1. Launch wizard.
-2. Choose create or edit mode.
-3. Fill metadata (title, blurb, status, genre, tone, setting).
-4. Add/import chapter content.
-5. Configure relationships/series as needed.
-6. Save and optionally run wizard commit.
-7. Push manually:
+### Verification
+
+The isolated tests use temporary repositories and in-memory draft state. They do not edit the live novels, artwork, or saved preferences:
 
 ```powershell
-git push
+python -m unittest discover -s tools/tests -p "test_novel*"
+node web/qa/content-audit.mjs
 ```
+
+Real Tk UI tests require a desktop session and use a transparent window outside the screen. The Windows visual capture helper is `tools/tests/capture_novel_wizard.py`; it writes ignored images to `tools/qa-artifacts/`.
+
+Verified on 7 October 2026: 81 Python tests passed, including 16 real Tk interaction tests. The actual background preview action rebuilt all 875 exported pages and assembled the combined site. The 889-check content audit passed, and no live manuscript or artwork files were changed during verification.
 
 ## 3) Which tool should I use?
 

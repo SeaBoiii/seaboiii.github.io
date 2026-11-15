@@ -1,0 +1,17 @@
+---
+import '../styles/crosswinds-project.css';
+interface Props { image: string; title: string; launch: string; inStage?: boolean }
+const { image, title, launch, inStage = false } = Astro.props;
+---
+<div class:list={['crosswinds-project', { 'project-demo-surface': inStage }]} data-crosswinds-project role="group" aria-label={title + ' prologue preview'}>
+  <div class="crosswinds-depth">
+    <div class="crosswinds-art-frame"><img class="crosswinds-art" src={image} alt="Original prologue artwork depicting the story’s five relationships and the mountains of Sapa" width="1280" height="512" loading="lazy" decoding="async" /></div>
+    <div class="crosswinds-story">
+      <p class="crosswinds-brand">{title}<span>Prologue</span></p>
+      <p class="crosswinds-scene-title">Memory Load</p>
+      <blockquote>Your phone is face-down, but you can feel the weight of it — five names pressing into one night. You try to sleep.</blockquote>
+      <div class="crosswinds-choice"><p>Opening choice</p><ul class="crosswinds-choice-list"><li>Let the memories come without trying to control the order.</li></ul></div>
+      <a class="crosswinds-launch" href={launch}>Play the story</a>
+    </div>
+  </div>
+</div>

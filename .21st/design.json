@@ -22,6 +22,48 @@
     "Native dialogs use shareable project fragments, restore focus and scroll, and suspend background media.",
     "The light version remains at commit 7f497cf4 in its original worktree; this branch is revamp/cinematic-dark.",
     "No additional paid asset generation. Existing media, authored SVG and procedural 3D capture supply the redesign.",
-    "21st catalog search remains unavailable without authentication; the selected Nothing reference and existing project assets ground the implementation."
-  ]
+    "21st catalog search remains unavailable without authentication; the selected Nothing reference and existing project assets ground the implementation.",
+    "User approved the Literary Gallery novel redesign on revamp/novels-library, based on cinematic-dark 172b868d; no paid generation.",
+    "The 2026-11-15 Higgsfield revision uses an asymmetric fractured carbon specimen, polished inner facets and a copper A: rough edges, precise work.",
+    "Both portfolio and novels share an input-driven 3D language. Real cover textures and HTML links remain the archive's identity; no fake titles or generated replacement covers.",
+    "revamp/aleem-facets starts at remote main 568d7c3d and integrates the approved novel studio 9a26328b; combined comparison uses 4176.",
+    "Independent Work uses scroll-controlled physical demonstration planes. The novel project adds three linked cover-textured volumes in front of a fresh capture of the current library. CSS 3D shares the native chapter clock and freezes with project dialogs.",
+    "Crosswinds in Sapa's portfolio presentation uses original prologue art and verified narrative content in layered carbon, silver and copper story panels, shared by the project stage, popout and case study.",
+    "The four remaining featured projects use subject-specific dimensional evidence. ICM pairs prototype footage and an original result photograph, Tiny AI visualizes a teachable classifier, Rover uses a virtual-rover model, and Classility pairs its quiz recording with original Paladin artwork. All share the same renderer across stage, popout and case study."
+  ],
+  "novels": {
+    "direction": "Dark literary gallery, atmospheric book introductions, calm customizable reader",
+    "framework": "Next.js 15 static export, existing Markdown pipeline, lazy vanilla Three.js archive",
+    "tokens": {
+      "ink": "#080A10",
+      "midnight": "#151B28",
+      "warmSilver": "#EEECE6",
+      "muted": "#ADB4C3",
+      "lavender": "#B9C2E4",
+      "border": "#353D4D"
+    },
+    "typography": {
+      "displayAndProse": "Literata",
+      "interface": "IBM Plex Sans",
+      "legacyChoices": "Lora, Source Serif 4, Merriweather, Atkinson Hyperlegible, system serif, system sans"
+    },
+    "principles": [
+      "Actual covers provide the main visual identity; three physical covers anchor discovery.",
+      "Curated discovery leads into all 50 searchable novels; no fabricated popularity or update dates.",
+      "Native selectable prose, paragraph-relative local resume and accessible dialogs serve extended reading.",
+      "Native scrolling, static content and reduced motion work across phones and keyboard navigation.",
+      "Source text, routes, relationships and authoring workflow stay compatible."
+    ],
+    "previewPort": 4175,
+    "authoring": {
+      "tool": "Novel Wizard - Literary Studio",
+      "framework": "Native Python Tkinter desktop app",
+      "principles": [
+        "Separate book, chapter, artwork and review workspaces share the literary palette and real cover identity.",
+        "Draft recovery stays local; transactional source saves and scoped Git commits are distinct actions.",
+        "Native writing focus, selectable four-theme prose previews and verified public URLs support the current pages.",
+        "Preview identity prevents reuse of another comparison worktree."
+      ]
+    }
+  }
 }
