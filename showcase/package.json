@@ -18,6 +18,8 @@
     "test:novels": "node ../web/qa/novels.mjs",
     "test:reader": "node ../web/qa/reader-state.mjs",
     "preview:novels": "node scripts/serve.mjs --port=4175",
+    "preview:facets": "node scripts/serve.mjs --port=4176",
+    "test:archive": "node ../web/qa/archive-motion.mjs",
     "media:workbench": "node scripts/render-workbench.mjs"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ import type { WorkbenchControls, WorkbenchObject } from './WorkbenchScene';
 const WorkbenchCanvas = lazy(() => import('./WorkbenchScene'));
 export interface CaptureController {
   canvas: HTMLCanvasElement;
+  readonly asset?: 'loading' | 'higgsfield' | 'procedural';
   setProgress(progress: number): Promise<void>;
   setProgressAsync(progress: number): Promise<void>;
   reset(): void;
@@ -29,9 +30,9 @@ function canRenderWebGL() {
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const phaseAt = (progress: number): WorkbenchObject => progress < 0.34 ? 'lens' : progress < 0.67 ? 'circuit' : 'book';
 
-export default function Workbench() {
+export default function Workbench({ covers }: { covers?: string[] }) {
   const container = useRef<HTMLDivElement>(null);
-  const controls = useRef<WorkbenchControls>({ progress: 0, selected: null, pointerX: 0, pointerY: 0, motion: true, cinematic: true, visible: true, chapterActive: true, modal: false, capture: false });
+  const controls = useRef<WorkbenchControls>({ progress: 0, selected: null, pointerX: 0, pointerY: 0, motion: true, cinematic: true, visible: true, chapterActive: true, modal: false, capture: false, covers });
   const [supported, setSupported] = useState(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'fallback'>('loading');
   const capability = useRef<boolean | null>(null);
@@ -140,7 +141,7 @@ export default function Workbench() {
     };
   }, [activate]);
   return <div ref={container} className="workbench-canvas" data-scene-status={status} style={{ width: '100%', height: '100%', minHeight: '320px', position: 'relative', isolation: 'isolate' }}>
-    <picture><source media="(max-width: 899px)" srcSet="/showcase-assets/media/workbench-poster-mobile.webp" /><img className="workbench-fallback" src="/showcase-assets/media/workbench-poster.webp" alt="A precision lens, lit in silver and ice blue against a carbon background." decoding="async" fetchPriority="high" width={1600} height={1000} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: status === 'ready' ? 0 : 1, pointerEvents: 'none' }} /></picture>
+    <picture><source media="(max-width: 899px)" srcSet="/showcase-assets/media/workbench-poster-mobile.webp" /><img className="workbench-fallback" src="/showcase-assets/media/workbench-poster.webp" alt="A fractured carbon specimen opens around a polished crystalline heart, lit in silver, ice blue and copper." decoding="async" fetchPriority="high" width={1600} height={1000} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: status === 'ready' ? 0 : 1, pointerEvents: 'none' }} /></picture>
     {supported && <SceneBoundary onError={fail}><Suspense fallback={null}><WorkbenchCanvas controls={controls} ready={ready} fail={fail} /></Suspense></SceneBoundary>}
   </div>;
 }

@@ -1,12 +1,12 @@
 # Aleem Siddique’s portfolio
 
-Personal engineering portfolio, fiction library and browser experiments, published through GitHub Pages.
+Personal engineering portfolio, fiction library and browser experiments, published through GitHub Pages. The current `revamp/aleem-facets` comparison adds a Higgsfield-authored fractured specimen and an interactive 3D novel archive. See [changes.md](changes.md) for design decisions, provenance and review evidence.
 
 The `revamp/cinematic-dark` branch adds a cinematic dark portfolio in [`showcase/`](showcase/README.md): a three-world 3D journey, native scroll chapters, six on-page project stories, twelve project identities, popout details, AMD experience and fiction. The earlier light fieldbook is preserved at commit `7f497cf4` in its own worktree. The original root `index.html` remains available for comparison. The existing novel reader and standalone pages are assembled alongside the new homepage.
 
 ## Run the portfolio
 
-The `revamp/novels-library` comparison adds a dark literary gallery, rebuilt book introductions and contents, illustration previews, and a customizable reader with paragraph-level resume. See the [novels guide](web/README.md). Its separate worktree is `seaboiii.github.io-novels`; the combined comparison runs on **4175**. Existing 4173, 4174 and 4180 previews remain available.
+This branch starts from the latest remote main and integrates the approved novel library and authoring studio before adding the shared 3D direction. It uses **4176** for the combined portfolio and archive. Earlier designs remain in their existing branches and worktrees.
 
 Use **Node.js 24**. Run these commands from the repository root:
 
@@ -16,10 +16,10 @@ npm --prefix showcase ci
 npm --prefix web run build
 npm --prefix showcase run build
 npm --prefix showcase run assemble
-npm --prefix showcase run preview:novels
+npm --prefix showcase run preview:facets
 ```
 
-Open **http://127.0.0.1:4175/novel/** for the redesigned library and reader, with the cinematic portfolio at the root. The earlier cinematic comparison stays at **http://127.0.0.1:4174**, the light comparison at **http://127.0.0.1:4173**, and the original homepage at **http://127.0.0.1:4180**.
+Open **http://127.0.0.1:4176/** for the portfolio and **http://127.0.0.1:4176/novel/** for the 3D collection and reader. The feature branch produces a review artifact; only `main` publishes to GitHub Pages.
 
 For portfolio development alone, run `npm --prefix showcase run dev`. Astro’s development server does not include the root reader or cover assets; use the combined preview to verify writing links, covers and preserved pages. See the [showcase guide](showcase/README.md) for browser checks and implementation details.
 

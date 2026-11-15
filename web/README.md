@@ -1,5 +1,7 @@
 # Literary gallery and reader
 
+The `revamp/aleem-facets` comparison adds a genuine, demand-rendered Three.js archive to the landing page and runs the combined site on **4176**. It retains the complete approved library, reader and authoring workflow described below. Next.js is now **15.5.29**, with asynchronous static-route parameters; the browser React runtime remains separate from the portfolio's React Three Fiber island. See [changes.md](../changes.md).
+
 The novels redesign is on `revamp/novels-library`, based on the cinematic portfolio at `172b868d`. Next.js statically exports the existing Markdown books and chapters. Astro supplies the portfolio homepage; the combined output retains the existing standalone pages.
 
 ## Build and preview

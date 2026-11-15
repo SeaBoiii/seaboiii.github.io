@@ -9,10 +9,11 @@ import { coverImageUrl } from "@/lib/images";
 import { getAllNovels } from "@/lib/novels";
 import type { Novel } from "@/types/novel";
 import "@/styles/library.css";
+import "@/styles/library-archive.css";
 
 export const metadata: Metadata = {
   title: "Aleem’s Novels — The library",
-  description: "Fifty completed novels by Aleem. Discover romance, fantasy and speculative fiction, explore connected stories, and find your next read.",
+  description: "Enter Aleem Siddique’s collection of original novels. Discover romance, fantasy and speculative worlds in a three-dimensional archive, then settle in to read.",
 };
 
 const worlds = [
@@ -46,7 +47,7 @@ export default function NovelLandingPage() {
     <>
       <Header crumbs={[{ label: "The library" }]} />
       <main id="main" className="novel-library">
-        <LibraryHero featured={featured} count={novels.length} completeCount={completeCount} />
+        <LibraryHero featured={featured} novels={novels} count={novels.length} completeCount={completeCount} />
         <ContinueReadingShelf novels={novels} />
 
         <section className="library-section library-worlds" aria-labelledby="worlds-heading">

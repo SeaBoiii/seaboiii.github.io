@@ -5,3 +5,5 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 qa/artifacts/
+public/images/
+public/assets/

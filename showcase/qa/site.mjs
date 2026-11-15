@@ -154,7 +154,7 @@ try {
   await group('On-page stories, media and native identities',async () => {
     const response = await home();
     check(response.status() === 200 && (await page.title()).includes('Aleem Siddique'),'Portfolio is served directly at root');
-    check(await page.locator('h1').count() === 1 && (await page.locator('h1').textContent()).includes('Engineering'),'Homepage has one clear portfolio introduction');
+    check(await page.locator('h1').count() === 1 && /Rough edges/.test(await page.locator('h1').textContent()) && /Aleem Siddique/.test(await page.locator('.hero-role').textContent()) && /AMD/.test(await page.locator('.hero-role').textContent()),'Homepage has one clear portfolio introduction');
     check(await page.locator('html').getAttribute('data-cinematic') === 'on','Fine-pointer desktop enables cinematic scroll chapters');
     entries = await page.locator('dialog[data-project-dialog]').evaluateAll(dialogs => dialogs.map(dialog => ({ slug:dialog.dataset.projectDialog,title:dialog.querySelector('.detail-title').textContent.trim() })));
     check(entries.length === 12 && new Set(entries.map(item => item.slug)).size === 12 && slugs.every(slug => entries.some(item => item.slug === slug)),'All 12 unique project files are present');

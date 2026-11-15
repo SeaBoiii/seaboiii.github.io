@@ -17,10 +17,11 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string; chapter: string };
+  params: Promise<{ slug: string; chapter: string }>;
 }): Promise<Metadata> {
-  const novel = getNovel(params.slug);
-  const ch = await getChapter(params.slug, params.chapter);
+  const route = await params;
+  const novel = getNovel(route.slug);
+  const ch = await getChapter(route.slug, route.chapter);
   if (!novel || !ch) return {};
   return {
     title: `${ch.label}${ch.displayTitle ? `: ${ch.displayTitle}` : ""} · ${novel.title}`,
@@ -31,16 +32,17 @@ export async function generateMetadata({
 export default async function ChapterPage({
   params,
 }: {
-  params: { slug: string; chapter: string };
+  params: Promise<{ slug: string; chapter: string }>;
 }) {
-  const novel = getNovel(params.slug);
+  const route = await params;
+  const novel = getNovel(route.slug);
   if (!novel) notFound();
-  const chapter = await getChapter(params.slug, params.chapter);
+  const chapter = await getChapter(route.slug, route.chapter);
   if (!chapter) notFound();
-  const chapters = getChapterList(params.slug);
+  const chapters = getChapterList(route.slug);
   const branchChoices = chapter.next
     ? []
-    : getBranchChoicesAfter(params.slug, params.chapter);
+    : getBranchChoicesAfter(route.slug, route.chapter);
 
   return (
     <>

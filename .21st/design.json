@@ -23,11 +23,14 @@
     "The light version remains at commit 7f497cf4 in its original worktree; this branch is revamp/cinematic-dark.",
     "No additional paid asset generation. Existing media, authored SVG and procedural 3D capture supply the redesign.",
     "21st catalog search remains unavailable without authentication; the selected Nothing reference and existing project assets ground the implementation.",
-    "User approved the Literary Gallery novel redesign on revamp/novels-library, based on cinematic-dark 172b868d; no paid generation."
+    "User approved the Literary Gallery novel redesign on revamp/novels-library, based on cinematic-dark 172b868d; no paid generation.",
+    "The 2026-11-15 Higgsfield revision uses an asymmetric fractured carbon specimen, polished inner facets and a copper A: rough edges, precise work.",
+    "Both portfolio and novels share an input-driven 3D language. Real cover textures and HTML links remain the archive's identity; no fake titles or generated replacement covers.",
+    "revamp/aleem-facets starts at remote main 568d7c3d and integrates the approved novel studio 9a26328b; combined comparison uses 4176."
   ],
   "novels": {
     "direction": "Dark literary gallery, atmospheric book introductions, calm customizable reader",
-    "framework": "Next.js static export, existing Markdown pipeline",
+    "framework": "Next.js 15 static export, existing Markdown pipeline, lazy vanilla Three.js archive",
     "tokens": {
       "ink": "#080A10",
       "midnight": "#151B28",

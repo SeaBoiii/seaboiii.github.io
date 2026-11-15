@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "title": "Aleem — rough outside, polished within",
+  "createdOn": "2026-11-15",
+  "provider": "Higgsfield 3D Jutsu",
+  "workflow": "/3d-jutsu",
+  "projectId": "a80f0d8c-46ed-46de-b334-742fe93c8587",
+  "projectUrl": "https://higgsfield.ai/3d-jutsu/a80f0d8c-46ed-46de-b334-742fe93c8587",
+  "revision": 2,
+  "finalOperationId": "refine-carbon-pivots-and-mark-02",
+  "source": "tools/motion/build_aleem_specimen.py",
+  "rights": "Original procedural geometry, materials, lighting and composition authored for this portfolio. No imported images or models. Existing novel covers remain separate owner-provided assets.",
+  "paidGenerationSubmissions": 0,
+  "generationNote": "Hosted Blender construction, rendering and GLB export only. No paid generate_image, generate_video or image-to-3D request was submitted.",
+  "design": {
+    "subject": "Asymmetric fractured carbon cradle exposing a precisely machined polished heart",
+    "palette": {
+      "carbon": "#080A10",
+      "silver": "#EEECE6",
+      "ice": "#B9DBEA",
+      "copper": "#C89C78"
+    },
+    "personalElement": "Subtle copper A construction mark and silicon-like trace paths",
+    "intent": "Translate Aleem's rough-edged curiosity and precise engineering into one object rather than a generic luxury jewel.",
+    "motion": "Frontend-native scroll and pointer choreography use separately pivoted carbon shards; no autonomous infinite spin is embedded in the asset."
+  },
+  "coordinates": {
+    "units": "metres",
+    "export": "glTF 2.0 / Y-up / front +Z",
+    "root": "RIG_Specimen",
+    "rootTranslation": [
+      0,
+      0,
+      0
+    ],
+    "core": "HERO_Core",
+    "coreDimensions": [
+      1.829281,
+      2.09,
+      1.829281
+    ],
+    "shellPrefix": "HERO_Shell_",
+    "shellIds": [
+      "00",
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "07",
+      "08",
+      "09",
+      "12",
+      "13",
+      "14",
+      "17",
+      "18",
+      "19"
+    ],
+    "copperNodes": [
+      "PRC_A_Left",
+      "PRC_A_Right",
+      "PRC_A_Crossbar",
+      "PRC_Trace_00",
+      "PRC_Trace_01"
+    ],
+    "notes": "Use RIG_Specimen for the website. Delivery camera, studio floor, plinth and light rig are separate scene nodes."
+  },
+  "assets": [
+    {
+      "path": "assets/motion/aleem-specimen.glb",
+      "bytes": 67684,
+      "sha256": "38232b3349b9d41db70b71c241b17e9ac7e240f7a8ababda014b364fe7f165ca",
+      "mediaType": "model/gltf-binary",
+      "meshes": 23,
+      "materials": 6,
+      "textureImages": 0
+    },
+    {
+      "path": "assets/motion/aleem-specimen-poster.webp",
+      "width": 1280,
+      "height": 960,
+      "bytes": 18910,
+      "sourceArtifactId": "34ea7dde7b6c234db30a3dc4a723108d",
+      "mediaType": "image/webp",
+      "sha256": "08408878029735329bc7c939565be3af40ac140b32d9362bac5c8975ad68a963"
+    }
+  ],
+  "verification": {
+    "structural": [
+      "GLB magic/version/length checked",
+      "23 meshes, 6 materials, no external or missing texture images",
+      "Zero portable rig translation",
+      "15 individually centroid-pivoted shell nodes with preserved rest translations",
+      "Core dimensions and exported Y-up/front+Z conversion checked"
+    ],
+    "visual": [
+      "Inspected initial blockout render",
+      "Inspected refined final 1280x960 delivery-camera render",
+      "Verified exposed polished core, carbon/metal contrast, legible copper A, unclipped silhouette and left-side negative space"
+    ],
+    "optimization": "Original 1,305,262-byte PNG encoded to an 18,910-byte WebP at quality 86; no semantic alteration.",
+    "limitations": "Procedural environment lighting is not embedded in GLB. The website supplies its own reflection environment. Renderer-specific appearance is verified again in browser screenshots."
+  }
+}

@@ -8,3 +8,5 @@ qa/*
 output/
 *.log
 *.tsbuildinfo
+public/images/
+public/assets/

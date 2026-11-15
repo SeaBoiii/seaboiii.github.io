@@ -1,5 +1,7 @@
 # Cinematic portfolio
 
+The current `revamp/aleem-facets` branch combines the latest remote homepage with the approved novel studio, then adds a shared rough-carbon/polished-interior 3D direction. Use `npm run preview:facets` for **4176**. [changes.md](../changes.md) records the reasoning, Higgsfield asset provenance and final review evidence.
+
 On `revamp/novels-library`, the combined output includes the redesigned literary gallery and reader. Use `npm run preview:novels` for port **4175**, and `npm run test:novels` for its browser checks. See [the novels guide](../web/README.md). The cinematic portfolio on 4174, light comparison on 4173, and original homepage on 4180 stay available.
 
 A dark, single-page portfolio for Aleem Siddique, on `revamp/cinematic-dark`. This version starts from the light fieldbook at commit `7f497cf4`, in a separate worktree so both designs remain available.
@@ -29,7 +31,7 @@ Desktop scrolling drives the macro lens, unfolding circuit and opening book; hig
 
 All twelve projects have transparent SVG marks. Their project details open in native modal dialogs. Share links use `/#project/<slug>`; Back closes a session, Forward reopens it, and switching projects replaces its history entry. Direct-link dismissal stays on the portfolio. Closing restores background scroll and keyboard focus. Background media and 3D stop while a dialog is open.
 
-The homepage adds a film layer in `src/styles/cinema.css` and `src/scripts/cinema.ts`: a once-per-session opening title sequence, a letterbox that opens as the hero scrolls, film grain, a soft pointer key light, scene slates, a timecode HUD with a progress scrubber, velocity-skewed marquees, a sprocketed project reel, spotlit book posters and experiment tiles, and end credits built from the existing content. Scroll reveals are armed only after the script runs and only while motion is on; reduced motion, the Pause motion control, missing JavaScript and project dialogs all leave every element visible and static. Other pages are unaffected.
+`src/styles/cinema.css` and `src/scripts/cinema.ts` now keep the cinematic rhythm through restrained entry movement, cover tilt, real project media and quiet interludes. Text stays at full contrast. The introductory wait, fake recording/timecode HUD, perpetual grain and film props were removed to let the sculptural scene and actual work carry the identity.
 
 The 3D runtime loads after visibility and capability checks; unavailable WebGL and reduced-data connections use matching desktop/mobile posters. The canvas renders on demand. Real demo videos have controls and autoplay only when active and visible; manually paused videos stay paused. Novel reading, external demos and games use explicit read/launch links.
 

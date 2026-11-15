@@ -19,8 +19,9 @@ export function generateStaticParams() {
   return getAllNovels().map((novel) => ({ slug: novel.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const novel = getNovel(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const route = await params;
+  const novel = getNovel(route.slug);
   if (!novel) return { title: "Not found" };
   return {
     title: `${novel.title} · Aleem's Novels`,
@@ -43,8 +44,9 @@ function readingDuration(minutes: number): string {
   return hours ? `${hours} hr${remainder ? ` ${remainder} min` : ""}` : `${minutes} min`;
 }
 
-export default function NovelDetailPage({ params }: { params: { slug: string } }) {
-  const novel = getNovel(params.slug);
+export default async function NovelDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const route = await params;
+  const novel = getNovel(route.slug);
   if (!novel) notFound();
   const chapters = getChapterList(novel.slug);
   const first = chapters[0];

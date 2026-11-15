@@ -1,0 +1,71 @@
+{
+  "base": "http://127.0.0.1:4176",
+  "source": "Actual combined production build",
+  "images": [
+    {
+      "name": "portfolio-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "portfolio-precision.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "portfolio-worlds.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "library-desktop.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/novel/"
+    },
+    {
+      "name": "library-catalogue.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/novel/"
+    },
+    {
+      "name": "project-popout.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/#project/icm-buddy"
+    },
+    {
+      "name": "portfolio-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
+      "name": "library-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "url": "/novel/"
+    }
+  ],
+  "pageErrors": []
+}

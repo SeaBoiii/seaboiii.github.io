@@ -1,5 +1,13 @@
 # Asset provenance and generation budget
 
+## Higgsfield facets revision — 15 November 2026
+
+Higgsfield 3D Jutsu produced the editable fractured carbon specimen in [this private project](https://higgsfield.ai/3d-jutsu/a80f0d8c-46ed-46de-b334-742fe93c8587), verified revision 2. The portable `assets/motion/aleem-specimen.glb` is 67,684 bytes, with 15 independent shell pivots, a polished core and copper A/traces. `assets/motion/provenance.json` records its hashes, coordinate convention, operation IDs and visual checks. Reproducible construction source is `tools/motion/build_aleem_specimen.py`.
+
+The portfolio loads this model and animates its real parts. Its matching desktop/mobile posters and silent 8-second MP4/WebM study are captures of the implemented scene; the 3D archive uses the author's existing cover artwork on native Three.js book geometry. There were **no paid generation submissions** in this revision and no Gemini credential access.
+
+After building and assembling the site, run the comparison on 4176, set `SCENE_URL=http://127.0.0.1:4176`, and run `node showcase/scripts/render-workbench.mjs`. The script waits for the Higgsfield model, captures 192 deterministic frames, and creates both posters and video encodings. Both encodings are fully decoded during verification.
+
 Assets belong to this portfolio unless a source below says otherwise. Generated studio visuals illustrate the portfolio's camera / engineering / writing themes; they do not depict AMD products or establish project results.
 
 ## Sources
