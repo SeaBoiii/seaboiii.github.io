@@ -62,15 +62,15 @@ Verification ran on 15 November 2026 against the assembled production preview on
 
 | Check | Result |
 | --- | --- |
-| Astro production build and template/types | Passed with 14 files checked and 7 routes generated |
+| Astro production build and template/types | Passed with 16 files checked and 7 routes generated |
 | Next.js production export | All 875 pages exported |
 | Original content audit | 889 checks passed across all 50 books and 820 chapter/end routes |
-| Portfolio interactions, project dialogs, history, accessibility and fallbacks | 316 checks passed across 14 groups |
+| Portfolio interactions, project dialogs, history, accessibility and fallbacks | 329 checks passed across 15 groups |
 | Archive motion, pause/resume, resize, idle/hidden suspension and fallbacks | 46 checks passed |
 | Library, book pages, reader, filters, themes, storage and responsive behavior | 102 checks passed |
 | Deep paragraph-resume and reader-history regressions | 9 groups passed |
 | Supplied MP4 and WebM motion studies | Both decoded completely |
-| Production screenshots | 8 captures, no browser page errors |
+| Production screenshots | 11 captures, no browser page errors |
 
 The tested pages and project dialogs had no automated WCAG A/AA violations. Review included 320px and 390px layouts, reduced motion, disabled JavaScript, unavailable WebGL, reduced data, keyboard focus, modal dismissal and background suspension. A real mid-sequence resume failure and a transient text-contrast problem were corrected and rechecked.
 
@@ -85,4 +85,16 @@ These local lab measurements describe the tested browser profile. The WebGL code
 
 The critical framework advisory is resolved. The package audit still reports noncritical transitive CSS/YAML/tooling advisories for follow-up. Deployment uses a static export.
 
-The production captures and viewport manifest are available in the screenshot gallery. The feature branch is ready for pull-request review. [View all eight screenshots](docs/screenshots/aleem-facets/README.md).
+The production captures and viewport manifest are available in the screenshot gallery. The feature branch is ready for pull-request review. [View all eleven screenshots](docs/screenshots/aleem-facets/README.md).
+
+## Independent Work follow-up
+
+The library project was still presenting a capture from the older interface. Its shared evidence image is now `novels-archive.webp`, captured directly from the current production library at 1280×800. A new asset URL refreshes cached previews. The homepage, project dialog and compatibility case study all use it.
+
+The library demonstration now combines that interface with three physical volumes using the actual featured covers. Each has front, rear, spine and paper surfaces. Each cover is an ordinary reading link with its title below. Flow-based sizing reserves room for the books and captions on narrow screens. Outward-facing rear covers prevent the dark back surfaces from obscuring front artwork.
+
+All six featured demonstrations now use physical depth. Shallow extruded display surfaces carry the existing videos and screenshots, while the library uses books in front of its interface. Native chapter events drive yaw and depth as projects pass through the viewport. Fine-pointer input adds bounded perspective to the active project. The library volumes also separate and turn with project travel. Story copy stays on a steady reading plane.
+
+This chapter uses CSS 3D and input-only updates. It adds zero animation loops, scroll listeners, WebGL canvases or paid generation jobs. Modal opening freezes the current display and book transforms. Reduced motion, paused motion and reduced data use static display planes. Existing video controls, project jumps and reading links remain directly usable.
+
+The follow-up passed all 329 portfolio browser checks across 15 groups with zero page errors or automated accessibility violations. These cover the six surfaces, three book links, current shared image, scroll and pointer matrices, exact modal freeze, pause/resume and reduced-motion/data fallbacks. Desktop and 320px/390px screenshots were reviewed. The local 21st review ran successfully and reported informational material-colour findings. Its catalog search requires authentication, so this implementation reuses the existing project primitives.

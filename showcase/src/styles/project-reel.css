@@ -1,0 +1,80 @@
+/* Native chapter progress moves the display planes. Story copy stays on its
+   reading plane, and the project rail retains ownership of horizontal travel. */
+.projects-chapter .project-demo {
+  perspective: 1500px;
+  perspective-origin: 50% 45%;
+}
+
+.project-demo-surface {
+  position: relative;
+  min-width: 0;
+  transform-origin: 50% 58%;
+  transform-style: preserve-3d;
+  box-shadow: 18px 24px 54px #0006;
+}
+
+.projects-chapter[data-project-reel="active"] .project-demo-surface,
+.projects-chapter[data-project-reel="suspended"] .project-demo-surface {
+  transform:
+    translate3d(calc(var(--reel-sweep, 0) * -12px), calc(var(--reel-distance, 0) * 12px), 0)
+    rotateX(calc(-2deg + var(--reel-pointer-y, 0) * -2deg))
+    rotateY(calc(-4deg + var(--reel-sweep, 0) * 11deg + var(--reel-pointer-x, 0) * 3deg));
+}
+
+.project-demo-surface > img,
+.project-demo-surface > video {
+  display: block;
+}
+
+.project-demo-surface > :is(img, video) {
+  box-shadow: 0 0 0 1px #b9dbea12;
+}
+
+.project-demo-surface:not(.library-project)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid #4e5a69;
+  border-radius: 7px;
+  background: #111824;
+  transform: translateZ(-14px);
+  pointer-events: none;
+}
+
+.project-demo-surface:not(.library-project)::after {
+  content: '';
+  position: absolute;
+  inset: 0 -7px 0 auto;
+  width: 14px;
+  background: linear-gradient(90deg, #1c2733, #4e5a69);
+  transform: translateZ(-7px) rotateY(90deg);
+  pointer-events: none;
+}
+
+html[data-page=home] .project-demo-surface > :is(img, video) {
+  padding: 0;
+}
+
+/* At compact widths the physical covers retain their depth, while the mounted
+   demonstration has enough room for native controls and readable content. */
+@media (max-width: 1023px), (pointer: coarse) {
+  .projects-chapter[data-project-reel="active"] .project-demo-surface,
+  .projects-chapter[data-project-reel="suspended"] .project-demo-surface {
+    transform: rotateX(-1deg) rotateY(-2deg);
+  }
+
+  .project-demo-surface {
+    box-shadow: 8px 14px 32px #0005;
+  }
+}
+
+html[data-motion="off"] .project-demo-surface,
+.projects-chapter[data-project-reel="static"] .project-demo-surface {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .projects-chapter .project-demo-surface {
+    transform: none !important;
+  }
+}

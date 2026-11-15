@@ -22,4 +22,10 @@ Captured from the combined production build at `http://127.0.0.1:4176`, with rea
 
 ## Project details
 
+![Independent Work with a dimensional, native-control demonstration](independent-work.png)
+
+![The current library project with three cover-linked physical books](project-library.png)
+
+![The library project on a phone](project-library-mobile.png)
+
 ![Existing case-study material remains available in a native modal](project-popout.png)

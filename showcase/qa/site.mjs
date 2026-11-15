@@ -163,7 +163,8 @@ try {
       const stage = page.locator('[data-project-stage="'+slug+'"]');
       const facts = await stage.locator('.project-facts').evaluate(element => [...element.querySelectorAll('div')].map(item => ({ label:item.querySelector('dt').textContent.trim(),text:item.querySelector('dd').textContent.trim() })));
       check(facts.length === 2 && facts[0].label === 'My contribution' && facts[1].label === 'Outcome' && facts.every(fact => fact.text.length > 40),'Specific contribution and outcome appear without a popup: '+slug,facts);
-      check(await stage.locator('.project-demo img,.project-demo video').count() === 1 && (await stage.locator('figcaption').textContent()).trim().length > 20,'Captioned real preview or demonstration appears on-page: '+slug);
+      const mediaCount = slug === 'novels-library' ? 4 : 1;
+      check(await stage.locator('.project-demo img,.project-demo video').count() === mediaCount && (await stage.locator('figcaption').textContent()).trim().length > 20,'Captioned real preview or demonstration appears on-page: '+slug);
       if(await stage.locator('video').count()) check(await stage.locator('video').getAttribute('controls') !== null && await stage.locator('video source').count() === 2,'On-page video has native controls and both formats: '+slug);
     }
     const career = await page.locator('#experience').innerText();
@@ -255,6 +256,64 @@ try {
       check(focus.slug === slug && focus.left >= 0 && focus.right <= size.width && focus.outline !== 'none' && focus.railScroll === 0,'Tab brings the next offscreen project control into view: '+slug,focus);
     }
     await screenshot('desktop-project');
+  });
+
+  await group('Independent work depth and current library evidence',async () => {
+    await home();
+    await jump('novels-library');
+    const stage = page.locator('[data-project-stage="novels-library"]');
+    const surface = stage.locator('.project-demo-surface');
+    const volume = stage.locator('.library-project-volume').first();
+    await stage.locator('img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
+    await frames(page,3);
+    check(await page.locator('.project-stage .project-demo-surface').count() === 6,'All six independent projects have a dimensional demonstration surface');
+    const bookLinks = await stage.locator('.library-project-book').evaluateAll(links => links.map(link => ({href:link.getAttribute('href'),label:link.getAttribute('aria-label')})));
+    check(bookLinks.length === 3 && bookLinks.every(link => /^\/novel\/[^/]+\/$/.test(link.href) && link.label.startsWith('Read ')),'The library preview has three explicit, accessible links to real books',bookLinks);
+    const image = await stage.locator('.library-project-screen img').evaluate(image => ({src:image.getAttribute('src'),width:image.naturalWidth,height:image.naturalHeight}));
+    check(image.src.endsWith('/novels-archive.webp') && image.width === 1280 && image.height === 800,'The library uses a fresh current-interface capture with a new asset URL',image);
+    const transform = locator => locator.evaluate(element => getComputedStyle(element).transform);
+    await chapter('projects',.76);
+    const arriving = [await transform(surface),await transform(volume)];
+    await chapter('projects',.84);
+    const departing = [await transform(surface),await transform(volume)];
+    check(arriving.every((matrix,index) => matrix !== 'none' && matrix !== departing[index]),'Native project travel changes both the display plane and physical book poses',{arriving,departing});
+    await jump('novels-library');
+    const box = await surface.boundingBox();
+    const neutral = await transform(surface);
+    await page.mouse.move(box.x+box.width*.8,box.y+box.height*.2);
+    await frames(page);
+    check(await transform(surface) !== neutral,'The active project responds to a fine pointer');
+    const firstCover = await stage.locator('.library-project-front').first().boundingBox();
+    await page.mouse.move(firstCover.x+firstCover.width/2,firstCover.y+firstCover.height/2);
+    await frames(page);
+    const open = stage.locator('[data-project-open]');
+    await open.focus();
+    const beforeModal = [await transform(surface),await transform(volume)];
+    const position = await page.evaluate(() => scrollY);
+    await page.keyboard.press('Enter');
+    const dialog = await activeModal('novels-library');
+    check(await dialog.locator('.detail-media img').getAttribute('src') === image.src,'The library popout uses the same current screenshot');
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('portfolio:chapter',{detail:{key:'projects',progress:.1,active:true}})));
+    await frames(page,3);
+    const duringModal = [await transform(surface),await transform(volume)];
+    check(beforeModal.every((matrix,index) => matrix === duringModal[index]),'Opening a project dialog freezes the exact display and book pose',{beforeModal,duringModal});
+    await page.keyboard.press('Escape');
+    await closed(page,position);
+    await pointerClick(page.locator('[data-motion-toggle]'));
+    await frames(page,3);
+    check(await transform(surface) === 'none','Pausing motion removes the moving project plane');
+    await pointerClick(page.locator('[data-motion-toggle]'));
+    await frames(page,3);
+    check(await stage.getAttribute('data-active') === 'true' && await transform(surface) !== 'none','Resuming motion preserves the library project and restores depth');
+    const standalone = await context.request.get(base+'/work/novels-library/');
+    check((await standalone.text()).includes(image.src),'The compatibility case-study page uses the current library screenshot');
+    await axe('Independent Work library stage');
+    for(const reduced of [true,false]) {
+      const fallback = await newPage(reduced ? {reducedMotion:'reduce'} : {},reduced ? undefined : () => Object.defineProperty(navigator,'connection',{configurable:true,value:{saveData:true}}));
+      await home(fallback.page);
+      check(await fallback.page.locator('.project-demo-surface').first().evaluate(element => getComputedStyle(element).transform) === 'none',(reduced ? 'Reduced motion':'Save Data')+' uses static project planes');
+      await closeContext(fallback.context);
+    }
   });
 
   await group('All twelve ordinary links, dialog dismissal and exact restoration',async () => {

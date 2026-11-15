@@ -1,0 +1,21 @@
+---
+import type { Book } from '../data/content';
+interface Props { books: Book[]; image: string; alt: string }
+const { books, image, alt } = Astro.props;
+---
+<div class="project-demo-surface library-project" data-library-project>
+  <a class="library-project-screen" href="/novel/" aria-label="Explore the novel library">
+    <img src={image} alt={alt} width="1280" height="800" loading="lazy" decoding="async" />
+  </a>
+  <div class="library-project-books">
+    {books.map((book, index) => <a class="library-project-book" href={book.href} aria-label={'Read ' + book.title} style={'--volume-index:' + index}>
+      <span class="library-project-volume" aria-hidden="true">
+        <span class="library-project-pages"></span>
+        <span class="library-project-back"></span>
+        <span class="library-project-spine"><span>{book.title}</span></span>
+        <span class="library-project-front"><img src={book.image} alt="" width="640" height="960" loading="lazy" decoding="async" /></span>
+      </span>
+      <span class="library-project-book-title">{book.title}</span>
+    </a>)}
+  </div>
+</div>

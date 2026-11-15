@@ -3,8 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import Workbench from '../components/Workbench';
 import DemoVideo from '../components/DemoVideo.astro';
 import ProjectDialogs from '../components/ProjectDialogs.astro';
+import LibraryProjectPreview from '../components/LibraryProjectPreview.astro';
 import { profile, career, projects, experiments, books } from '../data/content';
 import '../styles/cinema.css';
+import '../styles/project-reel.css';
+import '../styles/library-project.css';
 const marquee = ['Silicon brought to life', 'Ideas made tangible', 'Stories worth entering'];
 const credits = [
   { role: 'Made by', names: ['Aleem Siddique'] },
@@ -62,7 +65,10 @@ const credits = [
             <dl class="project-facts"><div><dt>My contribution</dt><dd>{project.contribution}</dd></div><div><dt>Outcome</dt><dd>{project.outcome}</dd></div></dl>
             <div class="project-actions"><a class="button button-primary" href={'/work/'+project.slug+'/'} data-project-open={project.slug}>Explore details</a><a class="text-link" href={project.links[0].href}>{project.links[0].label}</a></div>
           </div>
-          <figure class="project-demo"><span class="frame-tag" aria-hidden="true">{'Take ' + String(index + 1).padStart(2, '0')}</span>{project.media ? <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={project.title+' demonstration'}/> : <img src={project.image} alt={project.alt} width="1366" height="768" loading="lazy" decoding="async"/>}<figcaption>{project.media?.caption ?? project.alt}</figcaption></figure>
+          <figure class:list={['project-demo', { 'project-demo-library': project.slug === 'novels-library' }]}>
+            {project.slug === 'novels-library' ? <LibraryProjectPreview books={books} image={project.image} alt={project.alt}/> : <div class="project-demo-surface">{project.media ? <DemoVideo mp4={project.media.mp4} webm={project.media.webm} poster={project.media.poster} label={project.title+' demonstration'}/> : <img src={project.image} alt={project.alt} width="1366" height="768" loading="lazy" decoding="async"/>}</div>}
+            <figcaption>{project.slug === 'novels-library' ? 'The current library and three starting points. Choose a cover to enter its story.' : project.media?.caption ?? project.alt}</figcaption>
+          </figure>
         </article>)}
       </div></div>
       <div class="project-position wrap" aria-live="polite"><span data-project-position>ICM Buddy</span><span aria-hidden="true">Scroll through the collection</span></div>
@@ -88,6 +94,8 @@ const credits = [
   <ProjectDialogs />
   <script>
     import { initializeCinema } from '../scripts/cinema';
+    import { initializeProjectReel } from '../scripts/project-reel';
     initializeCinema();
+    initializeProjectReel();
   </script>
 </Layout>
