@@ -62,15 +62,15 @@ Verification ran on 15 November 2026 against the assembled production preview on
 
 | Check | Result |
 | --- | --- |
-| Astro production build and template/types | Passed with 16 files checked and 7 routes generated |
+| Astro production build and template/types | Passed with 17 files checked and 7 routes generated |
 | Next.js production export | All 875 pages exported |
 | Original content audit | 889 checks passed across all 50 books and 820 chapter/end routes |
-| Portfolio interactions, project dialogs, history, accessibility and fallbacks | 329 checks passed across 15 groups |
+| Portfolio interactions, project dialogs, history, accessibility and fallbacks | 345 checks passed across 16 groups |
 | Archive motion, pause/resume, resize, idle/hidden suspension and fallbacks | 46 checks passed |
 | Library, book pages, reader, filters, themes, storage and responsive behavior | 102 checks passed |
 | Deep paragraph-resume and reader-history regressions | 9 groups passed |
 | Supplied MP4 and WebM motion studies | Both decoded completely |
-| Production screenshots | 11 captures, no browser page errors |
+| Production screenshots | 14 captures, no browser page errors |
 
 The tested pages and project dialogs had no automated WCAG A/AA violations. Review included 320px and 390px layouts, reduced motion, disabled JavaScript, unavailable WebGL, reduced data, keyboard focus, modal dismissal and background suspension. A real mid-sequence resume failure and a transient text-contrast problem were corrected and rechecked.
 
@@ -85,7 +85,7 @@ These local lab measurements describe the tested browser profile. The WebGL code
 
 The critical framework advisory is resolved. The package audit still reports noncritical transitive CSS/YAML/tooling advisories for follow-up. Deployment uses a static export.
 
-The production captures and viewport manifest are available in the screenshot gallery. The feature branch is ready for pull-request review. [View all eleven screenshots](docs/screenshots/aleem-facets/README.md).
+The production captures and viewport manifest are available in the screenshot gallery. The feature branch is ready for pull-request review. [View all fourteen screenshots](docs/screenshots/aleem-facets/README.md).
 
 ## Independent Work follow-up
 
@@ -98,3 +98,13 @@ All six featured demonstrations now use physical depth. Shallow extruded display
 This chapter uses CSS 3D and input-only updates. It adds zero animation loops, scroll listeners, WebGL canvases or paid generation jobs. Modal opening freezes the current display and book transforms. Reduced motion, paused motion and reduced data use static display planes. Existing video controls, project jumps and reading links remain directly usable.
 
 The follow-up passed all 329 portfolio browser checks across 15 groups with zero page errors or automated accessibility violations. These cover the six surfaces, three book links, current shared image, scroll and pointer matrices, exact modal freeze, pause/resume and reduced-motion/data fallbacks. Desktop and 320px/390px screenshots were reviewed. The local 21st review ran successfully and reported informational material-colour findings. Its catalog search requires authentication, so this implementation reuses the existing project primitives.
+
+## Crosswinds in Sapa follow-up
+
+The user selected an update to Crosswinds' portfolio presentation. Its stage now uses the original prologue artwork behind an offset carbon story panel. Literata, warm silver, copper edges and restrained perspective connect the narrative project to the novel collection and the rest of Independent Work.
+
+The panel contains the verified Memory Load excerpt and its single opening choice. These give visitors a readable sample of the story. An explicit Play the story link opens the existing playable experience. The homepage, popout and standalone case study share one component and the same source artwork.
+
+The source artwork and passage were verified at `SeaBoiii/visual_novel` commit `c150995bd455c3218efe225c4f5a7328c6e912de`. The 1.7 MB original image was encoded as a 135 KB WebP for this presentation. CSS supplies the layered scenery and uses the existing project rail's scroll and pointer values. It settles with input and freezes behind dialogs. The asset record includes the original hash and pinned source links. [Source and provenance](showcase/ASSETS.md).
+
+All 345 portfolio browser checks passed across 16 groups, with zero page errors or automated accessibility violations. Crosswinds-specific checks cover the authentic passage and choice, launch link, scroll/pointer transforms, keyboard focus, modal freeze, shared case study and 320px/390px layouts. Desktop screenshots include the 1024×768 pinned layout. The local 21st review reported informational colour findings for the authored materials.

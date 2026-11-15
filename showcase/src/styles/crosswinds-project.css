@@ -1,0 +1,145 @@
+/* Original story artwork and a verified prologue excerpt become physical layers.
+   The existing reel publishes input values and freezes them during dialogs. */
+.crosswinds-project {
+  position:relative;
+  width:100%;
+  min-width:0;
+  transform-style:preserve-3d;
+  color:#eeece6;
+  box-shadow:none;
+}
+.crosswinds-depth {
+  position:relative;
+  padding:0 14px 20px 0;
+  transform-style:preserve-3d;
+  transform:rotateY(-3deg);
+}
+.crosswinds-depth::before {
+  content:'';
+  position:absolute;
+  inset:14px 0 48px 22px;
+  border:1px solid #53606d;
+  background:#101721;
+  transform:translateZ(-24px) rotateZ(2deg);
+  border-radius:4px;
+  pointer-events:none;
+}
+.crosswinds-art-frame {
+  position:relative;
+  width:100%;
+  transform:translateZ(-8px);
+  border:1px solid #53606d88;
+  border-radius:4px;
+  box-shadow:0 20px 40px #0006;
+}
+html[data-page=home] .crosswinds-art-frame .crosswinds-art,
+.crosswinds-art-frame .crosswinds-art {
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:2.5;
+  object-fit:contain;
+  padding:0;
+  border:0;
+  border-radius:3px;
+  background:#131923;
+  max-height:none;
+}
+.crosswinds-art-frame::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,#080a1000 50%,#080a1077);
+  pointer-events:none;
+}
+.crosswinds-story {
+  position:relative;
+  width:88%;
+  margin:-48px 0 0 auto;
+  padding:23px 30px 25px;
+  border:1px solid #53606daa;
+  border-top-color:#c89c78;
+  border-radius:3px;
+  background:#111923;
+  transform:translateZ(38px);
+  box-shadow:0 22px 48px #0007;
+}
+.crosswinds-brand {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px 20px;
+  margin:0 0 12px;
+  color:#c89c78;
+  font-size:11px;
+  line-height:1.5;
+}
+.crosswinds-brand span { color:#afb6c0; }
+.crosswinds-scene-title {
+  font-family:Literata,serif;
+  font-size:clamp(24px,2.4vw,36px);
+  line-height:1.2;
+  letter-spacing:-.035em;
+  margin:0 0 14px;
+  color:#eeece6;
+}
+.crosswinds-story blockquote {
+  margin:0;
+  font-family:Literata,serif;
+  font-size:clamp(15px,1.28vw,20px);
+  line-height:1.65;
+  color:#eeece6;
+  max-width:48ch;
+}
+.crosswinds-choice { margin-top:19px; padding-top:14px; border-top:1px solid #343c48; }
+.crosswinds-choice>p { font-size:10px; color:#afb6c0; margin:0 0 5px; }
+.crosswinds-choice-list { list-style:none; padding:0; margin:0; font-size:13px; line-height:1.55; color:#eeece6; }
+.crosswinds-launch {
+  display:inline-flex;
+  align-items:center;
+  margin-top:18px;
+  padding-bottom:4px;
+  border-bottom:1px solid #c89c78;
+  font-size:12px;
+  font-weight:500;
+  color:#eeece6;
+}
+.crosswinds-launch:hover { color:#b9dbea; border-color:#b9dbea; }
+.crosswinds-launch:focus-visible { outline:2px solid #b9dbea; outline-offset:6px; }
+.projects-chapter:is([data-project-reel=active],[data-project-reel=suspended]) .crosswinds-depth {
+  transform:translate3d(calc(var(--reel-sweep,0)*-10px),0,0) rotateY(calc(-3deg + var(--reel-sweep,0)*7deg));
+}
+.projects-chapter:is([data-project-reel=active],[data-project-reel=suspended]) .crosswinds-story {
+  transform:translate3d(calc(var(--reel-pointer-x,0)*5px),calc(var(--reel-pointer-y,0)*4px),38px);
+}
+.detail-media .crosswinds-project { perspective:1400px; max-width:1000px; margin-inline:auto; }
+.detail-media .crosswinds-story blockquote { font-size:20px; }
+@media (min-width:1024px) and (max-height:850px) {
+  .project-demo .crosswinds-depth { padding-bottom:12px; }
+  .project-demo .crosswinds-story { margin-top:-36px; padding:16px 23px 18px; }
+  .project-demo .crosswinds-brand { margin-bottom:7px; font-size:10px; }
+  .project-demo .crosswinds-scene-title { font-size:26px; margin-bottom:9px; }
+  .project-demo .crosswinds-story blockquote { font-size:14px; line-height:1.6; }
+  .project-demo .crosswinds-choice { margin-top:12px; padding-top:9px; }
+  .project-demo .crosswinds-choice-list { font-size:11px; }
+  .project-demo .crosswinds-launch { margin-top:12px; font-size:11px; }
+}
+@media (max-width:1023px),(pointer:coarse) {
+  .crosswinds-depth { padding:0 5px 18px 0; }
+  .crosswinds-story { width:94%; margin-top:-15px; padding:20px; }
+  .crosswinds-brand { font-size:10px; }
+  .crosswinds-scene-title { font-size:28px; }
+  .crosswinds-story blockquote,.detail-media .crosswinds-story blockquote { font-size:16px; line-height:1.7; }
+  .crosswinds-choice-list { font-size:12px; }
+  .crosswinds-depth::before { inset:8px 0 36px 10px; }
+}
+@media (max-width:380px) {
+  .crosswinds-story { padding:17px; }
+  .crosswinds-brand { gap:4px 14px; font-size:9px; }
+}
+html[data-motion=off] .crosswinds-depth,
+.projects-chapter[data-project-reel=static] .crosswinds-depth { transform:none; }
+@media (prefers-reduced-motion:reduce) {
+  .crosswinds-depth { transform:none!important; }
+}

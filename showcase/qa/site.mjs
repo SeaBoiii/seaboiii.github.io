@@ -316,6 +316,70 @@ try {
     }
   });
 
+  await group('Crosswinds layered story presentation',async () => {
+    await home();
+    await jump('crosswinds-in-sapa');
+    const stage = page.locator('[data-project-stage="crosswinds-in-sapa"]');
+    const preview = stage.locator('[data-crosswinds-project]');
+    const depth = preview.locator('.crosswinds-depth');
+    const surface = stage.locator('.project-demo-surface');
+    const art = preview.locator('.crosswinds-art');
+    await art.evaluate(image => image.decode());
+    await frames(page,3);
+    check(await page.locator('.project-stage .project-demo-surface').count() === 6,'Crosswinds keeps the six native project demonstration surfaces');
+    check(/Crosswinds\s+in\s+Sapa/.test((await preview.textContent()).replace(/\s+/g,' ')),'The story preview carries the complete Crosswinds in Sapa identity');
+    const image = await art.evaluate(image => ({src:image.getAttribute('src'),width:image.naturalWidth,height:image.naturalHeight}));
+    check(image.src.endsWith('/crosswinds-prologue.webp') && image.width >= 1000 && image.height >= 500,'Crosswinds uses the original prologue artwork with a fresh asset URL',image);
+    const choices = await preview.locator('.crosswinds-choice-list').evaluate(element => ({count:element.querySelectorAll('li').length,text:element.textContent.trim()}));
+    check(choices.count === 1 && choices.text.includes('Let the memories come without trying to control the order.'),'The portfolio preview exposes the verified prologue choice',choices);
+    const launch = preview.locator('.crosswinds-launch');
+    check(await launch.getAttribute('href') === 'https://seaboiii.github.io/visual_novel/','Crosswinds retains an explicit launch link to the playable story');
+    const transform = locator => locator.evaluate(element => getComputedStyle(element).transform);
+    await chapter('projects',.92);
+    const arriving = await transform(depth);
+    await chapter('projects',1);
+    const settled = await transform(depth);
+    check(arriving !== 'none' && arriving !== settled,'Native project travel changes the layered Crosswinds scene pose',{arriving,settled});
+    const bounds = await surface.boundingBox();
+    const neutral = await transform(surface);
+    await page.mouse.move(bounds.x+bounds.width*.8,bounds.y+bounds.height*.25);
+    await frames(page);
+    check(await transform(surface) !== neutral,'Crosswinds scene responds to fine-pointer perspective');
+    await launch.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    check(await launch.evaluate(element => document.activeElement === element && getComputedStyle(element).outlineStyle !== 'none'),'The playable story launch has visible keyboard focus');
+    const open = stage.locator('[data-project-open]');
+    await open.focus();
+    const before = [await transform(surface),await transform(depth)];
+    const position = await page.evaluate(() => scrollY);
+    await page.keyboard.press('Enter');
+    const dialog = await activeModal('crosswinds-in-sapa');
+    check(await dialog.locator('[data-crosswinds-project] .crosswinds-art').getAttribute('src') === image.src,'Crosswinds popout shares the current scene artwork');
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('portfolio:chapter',{detail:{key:'projects',progress:.15,active:true}})));
+    await frames(page,3);
+    const frozen = [await transform(surface),await transform(depth)];
+    check(before.every((matrix,index) => matrix === frozen[index]),'The project popout freezes the exact Crosswinds scene pose',{before,frozen});
+    await page.keyboard.press('Escape');
+    await closed(page,position);
+    const standalone = await context.request.get(base+'/work/crosswinds-in-sapa/');
+    const markup = await standalone.text();
+    check(standalone.status() === 200 && markup.includes('data-crosswinds-project') && markup.includes(image.src),'The standalone Crosswinds case study shares the layered presentation');
+    await axe('Crosswinds project presentation');
+    for(const width of [320,390]) {
+      const phone = await newPage({viewport:{width,height:900},isMobile:true,hasTouch:true});
+      await home(phone.page);
+      const phonePreview = phone.page.locator('[data-project-stage="crosswinds-in-sapa"] [data-crosswinds-project]');
+      await phonePreview.scrollIntoViewIfNeeded();
+      await phonePreview.locator('.crosswinds-art').evaluate(image => image.decode());
+      await frames(phone.page,3);
+      const size = await overflow(phone.page);
+      check(size.scroll <= width && size.body <= width,'Crosswinds has no horizontal overflow at '+width+'px',size);
+      check(await phonePreview.locator('.crosswinds-launch').isVisible() && await phonePreview.locator('.crosswinds-choice-list').isVisible(),'Crosswinds artwork, choices and launch remain available at '+width+'px');
+      await closeContext(phone.context);
+    }
+  });
+
   await group('All twelve ordinary links, dialog dismissal and exact restoration',async () => {
     await home();
     for(let index=0;index<slugs.length;index++) {

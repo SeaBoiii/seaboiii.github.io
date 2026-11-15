@@ -20,7 +20,7 @@ Assets belong to this portfolio unless a source below says otherwise. Generated 
 | `classility.webp`, `classility-demo.mp4`, `classility-demo.webm` | Fresh 1280×800 browser capture of [Classility](https://seaboiii.github.io/classility/), 2026-10-07. The recording opens the doors, answers twenty questions, and reaches the actual Paladin result. |
 | `rover.webp`, `rover-demo.mp4`, `rover-demo.webm` | Fresh browser capture of [AMD AI Rover Challenge](https://seaboiii.github.io/amd_robotics/), 2026-10-07. Demonstrates local team setup, rule editing, the first movement simulator, and genuine failed-mission feedback. The clip deliberately preserves the observed outcome; it does not claim a completed mission. This is a browser simulation, not physical robot footage. |
 | `tiny-ai.webp`, `tiny-ai-demo.mp4`, `tiny-ai-demo.webm` | Fresh local browser capture of the owner's public [Train a Tiny AI source](https://github.com/SeaBoiii/amd_trainatinyai/tree/315251c5c586de4a7da5f3503ad70e3d3d83e994), 2026-10-07. Demonstrates the Color Mixer Lab: eight user-supplied examples across four labels, then a real classifier prediction. No NPU benchmark or fabricated accuracy claim. The public Pages URL returned 404, so the original source was served locally without content edits. |
-| `potionality.webp`, `visual-novel.webp`, `nizam.webp`, `tetris.webp`, `age-of-war.webp`, `aleem.webp` | Existing photographs and real project screenshots copied from `portfolio/public/portfolio-assets/media/`, visually inspected before reuse. Their original capture dates are unknown. |
+| `potionality.webp`, `nizam.webp`, `tetris.webp`, `age-of-war.webp`, `aleem.webp` | Existing photographs and real project screenshots copied from `portfolio/public/portfolio-assets/media/`, visually inspected before reuse. Their original capture dates are unknown. |
 | `workbench-film.mp4`, `workbench-film.webm`, `workbench-film-poster.webp` | One eight-second 1280×720 Gemini Omni studio illustration, generated on 2026-10-07. MP4 compressed to H.264, WebM to VP9, unexpected source audio removed, poster extracted at one second. The camera moves subtly; the ends are not frame-identical, so use normal playback rather than advertising a seamless loop. |
 | `workbench-poster.webp` | A capture of the actual website's procedural 3D scene. Used as the SSR, reduced-data, and unavailable-WebGL fallback. |
 | `workbench-render.mp4`, `workbench-render.webm` | Deterministic capture of the actual React Three Fiber scene, produced by `scripts/render-workbench.mjs`; this is authored procedural 3D rather than an AI video. |
@@ -80,6 +80,12 @@ All twelve marks under `public/showcase-assets/logos/` are transparent 128×128 
 `novels-archive.webp` is a new 1280×800 capture of the combined production preview's `/novel/` entrance, taken on 15 November 2026 after its real-cover 3D archive settled. The homepage, library project dialog and standalone case study share this asset. Its new filename refreshes browser caches that held the older library capture. Regenerate with `SITE_URL=http://127.0.0.1:4176 node showcase/scripts/capture-library-preview.mjs` using the current combined build.
 
 The Independent Work library preview adds three CSS 3D volumes using the existing Crossroads of the Heart, Second Skin and The Ledger of Ash covers. Front, rear, spine and page surfaces form each linked book. The native chapter controller drives their depth. This update submitted zero paid generation jobs.
+
+### Crosswinds narrative artwork
+
+`crosswinds-prologue.webp` derives from the author's original 1536×614 `images/prologue.png`, verified at source commit `c150995bd455c3218efe225c4f5a7328c6e912de`. It was resized to 1280×512 and encoded as a 135,428-byte WebP at quality 88. The original PNG SHA256 is `98a67bce909954c28cdc35d4469b08787c7b685ef921721cc1eb000e35be71b7`. [Original artwork](https://github.com/SeaBoiii/visual_novel/blob/c150995bd455c3218efe225c4f5a7328c6e912de/images/prologue.png).
+
+The preview's Memory Load passage and single opening choice match node `prologue` in the same source revision. Its dark panels and depth are native CSS artwork. Paid generation submissions total zero. [Verified story data](https://github.com/SeaBoiii/visual_novel/blob/c150995bd455c3218efe225c4f5a7328c6e912de/data/story.json).
 
 | Mark | Source |
 | --- | --- |

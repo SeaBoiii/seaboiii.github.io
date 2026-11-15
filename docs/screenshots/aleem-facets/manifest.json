@@ -59,12 +59,28 @@
       "url": "/"
     },
     {
+      "name": "project-crosswinds.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/"
+    },
+    {
       "name": "project-popout.png",
       "viewport": {
         "width": 1440,
         "height": 1000
       },
       "url": "/#project/icm-buddy"
+    },
+    {
+      "name": "project-crosswinds-popout.png",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "/#project/crosswinds-in-sapa"
     },
     {
       "name": "portfolio-mobile.png",
@@ -89,6 +105,14 @@
         "height": 1200
       },
       "url": "/#stage-novels-library"
+    },
+    {
+      "name": "project-crosswinds-mobile.png",
+      "viewport": {
+        "width": 390,
+        "height": 1300
+      },
+      "url": "/#stage-crosswinds-in-sapa"
     }
   ],
   "pageErrors": []

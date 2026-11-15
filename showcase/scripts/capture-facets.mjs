@@ -55,7 +55,7 @@ try {
     scrollTo({ top: collection.getBoundingClientRect().top + scrollY - document.querySelector('header').getBoundingClientRect().height - 12, behavior: 'instant' });
   });
   await snapshot(page, 'library-catalogue');
-  for (const [slug, name] of [['icm-buddy', 'independent-work'], ['novels-library', 'project-library']]) {
+  for (const [slug, name] of [['icm-buddy', 'independent-work'], ['novels-library', 'project-library'], ['crosswinds-in-sapa', 'project-crosswinds']]) {
     console.log('Capturing ' + name);
     await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('html[data-experience-ready="true"]', { state: 'attached' });
@@ -81,6 +81,11 @@ try {
   await page.goto(base + '/#project/icm-buddy', { waitUntil: 'networkidle' });
   await page.waitForSelector('dialog[open]');
   await snapshot(page, 'project-popout');
+  await page.goto(base + '/#project/crosswinds-in-sapa', { waitUntil: 'domcontentloaded' });
+  const crosswindsDialog = page.locator('dialog[data-project-dialog="crosswinds-in-sapa"][open]');
+  await crosswindsDialog.waitFor();
+  await crosswindsDialog.evaluate(dialog => dialog.scrollBy({ top: dialog.querySelector('.detail-media').getBoundingClientRect().top - dialog.getBoundingClientRect().top - 90, behavior: 'instant' }));
+  await snapshot(page, 'project-crosswinds-popout');
   const phoneContext = await browser.newContext({ viewport: { width: 390, height: 1000 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   const phone = await phoneContext.newPage();
   phone.on('pageerror', error => errors.push(error.message));
@@ -94,6 +99,10 @@ try {
   await phone.goto(base + '/#stage-novels-library', { waitUntil: 'networkidle' });
   await phone.locator('[data-project-stage="novels-library"]').evaluate(stage => scrollTo({ top: stage.getBoundingClientRect().top + scrollY - document.querySelector('.site-header').getBoundingClientRect().height, behavior: 'instant' }));
   await snapshot(phone, 'project-library-mobile');
+  await phone.setViewportSize({ width: 390, height: 1300 });
+  await phone.goto(base + '/#stage-crosswinds-in-sapa', { waitUntil: 'domcontentloaded' });
+  await phone.locator('[data-project-stage="crosswinds-in-sapa"]').evaluate(stage => scrollTo({ top: stage.getBoundingClientRect().top + scrollY - document.querySelector('.site-header').getBoundingClientRect().height, behavior: 'instant' }));
+  await snapshot(phone, 'project-crosswinds-mobile');
   if (errors.length) throw new Error(errors.join('\n'));
   await writeFile(resolve(output, 'manifest.json'), JSON.stringify({ base, source: 'Actual combined production build', images, pageErrors: errors }, null, 2) + '\n');
   console.log(`Captured ${images.length} production screenshots with no page errors.`);
